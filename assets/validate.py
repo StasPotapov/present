@@ -6,7 +6,8 @@
 Проверяет: целостность kernel (маркер версии, base/print-стили, chrome-DOM, presenter, экспорт в PDF),
 остаточные {{…}}-плейсхолдеры, сетевые ссылки (дека должна быть офлайн), синтаксис
 JS через node --check (kernel и <slug>-notes.js), синхронность секций notes.js со
-слайдами, наличие сопутствующих файлов (slides.md, design.md, DECK.md).
+слайдами, наличие сопутствующих файлов (slides.md, design.md, DECK.md — рядом с декой
+или уровнем выше) и чистоту папки показа deck/ (в ней только html, notes.js, deck-assets/).
 
 Exit 0 — ошибок нет (предупреждения допустимы), exit 1 — есть ошибки.
 Динамическую проверку переполнения слайдов делает сам kernel: открой деку с ?check.
@@ -126,10 +127,29 @@ def main():
     else:
         warns.append("node не найден — синтаксис JS не проверен")
 
-    # ── 6. Сопутствующие файлы в папке деки ─────────────────────────────────
+    # ── 6. Сопутствующие файлы (рабочая папка — рядом или уровнем выше) ─────
+    # Раскладка скилла: дека лежит в <рабочая папка>/deck/, а slides.md/design.md/DECK.md — в самой
+    # рабочей папке. Старые деки лежат прямо в рабочей папке, поэтому ищем в обоих местах.
+    look_in = [deck.parent, deck.parent.parent]
     for name, why in [("slides.md", "текст слайдов"), ("design.md", "дизайн-бриф"), ("DECK.md", "манифест деки")]:
-        if not (deck.parent / name).exists():
-            warns.append(f"в папке нет {name} ({why})")
+        if not any((d / name).exists() for d in look_in):
+            warns.append(f"ни в папке деки, ни в рабочей папке нет {name} ({why})")
+
+    # ── 7. Чистота папки показа ─────────────────────────────────────────────
+    # В deck/ должно лежать только нужное для показа: html, его notes.js, sidecar deck-assets/.
+    if deck.parent.name.endswith("deck"):
+        extra = [
+            p.name for p in sorted(deck.parent.iterdir())
+            if not p.name.startswith(".")
+            and p.name != deck.name
+            and p.name != notes.name
+            and not (p.is_dir() and p.name == "deck-assets")
+        ]
+        if extra:
+            warns.append(
+                "в папке показа лежит лишнее (её должно хватать для показа и ничего больше): "
+                + ", ".join(extra[:8])
+            )
 
     # ── Отчёт ────────────────────────────────────────────────────────────────
     for w in warns:
