@@ -1,0 +1,459 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   PLAYFUL — тёплая кремовая бумага с одним ядовито-розовым маркером.
+   Арт-дирекшн по design.md (styles.refero.design → «Playful»).
+   Подпись стиля: жирный КУРСИВНЫЙ Inter крупняком + белые карточки r44 с
+   глубокой мягкой тенью + пилюли + единственный хроматический голос #ff2e95.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/*__INTER_FACES__*/   /* сюда build.py вставляет @font-face Inter (base64, cyrillic+latin, roman+italic) */
+
+:root{
+  /* палитра — токены брифа один в один */
+  --canvas:#f6f2ee; --paper:#ffffff; --ink:#111111; --black:#000000;
+  --slate:#0f172a; --charcoal:#414040; --stone:#848383; --mist:#e8e5e0;
+  --sand:#e2dcd6; --driftwood:#c3c1bf; --midnight:#202126; --magenta:#ff2e95;
+
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+
+  /* единственный shadow-stack системы: 80px «подъём» + 8px контактная кромка */
+  --sh-xl:rgba(0,0,0,.22) 0 32px 80px 0, rgba(0,0,0,.08) 0 2px 8px 0;
+  --sh-sm:rgba(0,0,0,.13) 0 14px 38px 0, rgba(0,0,0,.06) 0 2px 6px 0;
+
+  --r-card:44px; --r-node:28px; --r-img:16px; --r-pill:99px;
+}
+
+/* ── база ─────────────────────────────────────────────────────────────── */
+body{
+  background:var(--canvas); color:var(--ink); font-family:var(--sans);
+  font-feature-settings:"ss01" on,"cv11" on;
+  -webkit-font-smoothing:antialiased; letter-spacing:-.002em;
+}
+.slide{padding:7.5vh 7.5vw; gap:0}
+
+/* фон: тёплая бумага + один розовый отсвет в углу + едва слышная зернистость */
+#bg{
+  background:
+    radial-gradient(58vw 46vh at 92% -8%, rgba(255,46,149,.10), transparent 68%),
+    radial-gradient(52vw 44vh at -8% 104%, rgba(226,220,214,.85), transparent 70%);
+}
+#bg::after{
+  content:''; position:absolute; inset:0; opacity:.045; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* хром деки — под светлую бумагу */
+#bar{background:linear-gradient(90deg,var(--magenta),#ff8ac4)}
+#counter{color:var(--stone); opacity:1; font-family:var(--mono); font-weight:600}
+#hint{color:var(--driftwood); opacity:1; font-family:var(--mono)}
+
+/* ── типографика ──────────────────────────────────────────────────────── */
+h1{
+  font-weight:900; font-style:italic; line-height:1;
+  font-size:clamp(2.5rem,6.6vw,6rem); letter-spacing:-.002em; color:var(--ink);
+}
+h2{
+  font-weight:700; font-style:italic; line-height:1.04;
+  font-size:clamp(1.85rem,4.3vw,3.5rem); letter-spacing:-.002em; color:var(--ink);
+}
+h3{font-weight:700; font-size:clamp(1rem,1.6vw,1.38rem); line-height:1.2}
+.lead{
+  font-weight:400; font-size:clamp(.95rem,1.35vw,1.18rem); line-height:1.5;
+  color:var(--slate); max-width:58ch; margin-top:1.1rem;
+}
+.sub{font-weight:600; font-size:clamp(1.05rem,1.85vw,1.6rem); line-height:1.23; color:var(--ink)}
+.cap{font-size:clamp(.7rem,.92vw,.82rem); font-weight:500; color:var(--stone); line-height:1.4}
+.foot{margin-top:clamp(1.1rem,2.8vh,2rem); font-size:clamp(.78rem,1.05vw,.95rem); color:var(--charcoal)}
+.mono{font-family:var(--mono)}
+.mg{color:var(--magenta)}
+.up{font-style:normal}           /* прямой кусок внутри курсивного заголовка */
+.dim{color:var(--stone)}
+b,strong{font-weight:700}
+code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
+
+/* ── чёрная лента-навигация: где мы в конвейере (переосмысленный category bar) ── */
+.nav{
+  display:inline-flex; align-items:center; gap:clamp(14px,1.6vw,26px);
+  background:var(--black); color:#fff; border-radius:var(--r-pill);
+  padding:.62em 1.5em; width:fit-content; font-weight:500;
+  font-size:clamp(.7rem,.92vw,.86rem); margin-bottom:clamp(1.4rem,3.2vh,2.6rem);
+}
+.nav i{font-style:normal; opacity:.38}
+.nav i.on{opacity:1; color:var(--magenta); font-weight:700}
+.nav .sep{opacity:.22}
+
+/* ── пилюли ───────────────────────────────────────────────────────────── */
+.pill{
+  display:inline-flex; align-items:center; gap:.55em; border-radius:var(--r-pill);
+  padding:.62em 1.2em; font-weight:600; white-space:nowrap;
+  font-size:clamp(.76rem,1.02vw,.94rem); width:fit-content;
+}
+.pill.solid{background:var(--magenta); color:#fff}
+.pill.dark{background:var(--black); color:#fff; font-weight:500}
+.pill.ghost{background:transparent; border:1px solid var(--sand); color:var(--charcoal); font-weight:500}
+.pill.paper{background:var(--paper); color:var(--ink); box-shadow:var(--sh-sm)}
+.pill.mono{font-family:var(--mono); letter-spacing:0}
+.pillrow{display:flex; gap:.65rem; flex-wrap:wrap; align-items:center}
+.pillrow.mt{margin-top:clamp(1.2rem,3vh,2.2rem)}
+
+/* ── карточки (kernel переигрывает .card при заходе на слайд) ─────────── */
+.card{
+  background:var(--paper); border-radius:var(--r-card); padding:1.5rem 1.7rem;
+  box-shadow:var(--sh-xl); opacity:0; animation:pop .55s cubic-bezier(.2,.8,.25,1) both;
+}
+.card.ink{background:var(--ink); color:var(--canvas)}
+.card.ink .cap,.card.ink .dim{color:var(--driftwood)}
+.card .kicker{font-size:clamp(.68rem,.88vw,.78rem); font-weight:600; color:var(--stone); letter-spacing:.04em; text-transform:uppercase}
+.card h3{margin-top:.45rem}
+.card p{margin-top:.5rem; font-size:clamp(.82rem,1.1vw,.98rem); line-height:1.5; color:var(--slate)}
+
+@keyframes pop{from{opacity:0; transform:translateY(22px) scale(.975)} to{opacity:1; transform:none}}
+@keyframes rise{from{opacity:0; transform:translateY(15px)} to{opacity:1; transform:none}}
+@keyframes gitin{from{opacity:0; transform:translateX(-22px)} to{opacity:1; transform:none}}
+.reveal{animation:rise .55s cubic-bezier(.2,.8,.25,1) both}
+
+/* ── 02 · осыпь тегов-боли (kernel переигрывает .tab) ─────────────────── */
+.tabs{display:flex; flex-wrap:wrap; gap:.55rem; margin-top:clamp(1.6rem,3.6vh,2.6rem); max-width:64ch}
+.tab{
+  display:inline-flex; align-items:center; border-radius:var(--r-pill);
+  padding:.5em 1.05em; background:transparent; border:1px solid var(--sand);
+  color:var(--stone); font-weight:500; font-size:clamp(.74rem,1vw,.9rem);
+  opacity:0; animation:rise .45s cubic-bezier(.2,.8,.25,1) both;
+}
+
+/* ── 03/15 · карта конвейера и петли ──────────────────────────────────── */
+/* петля живёт ВНУТРИ ряда, к которому относится (.stages / .cycrow) — иначе
+   её левый конец уезжает под соседние блоки и стрелка указывает не туда */
+.hasloop{padding-bottom:clamp(2.4rem,5.2vh,3.4rem)}
+.loopline{
+  position:absolute; left:2%; right:2%; top:100%; height:clamp(1.9rem,4vh,2.8rem);
+  border:2px dashed var(--magenta); border-top:0; border-radius:0 0 30px 30px; opacity:.75;
+}
+.loopline .head{
+  position:absolute; left:-.52em; bottom:calc(100% - .1em); line-height:1;
+  color:var(--magenta); font-size:1.25rem; font-weight:900;
+}
+.loopline .cap{
+  position:absolute; bottom:0; left:50%; transform:translate(-50%,50%);
+  background:var(--canvas); padding:0 .8rem; color:var(--magenta);
+  font-weight:600; font-size:clamp(.72rem,.95vw,.85rem); white-space:nowrap;
+}
+/* border-width пишем в три значения: верх обязан остаться 0, иначе петля
+   рисует лишнюю линию по нижней кромке карточек */
+.loopline.hot{opacity:1; border-style:solid; border-width:0 3px 3px}
+.loopline.thin{border-style:dashed; border-width:0 2px 2px; opacity:.55}
+.loopline.thin .cap,.loopline.thin .head{color:var(--charcoal)}
+
+.map{display:flex; align-items:center; gap:clamp(.8rem,1.8vw,1.6rem); margin-top:clamp(1.8rem,4.4vh,3rem)}
+.inflows{display:flex; flex-direction:column; gap:.7rem; flex:none}
+.inflow{
+  display:flex; align-items:center; gap:.6rem; background:var(--paper);
+  border-radius:var(--r-pill); padding:.7em 1.15em; box-shadow:var(--sh-sm);
+  font-size:clamp(.76rem,1.02vw,.92rem); font-weight:600; white-space:nowrap;
+}
+/* иконки — только штриховые, в Stone (Do/Don't брифа: никаких залитых цветом пиктограмм) */
+.ic{
+  width:1.15em; height:1.15em; flex:none; fill:none; stroke:var(--stone);
+  stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; vertical-align:-.18em;
+}
+.inflow .sub2{font-weight:400; color:var(--stone); font-size:.88em}
+.merge{color:var(--driftwood); font-size:clamp(1.1rem,1.8vw,1.6rem); flex:none}
+.stages{position:relative; display:flex; align-items:stretch; gap:clamp(.5rem,1.2vw,1rem); flex:1}
+.stage{
+  flex:1; background:var(--paper); border-radius:var(--r-node); padding:1.05rem 1.25rem;
+  box-shadow:var(--sh-xl); display:flex; flex-direction:column; gap:.25rem; min-width:0;
+}
+.stage .idx{font-family:var(--mono); font-size:.72rem; color:var(--magenta); font-weight:700}
+.stage .nm{font-weight:800; font-style:italic; font-size:clamp(1rem,1.7vw,1.5rem); line-height:1.1}
+.stage .art{font-family:var(--mono); font-size:clamp(.68rem,.9vw,.8rem); color:var(--charcoal); letter-spacing:0}
+.stage .art b{color:var(--ink)}
+.stage.on{box-shadow:0 0 0 2px var(--magenta), var(--sh-xl)}
+.ar{display:flex; align-items:center; color:var(--driftwood); font-size:clamp(1.1rem,1.7vw,1.5rem); flex:none}
+
+/* ── 04 · две колонки ─────────────────────────────────────────────────── */
+.split{display:grid; grid-template-columns:1fr auto 1fr; gap:clamp(.9rem,2.2vw,2rem); align-items:center; margin-top:clamp(1rem,2.6vh,1.8rem)}
+.split .ar{justify-content:center; color:var(--magenta); font-weight:800}
+
+/* ── 05 · цепочка (kernel: .chain → .seq, узлы по очереди) ────────────── */
+.chain{display:flex; align-items:center; gap:clamp(.55rem,1.3vw,1.1rem); flex-wrap:wrap; margin-top:clamp(1.4rem,3.2vh,2.4rem)}
+.chain .node{
+  background:var(--paper); border-radius:var(--r-node); padding:1.05rem 1.35rem;
+  box-shadow:var(--sh-xl); display:flex; flex-direction:column; gap:.22rem; min-width:150px;
+}
+.chain .node .big{font-weight:800; font-size:clamp(.98rem,1.5vw,1.3rem); line-height:1.15}
+.chain .node .lbl{font-size:clamp(.7rem,.92vw,.82rem); color:var(--stone); font-weight:500}
+.chain .arrow{color:var(--driftwood); font-size:clamp(1.1rem,1.7vw,1.5rem)}
+.chain.seq .node{opacity:0; transform:translateY(20px); transition:opacity .5s ease,transform .5s ease}
+.chain.seq .node.show{opacity:1; transform:none}
+.chain.seq .arrow{opacity:.2; transition:opacity .45s ease,color .45s ease}
+.chain.seq .arrow.show{opacity:1; color:var(--magenta)}
+
+/* ── 06 · розовая полоса-акцент + реплики ─────────────────────────────── */
+.slide.wash::before{
+  content:''; position:absolute; inset:0; z-index:-1;
+  background:radial-gradient(78vw 78vh at 50% 112%, rgba(255,46,149,.5), rgba(206,150,224,.26) 44%, rgba(246,242,238,0) 74%);
+}
+.vs{display:flex; align-items:center; gap:clamp(.8rem,2vw,1.6rem); flex-wrap:wrap; margin-top:clamp(1.6rem,3.6vh,2.6rem)}
+.bub{
+  background:var(--paper); border-radius:28px 28px 28px 8px; padding:.95rem 1.4rem;
+  box-shadow:var(--sh-sm); font-style:italic; font-weight:600; color:var(--charcoal);
+  font-size:clamp(.9rem,1.35vw,1.2rem);
+}
+.bub.b{background:var(--ink); color:#fff; border-radius:28px 28px 8px 28px}
+.bub.b em{color:var(--magenta); font-style:italic}
+.vs .ar{color:var(--stone)}
+
+/* ── 07/14 · до-после ─────────────────────────────────────────────────── */
+.ba{display:grid; grid-template-columns:1fr auto 1fr; gap:clamp(.9rem,2.2vw,2rem); align-items:center; margin-top:clamp(1.2rem,3vh,2.2rem)}
+.ba .side{background:var(--paper); border-radius:var(--r-card); padding:1.4rem 1.6rem; box-shadow:var(--sh-xl)}
+.ba .side.off{background:transparent; border:1px dashed var(--sand); box-shadow:none; color:var(--stone)}
+.ba .vsarr{color:var(--magenta); font-size:clamp(1.3rem,2.2vw,2rem); font-weight:900; text-align:center}
+.strike{text-decoration:line-through; text-decoration-color:var(--magenta); text-decoration-thickness:3px}
+
+/* ── карточка «как код» (кусок design.md, сырой транскрипт) ───────────── */
+.codecard{
+  font-family:var(--mono); letter-spacing:0; background:var(--paper);
+  border:1px solid var(--mist); border-radius:24px; padding:1.1rem 1.3rem;
+  box-shadow:var(--sh-sm); color:var(--charcoal); line-height:1.75;
+  font-size:clamp(.6rem,.88vw,.78rem); overflow:hidden;
+}
+.codecard .k{color:var(--magenta); font-weight:600}
+.codecard .c{color:var(--driftwood)}
+.codecard .sw{display:inline-block; width:.75em; height:.75em; border-radius:50%; vertical-align:-1px; margin-right:.35em}
+.codecard.raw{color:var(--stone)}
+.codecard.raw .um{color:var(--driftwood)}
+.codecard.clean{color:var(--ink)}
+.codecard.clean .t{color:var(--magenta); font-weight:600}
+
+/* ── 09 · три деки ────────────────────────────────────────────────────── */
+.gallery{display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(.8rem,1.9vw,1.6rem); margin-top:clamp(1.2rem,3vh,2rem)}
+.gallery figure{margin:0}
+.gallery img{width:100%; display:block; border-radius:var(--r-img); box-shadow:var(--sh-xl)}
+.gallery figcaption{margin-top:.65rem; text-align:center; font-size:clamp(.7rem,.92vw,.82rem); color:var(--stone); font-weight:500}
+.onecap{margin-top:clamp(1rem,2.4vh,1.6rem); text-align:center; font-style:italic; font-weight:700; font-size:clamp(1rem,1.8vw,1.5rem)}
+
+/* ── 10/13 · статичная схема ──────────────────────────────────────────── */
+.flow{display:flex; align-items:center; gap:clamp(.5rem,1.2vw,1rem); flex-wrap:wrap; margin-top:clamp(1.2rem,3vh,2rem)}
+.flow .box{
+  background:var(--paper); border-radius:var(--r-node); padding:.95rem 1.25rem;
+  box-shadow:var(--sh-sm); font-weight:600; font-size:clamp(.82rem,1.15vw,1rem);
+}
+.flow .box .lbl{display:block; font-weight:500; color:var(--stone); font-size:.8em; margin-top:.15rem}
+.flow .fa{color:var(--driftwood); font-size:clamp(1.1rem,1.7vw,1.5rem)}
+.bigcmd{
+  font-family:var(--mono); letter-spacing:-.01em; background:var(--ink); color:var(--canvas);
+  border-radius:var(--r-pill); padding:.5em 1.1em; width:fit-content; font-weight:600;
+  font-size:clamp(1.15rem,3vw,2.4rem);
+}
+.bigcmd .mg{color:var(--magenta)}
+.specs{display:flex; gap:.6rem; flex-wrap:wrap; margin-top:clamp(1rem,2.6vh,1.8rem)}
+.spec{
+  background:var(--paper); border-radius:var(--r-pill); padding:.6em 1.25em; box-shadow:var(--sh-sm);
+  font-weight:700; font-size:clamp(.8rem,1.1vw,.98rem);
+}
+.spec b{color:var(--magenta); font-family:var(--mono)}
+
+/* ── 11/15 · круг правок ──────────────────────────────────────────────── */
+.cyc{padding-bottom:clamp(2.2rem,4.8vh,3rem)}
+.cyc+.cyc{margin-top:clamp(1.2rem,3vh,2.2rem)}
+.cycrow{position:relative; display:flex; align-items:center; gap:clamp(.5rem,1.2vw,1rem); flex-wrap:nowrap}
+.cycrow .box{
+  background:var(--paper); border-radius:var(--r-node); padding:.9rem 1.2rem; box-shadow:var(--sh-sm);
+  font-weight:600; font-size:clamp(.78rem,1.08vw,.98rem); flex:1; min-width:0;
+}
+.cycrow .box .lbl{display:block; font-weight:500; color:var(--stone); font-size:.82em; margin-top:.12rem}
+.cyclabel{font-weight:800; font-style:italic; font-size:clamp(.95rem,1.5vw,1.3rem); margin-bottom:.6rem}
+.cyclabel span{font-style:normal; font-weight:500; color:var(--stone); font-size:.78em; margin-left:.5em}
+.branch{display:flex; gap:clamp(.9rem,2.2vw,1.8rem); align-items:flex-start; margin-top:clamp(1.2rem,3vh,2rem)}
+.branch>*{flex:1}
+.badge-opt{
+  display:inline-flex; border-radius:var(--r-pill); padding:.35em .9em; background:var(--mist);
+  color:var(--charcoal); font-size:clamp(.66rem,.85vw,.76rem); font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+}
+
+/* ── 12 · диктофон ────────────────────────────────────────────────────── */
+.rec{display:flex; align-items:center; gap:clamp(1.2rem,3vw,2.6rem); margin-top:clamp(2rem,4.6vh,3.2rem); flex-wrap:wrap}
+.recdot{
+  width:clamp(58px,6.4vw,92px); aspect-ratio:1; border-radius:50%; background:var(--magenta);
+  position:relative; flex:none; box-shadow:0 14px 40px -10px rgba(255,46,149,.75);
+}
+.recdot::after{
+  content:''; position:absolute; inset:0; border-radius:50%; border:2px solid var(--magenta);
+  animation:pulse 2.4s cubic-bezier(.2,.7,.3,1) infinite;
+}
+@keyframes pulse{0%{transform:scale(1); opacity:.6} 100%{transform:scale(1.55); opacity:0}}
+.timer{font-family:var(--mono); font-weight:700; letter-spacing:-.02em; font-size:clamp(2.2rem,6.4vw,5rem); line-height:1}
+.timer .u{color:var(--stone); font-size:.32em; font-weight:500; letter-spacing:0; margin-left:.5em}
+
+/* ── 16 · клавиша ─────────────────────────────────────────────────────── */
+.keys{display:flex; align-items:center; gap:clamp(1.2rem,3vw,2.4rem); margin-top:clamp(1rem,2.6vh,1.8rem); flex-wrap:wrap}
+.keycap{
+  display:inline-flex; align-items:center; justify-content:center; background:var(--paper);
+  font-family:var(--mono); font-weight:700; border-radius:16px; padding:.25em .6em;
+  box-shadow:0 4px 0 var(--sand), var(--sh-sm);
+}
+.keycap.big{font-size:clamp(3.4rem,9.5vw,7.5rem); border-radius:30px; box-shadow:0 10px 0 var(--sand), var(--sh-xl); padding:.12em .38em}
+.demo-list{display:flex; flex-direction:column; gap:.55rem; margin-top:clamp(1.2rem,3vh,2rem)}
+.demo-list div{display:flex; align-items:center; gap:.7rem; font-size:clamp(.86rem,1.2vw,1.05rem); color:var(--slate)}
+.demo-list .n{
+  flex:none; width:1.7em; height:1.7em; border-radius:50%; background:var(--magenta); color:#fff;
+  display:grid; place-items:center; font-size:.78em; font-weight:700; font-family:var(--mono);
+}
+
+/* ── 17 · финальный постер ────────────────────────────────────────────── */
+.final{display:grid; grid-template-columns:auto 1fr; gap:clamp(1.6rem,4vw,3.4rem); align-items:center}
+.qrcard{
+  background:var(--paper); border-radius:var(--r-card); padding:1.3rem; box-shadow:var(--sh-xl);
+  width:clamp(168px,19vw,236px); aspect-ratio:1; display:grid; place-items:center;
+}
+.qr{width:100%; height:auto; display:block; color:var(--ink)}
+.typed{font-style:italic; font-weight:900; color:var(--magenta); font-size:clamp(2rem,5.4vw,4.4rem); line-height:1.02; letter-spacing:-.002em}
+.tcur{color:var(--magenta); animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.triad{display:flex; gap:clamp(.6rem,1.6vw,1.2rem); flex-wrap:wrap; margin-top:clamp(1.2rem,3vh,2rem)}
+.triad span{
+  font-style:italic; font-weight:900; font-size:clamp(1.1rem,2.4vw,2rem);
+  color:var(--ink); letter-spacing:-.002em;
+}
+.triad span+span::before{content:'·'; color:var(--magenta); margin-right:clamp(.6rem,1.6vw,1.2rem); font-style:normal}
+
+/* ── адаптив и доступность ────────────────────────────────────────────── */
+@media (max-width:900px){
+  .split,.ba,.final{grid-template-columns:1fr}
+  .map{flex-wrap:wrap} .gallery{grid-template-columns:1fr}
+  .branch{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  .recdot::after,.tcur{animation:none}
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOTION LAYER v2 — «больше движения, больше красоты» при том же брифе.
+   Всё сделано КЛЮЧЕВЫМИ КАДРАМИ (не статическим opacity:0), поэтому печать в PDF
+   (там animation:none!important) видит нормальные финальные состояния.
+   Слайд неактивен → display:none, значит анимации ПЕРЕИГРЫВАЮТСЯ при каждом заходе.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── фон: тёплая бумага теперь чуть дышит ─────────────────────────────── */
+#bg::before{
+  content:''; position:absolute; width:74vw; height:78vh; right:-16vw; top:-24vh;
+  border-radius:50%; pointer-events:none;
+  background:radial-gradient(closest-side, rgba(255,46,149,.14), rgba(255,46,149,0) 70%);
+  animation:orb 34s ease-in-out infinite alternate;
+}
+@keyframes orb{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(-7vw,7vh,0) scale(1.16)}
+}
+#bar{box-shadow:0 0 16px rgba(255,46,149,.45)}
+
+/* ── вход слайда ──────────────────────────────────────────────────────── */
+.slide{animation:slidein .58s cubic-bezier(.2,.75,.2,1) both}
+@keyframes slidein{from{opacity:0; transform:translateY(20px) scale(.995)} to{opacity:1; transform:none}}
+/* wash растёт ОТ нижней кромки (transform-origin), а не сдвигается вниз:
+   исходный translateY(7%) уводил абсолютный ::before на 53px за низ слайда,
+   и ?check честно ловил переполнение. Эффект тот же, лишней высоты нет. */
+.slide.wash::before{transform-origin:50% 100%; animation:washin 1.5s cubic-bezier(.2,.8,.25,1) both}
+@keyframes washin{from{opacity:0; transform:scale(1.1)} to{opacity:1; transform:none}}
+
+/* ── общие кадры ──────────────────────────────────────────────────────── */
+@keyframes fadein{from{opacity:0} to{opacity:1}}
+@keyframes rise-s{from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none}}
+@keyframes popin{
+  from{opacity:0; transform:translateY(17px) scale(.972) rotate(var(--rot,0deg))}
+  to{opacity:1; transform:rotate(var(--rot,0deg))}
+}
+@keyframes titlein{from{opacity:0; transform:translateY(24px)} to{opacity:1; transform:none}}
+@keyframes nudge{0%,60%,100%{transform:translateX(0)} 72%{transform:translateX(5px)} 84%{transform:translateX(0)}}
+@keyframes bob{0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)}}
+
+/* ── шапка слайда: лента → заголовок → лид → сноска ───────────────────── */
+.slide>.nav{animation:rise-s .5s .04s cubic-bezier(.2,.8,.25,1) both}
+.slide>.pill,.slide>.pillrow{animation:rise-s .5s .07s cubic-bezier(.2,.8,.25,1) both}
+.slide>h1,.slide>h2{animation:titlein .68s .12s cubic-bezier(.2,.8,.25,1) both}
+.slide>.lead{animation:rise-s .6s .3s cubic-bezier(.2,.8,.25,1) both}
+.slide>.foot{animation:rise-s .6s .55s cubic-bezier(.2,.8,.25,1) both}
+
+/* ── маркер: розовая полоса «дочерчивается» под акцентными словами ─────── */
+h1 .mg,h2 .mg{
+  background-image:linear-gradient(rgba(255,46,149,.16),rgba(255,46,149,.16));
+  background-repeat:no-repeat; background-position:0 90%; background-size:100% .15em;
+  animation:hl .8s .48s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes hl{from{background-size:0 .15em} to{background-size:100% .15em}}
+
+/* ── зачёркивание проявляется вслед за заголовком (07) ────────────────── */
+.strike{
+  text-decoration:line-through; text-decoration-color:var(--magenta); text-decoration-thickness:3px;
+  animation:strikein .55s .6s ease both;
+}
+@keyframes strikein{from{text-decoration-color:rgba(255,46,149,0)} to{text-decoration-color:var(--magenta)}}
+
+/* ── каскад внутри блоков-схем и рядов ────────────────────────────────── */
+:is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*{
+  animation:popin .52s cubic-bezier(.2,.8,.25,1) both;
+}
+/* стрелки: только проявляются и живут лёгким кивком (transform свободен) */
+:is(.stages,.flow,.cycrow,.split,.vs,.ba)>:is(.ar,.fa,.vsarr),.merge{
+  animation:fadein .45s both, nudge 3.4s 1.4s ease-in-out infinite;
+}
+:is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(1){animation-delay:.16s}
+:is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(2){animation-delay:.24s}
+:is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(3){animation-delay:.32s}
+:is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(4){animation-delay:.4s}
+:is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(5){animation-delay:.48s}
+:is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(6){animation-delay:.56s}
+:is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(7){animation-delay:.64s}
+
+/* ── 09 · три деки лежат веером, как карты (бриф: слегка наклонённые тайлы) ── */
+.gallery figure:nth-child(1){--rot:-1.7deg}
+.gallery figure:nth-child(2){--rot:.8deg}
+.gallery figure:nth-child(3){--rot:-1deg}
+.onecap{animation:rise-s .6s .72s cubic-bezier(.2,.8,.25,1) both}
+
+/* ── петли 03/11/15: прочерчиваются сверху вниз, стрелка покачивается ──── */
+.loopline{--lo:.75; animation:loopin .62s .68s cubic-bezier(.2,.8,.25,1) both}
+.loopline.hot{--lo:1}
+.loopline.thin{--lo:.55}
+@keyframes loopin{from{opacity:0; transform:translateY(-10px)} to{opacity:var(--lo,1); transform:none}}
+.loopline .head{animation:bob 2.8s 1.5s ease-in-out infinite}
+.cyclabel{animation:rise-s .5s .1s cubic-bezier(.2,.8,.25,1) both}
+
+/* ── 06 · реплики выпрыгивают из своего угла ──────────────────────────── */
+.bub{transform-origin:bottom left}
+.bub.b{transform-origin:bottom right}
+
+/* ── 10 · по команде пробегает блик ──────────────────────────────────── */
+.bigcmd{position:relative; overflow:hidden}
+.bigcmd::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.16) 47%,transparent 62%);
+  transform:translateX(-120%); animation:sheen 5s 1.2s ease-in-out infinite;
+}
+@keyframes sheen{0%{transform:translateX(-120%)} 40%,100%{transform:translateX(120%)}}
+
+/* ── 12 · кнопка записи дышит и даёт вторую волну ─────────────────────── */
+.recdot{animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)} 50%{transform:scale(1.055)}}
+.recdot::before{
+  content:''; position:absolute; inset:0; border-radius:50%; border:2px solid var(--magenta);
+  animation:pulse 2.4s 1.2s cubic-bezier(.2,.7,.3,1) infinite;
+}
+
+/* ── 16 · клавиша нажимается сама ─────────────────────────────────────── */
+.keycap.big{animation:keypress 4.4s 1.6s ease-in-out infinite}
+@keyframes keypress{
+  0%,72%,100%{transform:translateY(0); box-shadow:0 10px 0 var(--sand), var(--shadow-hit,rgba(0,0,0,.22) 0 32px 80px 0)}
+  80%{transform:translateY(7px); box-shadow:0 3px 0 var(--sand), rgba(0,0,0,.18) 0 14px 40px 0}
+  88%{transform:translateY(0); box-shadow:0 10px 0 var(--sand), rgba(0,0,0,.22) 0 32px 80px 0}
+}
+
+/* ── 17 · карточка QR тихо подмигивает магентой ──────────────────────── */
+.qrcard{border:2px solid var(--sand); animation:qrpulse 3.6s 1s ease-in-out infinite}
+@keyframes qrpulse{0%,100%{border-color:var(--sand)} 50%{border-color:rgba(255,46,149,.75)}}
+
+/* ── доступность: одно правило гасит весь моторный слой ───────────────── */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important; animation-iteration-count:1!important}
+}
