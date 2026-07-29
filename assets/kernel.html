@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<!--
+  KERNEL v5 — надёжный плумбинг презентации для скилла /present.
+  Это ЕДИНСТВЕННОЕ, что копируется дословно. НЕ редактируй chrome-DOM, print-слой и kernel-скрипт.
+  Весь визуал деки пиши в design-слое стилей (второй style-блок в head) и в слайдах
+  внутри контейнера deck. Имена блоков в этом комментарии намеренно НЕ в виде тегов,
+  чтобы сборочные скрипты, матчащие разметку по первому вхождению, сюда не цеплялись.
+
+  Аниматоры срабатывают по классам/data-атрибутам активного слайда
+  (полный контракт классов — в assets/cookbook.md):
+    .count[data-to]        → число накручивается от 0
+    .chain(.seq)           → узлы выезжают по очереди + счётчики
+    .clist(.cascade)       → строки влетают каскадом
+    [data-type]            → текст печатается по буквам (data-type-speed)
+    .pipeline              → схема-процесс (этапы .pstage): играет ОДИН раз по умолчанию;
+                             цикл — только с data-loop; счётчик/точки/лента — ОПЦИОНАЛЬНЫ
+    .reveal / [data-anim]  → любая CSS-анимация переигрывается при заходе на слайд
+
+  Навигация: ← → / пробел / Home / End / клик по краям / колесо / свайп (тач).
+  P — presenter с заметками: открывается ОТДЕЛЬНЫМ окном (не вкладкой), рядом с окном деки;
+  повторное P фокусирует уже открытое. Браузер заблокировал попап → на деке плашка-подсказка.
+  B — блэкаут (чёрный экран), F — fullscreen.
+  S — сохранить в PDF: дека замирает в финальном кадре (все слайды, фон, цвета, картинки)
+  и открывается диалог печати → «Сохранить как PDF». Страница 16:9 без полей; ⌘P даёт то же
+  самое. Размер листа — единственная санкционированная правка в блоке стилей print (@page).
+  Позиция хранится в URL-хэше (#N): F5 / переоткрытие возвращают на текущий слайд.
+  Самопроверка: открой деку с ?check в адресе — подсветит слайды с переполнением.
+  Заметки спикера — атрибут data-notes у секции слайда; показываются ТОЛЬКО в
+  presenter-окне. На самой деке их нет.
+  ЖИВЫЕ ЗАМЕТКИ: если рядом с декой лежит <имя-деки>-notes.js (window.DECK_NOTES =
+  String.raw`…` c секциями "## NN · Заголовок"), он — источник правды: kernel перечитывает
+  его на лету, правки видны в presenter без пересборки. Вшитые data-notes — fallback.
+  ПРАВКА ЗАМЕТОК ПРЯМО В PRESENTER — только КНОПКАМИ мышью (в это окно печатают, поэтому
+  буквенных хоткеев в нём нет): «✎ править» или двойной клик по тексту, «☰ все заметки»,
+  «↺ откатить», «⤓ notes.js», «⧉ копировать», «? справка». Из клавиш в окне докладчика
+  живут только стрелки (листать), Esc (закрыть/отменить) и ⌘⏎ (применить правку).
+  Браузер из file:// на диск писать не умеет, поэтому правки живут черновиком
+  (localStorage + DOM, переживают F5), а на диск переносятся кнопкой ⤓ (скачать) или ⧉
+  (скопировать) — файл кладётся рядом с декой поверх старого. Файл главнее: изменился
+  снаружи — его версия применяется поверх, черновик предлагается вернуть плашкой.
+-->
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ЗАГОЛОВОК}}</title>
+
+<!-- ── БАЗОВЫЙ СТРУКТУРНЫЙ CSS (плумбинг, не трогать) ──────────────────── -->
+<style id="base">
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:system-ui,-apple-system,sans-serif;color:#fff;background:#000}
+  #bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  #deck{position:relative;height:100vh;width:100vw;z-index:1}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;padding:7vh 9vw;animation:slidefade .55s cubic-bezier(.2,.7,.2,1)}
+  .slide.active{display:flex}
+  @keyframes slidefade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  #bar{position:fixed;top:0;left:0;height:3px;width:0;background:#fff;z-index:50;transition:width .4s ease}
+  #counter{position:fixed;bottom:22px;right:30px;font:600 .78rem/1 ui-monospace,'SF Mono',monospace;opacity:.55;z-index:50}
+  #hint{position:fixed;bottom:22px;left:30px;font:.72rem/1 ui-monospace,'SF Mono',monospace;opacity:.3;z-index:50}
+</style>
+
+<!-- ── DESIGN LAYER — сюда ВЕСЬ беспоук-CSS (палитра, шрифты, фон, компоненты, раскладки) ──
+     Claude заполняет этот блок под арт-дирекшн конкретной деки. В шаблоне — пусто.
+     Правило приоритета: этот блок идёт после #base, поэтому его правила перекрывают базовые.
+     САМОДОСТАТОЧНОСТЬ: никаких CDN/@import из сети. Только СИСТЕМНЫЕ шрифты и встроенные
+     (base64) ассеты — дека должна открываться офлайн одним файлом. -->
+<style id="design">
+  /* палитра, body/фон (#bg), типографика (СИСТЕМНЫЕ стеки), компоненты и раскладки слайдов — здесь */
+</style>
+
+<!-- ── PRINT LAYER — экспорт в PDF (клавиша S / ⌘P). НЕ РЕДАКТИРОВАТЬ. ────────
+     Идёт ПОСЛЕ design-слоя, поэтому перекрывает его без гонки специфичностей.
+     Единственная санкционированная правка — размер страницы в @page (напр. A4 landscape),
+     и только по явной просьбе; факт зафиксируй в DECK.md. -->
+<style id="print">
+  @page{size:13.333in 7.5in;margin:0}   /* 1280×720 px @96dpi — ровно 16:9, слайд = страница, без полей */
+  @media print{
+    html,body{overflow:visible!important;height:auto!important;width:auto!important}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}   /* печатать фон и цвета, а не белый лист */
+    *{animation:none!important;transition:none!important}          /* финальные состояния дожимает freezeForPrint() */
+    #bar,#counter,#hint,.deck-plate{display:none!important}        /* хром деки и служебные плашки */
+    #deck{position:static;height:auto;width:auto}
+    .slide{display:flex!important;position:relative;inset:auto;width:100%;height:100vh;
+           overflow:hidden;break-inside:avoid;break-after:page;page-break-after:always}
+    .slide:last-child{break-after:auto;page-break-after:auto}
+    #bg{display:none}                                    /* fixed-слой печатается ненадёжно… */
+    #bg.bgcopy{display:block;position:absolute;inset:0;z-index:-1}   /* …вместо него копия внутри каждого слайда */
+    /* хуки kernel, которые до анимации намеренно скрыты — показать в финальном виде */
+    .tab,.card,.reveal,[data-anim],.clist.cascade>*,.chain.seq .node,.chain.seq .arrow
+      {opacity:1!important;transform:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"><!-- фон рисует design layer: aurora-пятна / grid / scanlines / ничего --></div>
+<div id="bar"></div>
+
+<div id="deck">
+  <!--
+    СЛАЙДЫ. Каждый слайд — <section class="slide" data-notes="речь спикера [ремарки в скобках]"> … </section>.
+    ПЕРВЫЙ слайд помечается классом active. Пример каркаса:
+
+    <section class="slide active" data-notes="Молчи 3 секунды, дай прочитать заголовок. [пауза]">
+      … контент, свёрстанный под арт-дирекшн; можно использовать рецепты из cookbook.md …
+    </section>
+  -->
+</div>
+
+<div id="counter">01 / 01</div>
+<div id="hint">← → · колесо · свайп — листать · P — заметки · B — блэкаут · F — fullscreen · S — PDF</div>
+
+<!-- ── KERNEL SCRIPT — надёжный плумбинг. НЕ РЕДАКТИРОВАТЬ. ─────────────── -->
+<script id="kernel">
+  const slides=[...document.querySelectorAll('.slide')];
+  const bar=document.getElementById('bar'), counter=document.getElementById('counter');
+  let i=Math.max(0, slides.findIndex(s=>s.classList.contains('active')));
+  {const h=parseInt(location.hash.slice(1),10); if(h>=1&&h<=slides.length)i=h-1;}   // F5/переоткрытие — на тот же слайд
+  let chainGen=0, pipeGen=0;
+  const fmt=n=>String(n+1).padStart(2,'0');
+
+  // ── анимационный планировщик (анти-троттлинг) ────────────────────────────
+  // Chrome «усыпляет» полностью перекрытое окно (occlusion): rAF не вызывается,
+  // setTimeout зажимается до 1/с (а после 5 мин фона — до 1/мин). При показе через
+  // видеозвонок дека обычно перекрыта окном заметок → анимации замирали.
+  // Решение: все JS-анимации считаются от wall-clock (performance.now — «где я должен
+  // быть сейчас»), а продвигает их pump(), который тикает от rAF деки И от таймера
+  // presenter-окна (оно в фокусе и не троттлится). Кадр задержался → состояние догоняет.
+  const jobs=new Set();
+  function pump(){ if(!jobs.size)return; const now=performance.now(); [...jobs].forEach(j=>j(now)); }
+  let rafOn=false;
+  function rafLoop(){ if(!jobs.size){rafOn=false;return} pump(); requestAnimationFrame(rafLoop); }
+  function addJob(j){ jobs.add(j); if(!rafOn){rafOn=true;requestAnimationFrame(rafLoop)} }
+  function sleep(ms){ const t=performance.now()+ms; return new Promise(r=>{ addJob(function j(now){ if(now>=t){jobs.delete(j);r()} }) }) }
+  setInterval(pump,500); // страховка: rAF заморожен, а presenter закрыт → анимации всё равно догоняют часы
+
+  function render(){
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    bar.style.width=(slides.length>1?(i/(slides.length-1)*100):100)+'%';
+    counter.textContent=fmt(i)+' / '+fmt(slides.length-1);
+    const cur=slides[i];
+    // переиграть появление всего, что анимируется при заходе на слайд
+    cur.querySelectorAll('.tab,.card,.reveal,[data-anim]').forEach(el=>{el.style.animation='none';el.offsetHeight;el.style.animation=''});
+    chainGen++; pipeGen++;                 // отменить любые «висящие» циклы при каждом переходе
+    if(cur.querySelector('.chain'))    runChain(cur);
+    if(cur.querySelector('.clist'))    cascade(cur);
+    if(cur.querySelector('.pipeline')) runPipeline(cur);
+    if(cur.querySelector('[data-type]')) typeText(cur);
+    if(cur.querySelector('.count') && !cur.querySelector('.chain')) cur.querySelectorAll('.count').forEach(c=>countUp(c,1100));
+    try{history.replaceState(null,'','#'+(i+1))}catch(e){}   // позиция в хэше (в превью-iframe может кинуть — глотаем)
+    updatePresenter();
+  }
+  function go(n){if(editing)commitEdit();i=Math.max(0,Math.min(slides.length-1,n));render()}   // правку дописываем В ТОТ слайд, где её начали
+
+  // число 0 → data-to
+  function countUp(el,dur){
+    dur=dur||950; const to=+el.dataset.to, t0=performance.now(), tok=(el._tok=(el._tok|0)+1);
+    addJob(function j(now){
+      if(el._tok!==tok){jobs.delete(j);return}
+      const p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3);
+      el.textContent=Math.round(to*e);
+      if(p>=1){el.textContent=to;jobs.delete(j)}
+    });
+  }
+  // chain: узлы слева→направо, числа от 0
+  async function runChain(slide){
+    const myGen=++chainGen, alive=()=>myGen===chainGen;
+    const chain=slide.querySelector('.chain'); chain.classList.add('seq');
+    const kids=[...chain.children]; kids.forEach(k=>k.classList.remove('show'));
+    slide.querySelectorAll('.count').forEach(c=>c.textContent='0');
+    await sleep(350); if(!alive())return;
+    for(const k of kids){
+      if(!alive())return;
+      k.classList.add('show');
+      const c=k.querySelector?.('.count'); if(c)countUp(c,1300);
+      await sleep(k.classList.contains('arrow')?520:820);
+    }
+  }
+  // каскад-список + счётчики stats на слайде
+  function cascade(slide){
+    const wall=slide.querySelector('.clist');
+    if(wall){
+      wall.classList.add('cascade');
+      [...wall.children].forEach((d,k)=>{d.style.animation='none';void d.offsetHeight;d.style.animation='gitin .5s ease '+(0.15+k*0.12).toFixed(2)+'s both'});
+    }
+    slide.querySelectorAll('.count').forEach(c=>countUp(c,1100));
+  }
+  // печать [data-type]
+  function typeText(slide){
+    const el=slide.querySelector('[data-type]'); if(!el)return;
+    const txt=el.dataset.type, spd=+(el.dataset.typeSpeed||70); el.textContent='';
+    const t0=performance.now(), tok=(el._tok=(el._tok|0)+1);
+    addJob(function j(now){
+      if(el._tok!==tok){jobs.delete(j);return}
+      const k=Math.min(txt.length, Math.floor((now-t0)/spd));
+      if(el.textContent.length!==k)el.textContent=txt.slice(0,k);
+      if(k>=txt.length)jobs.delete(j)
+    });
+  }
+  // data-driven pipeline (один проход; цикл — только с data-loop)
+  async function runPipeline(slide){
+    const root=slide.querySelector('.pipeline'); if(!root)return;
+    const myGen=++pipeGen, alive=()=>myGen===pipeGen;
+    const stages=[...root.querySelectorAll('.pstage')];
+    const counterEl=slide.querySelector('#pipe-counter'), feed=slide.querySelector('#pipe-feed'), dots=slide.querySelector('#pipe-dots');
+    const TOTAL=+(root.dataset.total||1), word=root.dataset.item||'Item';   // по умолчанию ОДИН проход
+    if(dots){dots.innerHTML='';for(let k=0;k<TOTAL;k++){const d=document.createElement('i');d.className='sdot';dots.appendChild(d)}}
+    const dotEls=dots?[...dots.children]:[];
+    if(feed)feed.innerHTML='';
+    for(let n=1;n<=TOTAL;n++){
+      if(!alive())return;
+      if(counterEl)counterEl.textContent=word+' '+n+'/'+TOTAL;
+      stages.forEach(s=>{s.classList.remove('on','done');const ps=s.querySelector('.pstate');if(ps)ps.innerHTML=''});
+      for(const s of stages){
+        if(!alive())return;
+        s.classList.add('on');
+        const ps=s.querySelector('.pstate');
+        if(ps&&s.dataset.state)ps.innerHTML='<span class="mut">'+s.dataset.state+'</span>';
+        await sleep(+(s.dataset.dur||800)); if(!alive())return;
+        if(ps&&s.dataset.done)ps.innerHTML='<span class="ok">'+s.dataset.done+'</span>';
+        s.classList.replace('on','done');
+      }
+      if(dotEls[n-1])dotEls[n-1].classList.add('full');
+      if(feed){const line=document.createElement('div');line.innerHTML='<span class="ok">✓</span> '+(root.dataset.feed||word)+' '+n;feed.prepend(line)}
+      await sleep(450); if(!alive())return;
+    }
+    if(!alive())return;
+    if(counterEl)counterEl.innerHTML='<span class="ok">'+(root.dataset.fin||'Готово ✓')+'</span>';
+    const loop=root.dataset.loop;                      // цикл — только opt-in (data-loop), иначе играем один раз
+    if(loop!==undefined && loop!=='0' && loop!=='false'){ await sleep(2600); if(!alive())return; runPipeline(slide); }
+  }
+
+  window.addEventListener('hashchange',()=>{const h=parseInt(location.hash.slice(1),10); if(h>=1&&h<=slides.length&&h-1!==i)go(h-1)});
+
+  // ── блэкаут (клавиша B): чёрный экран поверх деки, повторное B / клик — вернуть ──
+  let blank=null;
+  function toggleBlank(){
+    if(blank){blank.remove();blank=null;return}
+    blank=document.createElement('div');
+    blank.style.cssText='position:fixed;inset:0;background:#000;z-index:99;cursor:pointer';
+    blank.onclick=toggleBlank; document.body.appendChild(blank);
+  }
+
+  // ── экспорт в PDF (клавиша S; ⌘P/меню печати идут той же дорогой) ─────────
+  // Проблема печати «как есть»: финальные состояния рисует JS и ТОЛЬКО для активного слайда —
+  // у остальных .count лежит в нуле, [data-type] пуст, pipeline недоигран, а .seq/.cascade
+  // держат opacity:0. Плюс фон #bg — position:fixed, а fixed в постраничной печати
+  // воспроизводится браузерами непредсказуемо. freezeForPrint() дожимает все слайды
+  // до финального кадра и раскладывает копию фона внутрь каждого; print-слой делает остальное.
+  let frozen=false;
+  function freezeForPrint(){
+    if(frozen)return; frozen=true;
+    if(blank)toggleBlank();                                  // блэкаут не должен попасть в PDF
+    const bgSrc=document.getElementById('bg');               // берём ДО клонирования (id продублируется)
+    slides.forEach(s=>{
+      s.querySelectorAll('.count[data-to]').forEach(c=>c.textContent=c.dataset.to);
+      s.querySelectorAll('[data-type]').forEach(el=>el.textContent=el.dataset.type);
+      s.querySelectorAll('.chain > *').forEach(n=>n.classList.add('show'));
+      s.querySelectorAll('.clist > *').forEach(d=>d.style.animation='none');
+      s.querySelectorAll('.pstage').forEach(p=>{
+        p.classList.remove('on'); p.classList.add('done');
+        const ps=p.querySelector('.pstate');
+        if(ps&&p.dataset.done)ps.innerHTML='<span class="ok">'+p.dataset.done+'</span>';
+      });
+      const pl=s.querySelector('.pipeline'), cnt=s.querySelector('#pipe-counter');
+      if(pl&&cnt&&pl.dataset.fin)cnt.innerHTML='<span class="ok">'+pl.dataset.fin+'</span>';
+      s.querySelectorAll('#pipe-dots .sdot').forEach(d=>d.classList.add('full'));
+      // копия фона первым ребёнком слайда. id="bg" СОХРАНЯЕМ намеренно: иначе не сработают
+      // design-селекторы (#bg{filter:blur(…)}, #bg span{…}) и фон напечатается не тем, чем задуман.
+      if(bgSrc && !s.querySelector('.bgcopy')){
+        const c=bgSrc.cloneNode(true); c.classList.add('bgcopy'); s.prepend(c);
+      }
+    });
+  }
+  function unfreezeAfterPrint(){
+    if(!frozen)return; frozen=false;
+    document.querySelectorAll('#deck .bgcopy').forEach(c=>c.remove());
+    slides.forEach(s=>s.querySelectorAll('.clist > *').forEach(d=>d.style.animation=''));
+    render();   // активный слайд переиграет аниматоры; остальные — при заходе на них
+  }
+  window.addEventListener('beforeprint',freezeForPrint);   // ⌘P и печать из меню — тоже корректные
+  window.addEventListener('afterprint',unfreezeAfterPrint);
+  function plate(text){                                     // служебная плашка (скрыта в печати)
+    const d=document.createElement('div'); d.className='deck-plate';
+    d.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100;background:rgba(12,14,20,.94);border:1px solid #555;color:#fff;font:13px/1.4 ui-monospace,monospace;padding:9px 16px;border-radius:9px;cursor:pointer';
+    d.textContent=text; d.onclick=()=>d.remove(); document.body.appendChild(d); return d;
+  }
+  async function savePDF(){
+    const p=plate('Готовлю PDF… в диалоге печати выбери «Сохранить как PDF»');
+    freezeForPrint();
+    try{ await Promise.all([...document.images].filter(im=>!im.complete).map(im=>im.decode().catch(()=>{}))) }catch(e){}
+    if(document.fonts&&document.fonts.ready){ try{ await document.fonts.ready }catch(e){} }
+    p.remove();
+    window.print();
+  }
+
+  // ── навигация колесом мыши / тачпадом (один жест = один слайд) ──
+  let wheelLock=false, wheelAcc=0, wheelIdle=null;
+  const WHEEL_TH=40, WHEEL_COOLDOWN=650;      // порог шага; блокировка инерционного хвоста
+  window.addEventListener('wheel',e=>{
+    e.preventDefault();
+    if(wheelLock)return;
+    const d=Math.abs(e.deltaY)>=Math.abs(e.deltaX)?e.deltaY:e.deltaX;
+    wheelAcc+=d; clearTimeout(wheelIdle); wheelIdle=setTimeout(()=>wheelAcc=0,180);
+    if(Math.abs(wheelAcc)<WHEEL_TH)return;
+    const dir=wheelAcc>0?1:-1; wheelAcc=0; wheelLock=true;
+    go(i+dir); setTimeout(()=>wheelLock=false,WHEEL_COOLDOWN);
+  },{passive:false});
+
+  // ── свайп на тач-экранах (планшет/телефон): горизонтальный жест = слайд ──
+  let tX=0, tY=0;
+  document.addEventListener('touchstart',e=>{tX=e.touches[0].clientX;tY=e.touches[0].clientY},{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-tX, dy=e.changedTouches[0].clientY-tY;
+    if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5) go(i+(dx<0?1:-1));
+  },{passive:true});
+
+  // ── presenter-окно (мини-превью текущего+следующего слайда, заметки, таймер), клавиша P ──
+  // Основное окно (его шарят) само рисует и обновляет содержимое дочернего окна.
+  // Мини-превью — iframe c копией деки (srcdoc), отмасштабированный: точный рендер без библиотек, офлайн.
+  // Синхронно в обе стороны; работает из локального файла (file://), без BroadcastChannel.
+  let presenter=null, startedAt=0, deckHTML='';
+  function presenterHTML(){
+    return '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Presenter · заметки</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font:16px/1.5 system-ui,-apple-system,sans-serif;background:#0d0f14;color:#e7e9ef;height:100vh;display:flex;flex-direction:column;padding:16px;gap:12px}'
+    +'header{display:flex;align-items:baseline;gap:22px;font:600 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#8b909c}'
+    +'#timer{color:#f5b942;font-size:15px}#nsync{font-size:11px}#clock{margin-left:auto}'
+    +'.cols{flex:1;display:grid;grid-template-columns:400px 1fr;gap:16px;min-height:0}'
+    +'aside{display:flex;flex-direction:column;gap:12px;min-height:0}'
+    +'.lbl{font:600 11px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#7b818e;margin-bottom:6px}'
+    +'.now-lbl{color:#f5b942}'
+    +'.tw{position:relative;width:100%;aspect-ratio:16/9;border:1px solid #262a36;border-radius:10px;overflow:hidden;background:#000}'
+    +'.tw.cur{border-color:#f5b94266}'
+    +'.tw.sec{width:64%}'
+    +'.tw iframe{position:absolute;top:0;left:0;width:1280px;height:720px;border:0;transform-origin:top left;pointer-events:none}'
+    +'.end{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#7b818e;font:600 13px ui-monospace,monospace;background:#0d0f14}'
+    +'.nav{display:flex;gap:10px;margin-top:auto}'
+    +'.nav button{flex:1;background:#1c2029;border:1px solid #2f3444;color:#e7e9ef;border-radius:10px;padding:14px;font-size:20px;cursor:pointer;transition:.15s}'
+    +'.nav button:hover{background:#252b37;border-color:#f5b942;color:#f5b942}'
+    +'#count{font:600 13px/1 ui-monospace,monospace;color:#8b909c;text-align:center;margin-top:6px}'
+    +'main{display:flex;flex-direction:column;min-height:0}'
+    +'#note{flex:1;background:#161922;border:1px solid #262a36;border-radius:14px;padding:22px 26px;font-size:22px;line-height:1.55;overflow:auto}'
+    +'#note .pause{color:#7b818e;font-style:italic}'
+    // ── правка заметок прямо здесь: панель кнопок, поле текущей заметки, редактор всех заметок ──
+    +'.nlbl{display:flex;align-items:center;gap:7px}.nlbl>span:first-child{margin-right:auto}'
+    +'.pbtn{background:#1c2029;border:1px solid #2f3444;color:#aab0bd;border-radius:8px;padding:5px 9px;font:600 11px/1 ui-monospace,monospace;letter-spacing:.04em;text-transform:none;cursor:pointer;transition:.15s}'
+    +'.pbtn:hover{background:#252b37;border-color:#f5b942;color:#f5b942}'
+    +'#noteedit{flex:1;display:none;background:#12151d;border:1px solid #f5b94266;border-radius:14px;padding:22px 26px;color:#e7e9ef;font:22px/1.55 system-ui,-apple-system,sans-serif;resize:none;outline:none}'
+    +'#allwrap{display:none;position:fixed;inset:0;z-index:9;background:#0d0f14;padding:16px;flex-direction:column;gap:8px}'
+    +'#alledit{flex:1;background:#12151d;border:1px solid #2f3444;border-radius:12px;padding:16px 18px;color:#e7e9ef;font:14px/1.65 ui-monospace,"SF Mono",monospace;resize:none;outline:none;white-space:pre-wrap}'
+    +'#pplate{display:none;position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:20;max-width:88%;background:#1c2029;border:1px solid #3a4051;border-radius:10px;padding:8px 12px;font:12px/1.4 ui-monospace,monospace;color:#e7e9ef;align-items:center;gap:9px}'
+    +'#helpwrap{display:none;position:fixed;inset:0;z-index:12;background:#0b0e14;padding:26px 30px;flex-direction:column;gap:16px;overflow:auto;cursor:pointer}'
+    +'.hgrid{display:grid;grid-template-columns:132px 1fr;gap:11px 20px;font-size:14.5px;line-height:1.5;align-items:baseline;max-width:820px}'
+    +'.hgrid b{font:600 10.5px/1.7 ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;color:#7b818e}'
+    +'.hgrid i{color:#8b909c;font-style:normal}'
+    +'kbd{display:inline-block;background:#1c2029;border:1px solid #363d4d;border-bottom-width:2px;border-radius:6px;padding:1px 6px;margin-right:2px;font:600 12px/1.5 ui-monospace,monospace;color:#e7e9ef}'
+    +'</style></head><body>'
+    +'<header><span>🎤 заметки спикера</span><span id="timer">00:00</span><span id="nsync"></span><span id="clock"></span></header>'
+    +'<div class="cols"><aside>'
+    +'<div><div class="lbl now-lbl">● сейчас на экране</div><div class="tw cur"><iframe id="now"></iframe></div></div>'
+    +'<div><div class="lbl">далее</div><div class="tw sec"><iframe id="nxt"></iframe><div class="end" id="nxt-end">— конец —</div></div></div>'
+    +'<div class="nav"><button id="prev">‹ назад</button><button id="fwd">вперёд ›</button></div>'
+    +'<div id="count">01 / 01</div>'
+    +'</aside><main>'
+    +'<div class="lbl nlbl"><span>заметки спикера</span>'
+    +'<button class="pbtn" id="b-ed" title="править заметку этого слайда (или двойной клик по тексту)">✎ править</button>'
+    +'<button class="pbtn" id="b-ok" style="display:none" title="сохранить правку">✓ применить</button>'
+    +'<button class="pbtn" id="b-no" style="display:none" title="отменить правку">✕ отмена</button>'
+    +'<button class="pbtn" id="b-all" title="все заметки разом, в формате notes.js">☰ все заметки</button>'
+    +'<button class="pbtn" id="b-revert" style="display:none" title="отбросить свои правки и вернуться к файлу заметок">↺ откатить</button>'
+    +'<button class="pbtn" id="b-dl" title="скачать notes.js и положить рядом с декой">⤓ notes.js</button>'
+    +'<button class="pbtn" id="b-cp" title="скопировать текст notes.js в буфер">⧉ копировать</button>'
+    +'<button class="pbtn" id="b-help" title="как всё это работает">? справка</button></div>'
+    +'<div id="note">—</div><textarea id="noteedit" spellcheck="false"></textarea>'
+    +'</main></div>'
+    +'<div id="allwrap"><div class="lbl nlbl"><span>все заметки · формат notes.js</span>'
+    +'<button class="pbtn" id="all-save">✓ применить</button>'
+    +'<button class="pbtn" id="all-cancel">✕ отмена</button>'
+    +'<button class="pbtn" id="all-dl">⤓ notes.js</button></div>'
+    +'<textarea id="alledit" spellcheck="false"></textarea></div>'
+    // справка: коротко и по делу — что тут вообще происходит (кнопка «? справка»)
+    +'<div id="helpwrap"><div class="lbl nlbl"><span>как это работает</span>'
+    +'<button class="pbtn" id="help-close">✕ закрыть</button></div>'
+    +'<div class="hgrid">'
+    +'<b>это окно</b><div>Только для тебя: заметки, таймер, что сейчас и что дальше. '
+      +'<i>Шарить на экран надо окно деки, а не это.</i> Всё делается кнопками мышью; из клавиш здесь '
+      +'работают только <kbd>←</kbd><kbd>→</kbd> (листать), <kbd>Esc</kbd> (закрыть/отменить) и '
+      +'<kbd>⌘⏎</kbd> (применить правку) — случайно нажать что-то лишнее нельзя.</div>'
+    +'<b>листать</b><div>Кнопки «‹ назад» / «вперёд ›» внизу слева или стрелки. Клик по таймеру — сброс. '
+      +'Чёрный экран, fullscreen и PDF — с клавиатуры самой деки (подсказка внизу её экрана).</div>'
+    +'<b>править</b><div>«✎ править» или двойной клик по тексту заметки, потом «✓ применить» '
+      +'(или <kbd>⌘⏎</kbd>) / «✕ отмена». «☰ все заметки» — весь текст сразу, секции <i>## NN</i> = '
+      +'номера слайдов.</div>'
+    +'<b>где живут</b><div>Правки сразу видны в деке и сохраняются <i>в браузере</i> — переживают F5, '
+      +'индикатор в шапке становится <i>✎ черновик</i>. Записать их на диск браузер сам не может.</div>'
+    +'<b>откатить</b><div>«↺ откатить» (кнопка появляется, только пока черновик не пуст) — выбросить свои '
+      +'правки и вернуться к тому, что в файле. Передумал — плашка снизу вернёт их обратно.</div>'
+    +'<b>на диск</b><div>«⤓ notes.js» — скачать файл заметок и положить его рядом с декой поверх старого; '
+      +'«⧉ копировать» — то же самое через буфер. Индикатор снова зелёный <i>● notes.js</i> = браузер и '
+      +'файл совпадают.</div>'
+    +'<b>файл главнее</b><div>Файл заметок можно править и снаружи, в любом редакторе — дека подхватит его '
+      +'за пару секунд, прямо во время показа. Если он разойдётся с твоими правками из этого окна, '
+      +'победит файл, а правки не пропадут: плашка снизу предложит их вернуть.</div>'
+    +'</div></div>'
+    +'<div id="pplate"></div>'
+    +'</body></html>';
+  }
+  function fitThumbs(){
+    if(!presenter||presenter.closed)return;
+    presenter.document.querySelectorAll('.tw iframe').forEach(f=>{
+      const w=f.parentElement.clientWidth; if(w)f.style.transform='scale('+(w/1280)+')';
+    });
+  }
+  function openPresenter(){
+    if(presenter && !presenter.closed){ presenter.focus(); updatePresenter(); return; }
+    // popup=1 обязателен: без него браузер вправе открыть заметки ВКЛАДКОЙ — на выбор
+    // «окно или вкладка» width/height не влияют. left/top — на экране, где стоит дека.
+    const W=Math.min(1240,(screen.availWidth||1440)-80), H=Math.min(760,(screen.availHeight||900)-120);
+    const L=Math.round((window.screenX||0)+Math.max(0,((window.outerWidth||W)-W)/2));
+    const T=Math.round((window.screenY||0)+60);
+    presenter=window.open('','present-notes','popup=1,width='+W+',height='+H+',left='+L+',top='+T);
+    if(!presenter){                          // попап заблокирован — молчать нельзя, «P не работает»
+      plate('Окно докладчика заблокировано браузером. Разреши всплывающие окна для этой страницы и нажми P снова');
+      return;                                // заметки всё равно доступны в файле рядом с декой
+    }
+    try{ presenter.resizeTo(W,H); presenter.moveTo(L,T) }catch(e){}   // страховка, если features проигнорированы
+    deckHTML='<!DOCTYPE html>\n'+document.documentElement.outerHTML;   // копия деки для мини-превью
+    presenter.document.open(); presenter.document.write(presenterHTML()); presenter.document.close();
+    if(!startedAt)startedAt=performance.now();
+    const pd=presenter.document;
+    pd.getElementById('prev').onclick=()=>go(i-1);
+    pd.getElementById('fwd').onclick=()=>go(i+1);
+    const tEl=pd.getElementById('timer');
+    if(tEl){tEl.style.cursor='pointer';tEl.title='клик — сбросить таймер';tEl.onclick=()=>{startedAt=performance.now()}}
+    // правка заметок: кнопки панели + двойной клик по тексту заметки.
+    // Через хелпер: пропавший элемент не должен обрывать openPresenter (дальше — превью и таймеры).
+    const hook=(id,ev,fn)=>{const el=pd.getElementById(id); if(el)el['on'+ev]=fn};
+    hook('b-ed','click',()=>startEdit());
+    hook('b-ok','click',()=>commitEdit());
+    hook('b-no','click',()=>cancelEdit());
+    hook('b-all','click',()=>openAllEditor());
+    hook('b-revert','click',()=>revertDraft());
+    hook('b-dl','click',()=>exportNotes());
+    hook('b-cp','click',()=>copyNotes());
+    hook('b-help','click',()=>toggleHelp());
+    hook('help-close','click',()=>toggleHelp(false));
+    hook('helpwrap','click',()=>toggleHelp(false));            // клик в любом месте справки — закрыть
+    hook('note','dblclick',()=>startEdit());
+    hook('all-save','click',()=>closeAllEditor(true));
+    hook('all-cancel','click',()=>closeAllEditor(false));
+    hook('all-dl','click',()=>{closeAllEditor(true);exportNotes()});
+    presenter.addEventListener('beforeunload',()=>{if(editing)commitEdit()});   // закрыл окно на полуслове — правка не пропала
+    const nowF=pd.getElementById('now'), nxtF=pd.getElementById('nxt');
+    nowF.onload=()=>{ try{nowF.contentWindow.go(i)}catch(e){} fitThumbs(); };
+    nxtF.onload=()=>{ try{nxtF.contentWindow.go(Math.min(i+1,slides.length-1))}catch(e){} fitThumbs(); };
+    nowF.srcdoc=deckHTML; nxtF.srcdoc=deckHTML;
+    presenter.addEventListener('resize',fitThumbs);
+    // Клавиатура окна докладчика намеренно БЕДНАЯ: всё делается кнопками мышью, а из клавиш живут
+    // только стрелки (листать), Esc (закрыть/отменить) и ⌘⏎ (применить правку). Буквенных хоткеев
+    // здесь нет — в это окно печатают, и случайное «d» не должно ничего запускать.
+    presenter.addEventListener('keydown',e=>{
+      if(e.key==='Escape'){                                   // закрыть то, что открыто
+        e.preventDefault();
+        if(helpOpen)toggleHelp(false); else if(allOpen)closeAllEditor(false); else if(editing)cancelEdit();
+        return;
+      }
+      if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){            // применить правку
+        if(allOpen||editing){e.preventDefault(); allOpen?closeAllEditor(true):commitEdit()}
+        return;
+      }
+      const t=e.target, inField=t&&(t.tagName==='TEXTAREA'||t.tagName==='INPUT');
+      if(inField||allOpen||editing||helpOpen)return;           // пишем текст / открыта панель — деку не трогаем
+      if(e.metaKey||e.ctrlKey||e.altKey)return;
+      const k=e.key;
+      if(k==='ArrowRight'||k==='PageDown'){e.preventDefault();go(i+1)}
+      else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(i-1)}
+      else if(k==='Home')go(0); else if(k==='End')go(slides.length-1);
+    });
+    // Таймеры регистрируем В presenter-окне: оно в фокусе/видимо и не троттлится,
+    // даже когда само окно деки перекрыто (умирают вместе с presenter-окном).
+    presenter.setInterval(()=>{
+      if(!presenter||presenter.closed)return;
+      const s=Math.floor((performance.now()-startedAt)/1000);
+      const t=presenter.document.getElementById('timer');
+      if(t)t.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+      const c=presenter.document.getElementById('clock');
+      if(c){const d=new Date();c.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+    },1000);
+    presenter.setInterval(()=>{if(presenter&&!presenter.closed)loadNotes()},2000);
+    presenter.setInterval(pump,40);   // насос анимаций деки — идут, даже если её окно «усыплено»
+    updatePresenter();
+    syncBadge();
+    if(staleDraft||readStash())notePlate('есть непринятые правки заметок из браузера','вернуть их',restoreStale);
+    else if(!helpSeen())notePlate('заметки правятся прямо здесь — как именно, расскажет «? справка»','открыть',()=>toggleHelp(true));
+    try{presenter.focus()}catch(e){}  // окно сразу на передний план
+  }
+  function updatePresenter(){
+    if(!presenter||presenter.closed)return;
+    const pd=presenter.document;
+    const note=pd.getElementById('note');
+    if(note&&!editing)note.innerHTML=(slides[i].dataset.notes||'—').replace(/\[(.*?)\]/g,'<span class="pause">[$1]</span>');
+    const cnt=pd.getElementById('count'); if(cnt)cnt.textContent=fmt(i)+' / '+fmt(slides.length-1);
+    const nowF=pd.getElementById('now');
+    if(nowF&&nowF.contentWindow){try{nowF.contentWindow.go(i)}catch(e){}}
+    const nxtF=pd.getElementById('nxt'), end=pd.getElementById('nxt-end'), has=i+1<slides.length;
+    if(nxtF&&nxtF.contentWindow){try{nxtF.contentWindow.go(has?i+1:slides.length-1)}catch(e){}}
+    if(end)end.style.display=has?'none':'flex';
+  }
+
+  // ── живые заметки: sidecar <имя-деки>-notes.js (window.DECK_NOTES) ─────────
+  // Два пути правки. (1) Внешний редактор: файл перечитывается при загрузке и каждые ~2 с,
+  // пока открыт presenter; ошибка после правки (незакрытый бэктик) → остаётся последняя
+  // удачная версия, индикатор в шапке presenter желтеет. (2) Прямо в presenter (кнопками «✎ править» / «☰ все заметки») —
+  // из file:// браузер писать на диск не умеет, поэтому правки живут ЧЕРНОВИКОМ (DOM +
+  // localStorage, переживают F5), а на диск переносятся кнопкой ⤓ / ⧉ вручную.
+  // Файл главнее: изменился снаружи — его версия применяется поверх, а черновик не пропадает,
+  // а откладывается (плашка «вернуть мои правки»).
+  let notesEverOk=false, lastNotesMD=null, lastFileOk=false;
+  let noteTitles=[], notesPrologue='';                        // заголовки секций и текст до первой — чтобы выгрузка не теряла оформление файла
+  let draftMD=null, draftBase=null, staleDraft=null, draftPersists=true, draftChecked=false;
+  let editing=false, allOpen=false, helpOpen=false, pendingApply=false, rawFixed=false, plateT=null;
+  const notesSrc=(()=>{try{
+    if(window.frameElement)return null;                       // копия деки в превью-iframe
+    const u=location.href.split(/[?#]/)[0];
+    return /\.html?$/i.test(u)?u.replace(/\.html?$/i,'-notes.js'):null;
+  }catch(e){return null}})();
+  const notesName=decodeURIComponent((notesSrc||'deck-notes.js').split('/').pop());
+  const draftKey='present:notes:'+decodeURIComponent(location.href.split(/[?#]/)[0].split('/').pop()||'deck');
+  const SEC=/^##[ \t]*(\d+)([^\n]*)$/m;                       // «## NN · Заголовок» — ключ секции = номер слайда
+  const bakedNotes=slides.map(s=>s.dataset.notes||'');        // снимок вшитых data-notes — куда откатывать, если файла заметок нет
+
+  // ── модель: файл ⇄ data-notes ───────────────────────────────────────────────
+  function splitNotes(md){ return String(md).split(SEC) }     // [пролог, NN, хвост, текст, NN, хвост, текст…]
+  function parseNotesMD(md){
+    const parts=splitNotes(md);
+    if(parts.length<4)return false;                           // ни одной секции — не трогаем заметки
+    notesPrologue=parts[0].trim();
+    for(let k=1;k+2<parts.length;k+=3){
+      const idx=+parts[k]-1, sl=slides[idx]; if(!sl)continue;
+      noteTitles[idx]=parts[k+1].trim(); sl.dataset.notes=parts[k+2].trim();
+    }
+    return true;
+  }
+  function notesMap(md){                                      // сравнение «по смыслу», без учёта заголовков/отступов
+    const parts=splitNotes(md), m={};
+    for(let k=1;k+2<parts.length;k+=3)m[+parts[k]]=parts[k+2].trim();
+    return JSON.stringify(m);
+  }
+  function slideTitle(s){
+    const el=s.querySelector('h1,h2,h3,.title'), t=(el?el.textContent:'').replace(/\s+/g,' ').trim();
+    return t.length>60?t.slice(0,57)+'…':t;
+  }
+  function notesToMD(){
+    let out=notesPrologue?notesPrologue+'\n\n':'';
+    slides.forEach((s,k)=>{
+      let ttl=noteTitles[k]; if(!ttl){const t=slideTitle(s); ttl=t?'· '+t:''}
+      out+='## '+fmt(k)+(ttl?' '+ttl:'')+'\n'+((s.dataset.notes||'').trim()||'—')+'\n\n';
+    });
+    return out.trim()+'\n';
+  }
+  function notesFileText(){                                   // в String.raw нельзя бэктик и ${ — заменяем и говорим об этом
+    const md=notesToMD(); rawFixed=/`|\$\{/.test(md);
+    return 'window.DECK_NOTES = String.raw`\n'+md.replace(/`/g,'ʼ').replace(/\$\{/g,'$ {')+'`;\n';
+  }
+
+  // ── черновик правок (localStorage; на file:// стор может быть недоступен → живёт в памяти) ──
+  function saveDraft(){
+    draftMD=notesToMD();
+    try{localStorage.setItem(draftKey,JSON.stringify({md:draftMD,base:draftBase}))}catch(e){draftPersists=false}
+    syncBadge();
+  }
+  function clearDraft(){ draftMD=null; try{localStorage.removeItem(draftKey)}catch(e){} syncBadge(); }
+  function readDraft(){ try{const r=localStorage.getItem(draftKey);return r?JSON.parse(r):null}catch(e){return null} }
+  function stashDraft(md){ staleDraft=md; try{localStorage.setItem(draftKey+':stale',md)}catch(e){} }
+  function readStash(){ try{return localStorage.getItem(draftKey+':stale')}catch(e){return null} }
+  function restoreStale(){
+    const md=staleDraft||readStash(); if(!md)return;
+    if(!parseNotesMD(md))return;
+    staleDraft=null; try{localStorage.removeItem(draftKey+':stale')}catch(e){}
+    saveDraft(); updatePresenter();
+  }
+  function syncBadge(){
+    if(!presenter||presenter.closed)return;
+    const rb=presenter.document.getElementById('b-revert');
+    if(rb)rb.style.display=draftMD?'':'none';                  // откатывать нечего — кнопки нет
+    const el=presenter.document.getElementById('nsync'); if(!el)return;
+    if(draftMD){
+      el.textContent='✎ черновик'; el.style.color='#f5b942';
+      el.title='правки живут в браузере'+(draftPersists?' (переживут F5)':' (до перезагрузки — стор недоступен)')+' · ⤓ выгрузит '+notesName;
+      return;
+    }
+    if(!notesEverOk){el.textContent='';return}                // файла не было — молчим
+    el.textContent='● notes.js'; el.style.color=lastFileOk?'#4ade80':'#f5b942';
+    el.title=lastFileOk?'заметки живые: правь файл снаружи или кнопкой «✎ править» прямо здесь':'файл заметок не читается — показана последняя версия';
+  }
+  function notePlate(text,label,fn){                          // сообщение в presenter-окне
+    if(!presenter||presenter.closed)return;
+    const pd=presenter.document, el=pd.getElementById('pplate'); if(!el)return;
+    el.textContent=text;
+    if(label&&fn){const b=pd.createElement('button');b.className='pbtn';b.textContent=label;b.onclick=()=>{fn();el.style.display='none'};el.appendChild(b)}
+    const c=pd.createElement('button'); c.className='pbtn'; c.textContent='×';
+    c.onclick=()=>{el.style.display='none'}; el.appendChild(c);
+    el.style.display='flex';
+    clearTimeout(plateT);
+    if(!label)plateT=setTimeout(()=>{try{el.style.display='none'}catch(e){}},6000);
+  }
+
+  function loadNotes(){
+    if(!notesSrc)return;
+    const old=document.getElementById('notes-sidecar'); if(old)old.remove();
+    window.DECK_NOTES=undefined;
+    const s=document.createElement('script'); s.id='notes-sidecar';
+    s.src=notesSrc+'?v='+Date.now();
+    s.onload=()=>applyNotes(typeof window.DECK_NOTES==='string');
+    s.onerror=()=>applyNotes(false);
+    document.body.appendChild(s);
+  }
+  function takeFile(md){                                      // файл — источник правды
+    if(draftMD){
+      if(notesMap(draftMD)!==notesMap(md)) {                  // расходится с черновиком — черновик в карман
+        stashDraft(draftMD); clearDraft();
+        notePlate('файл '+notesName+' обновился — заметки взяты из него','вернуть мои правки',restoreStale);
+      } else clearDraft();                                    // файл догнал черновик (выгрузили и подложили) — молча
+    }
+    lastNotesMD=md; parseNotesMD(md); draftBase=md; updatePresenter();
+  }
+  function applyNotes(ok){
+    lastFileOk=ok;
+    if(ok){
+      notesEverOk=true;
+      if(window.DECK_NOTES!==lastNotesMD){
+        if(editing||allOpen){pendingApply=true;syncBadge();return}   // пишем текст — файл подождёт, не вырывая его из-под рук
+        takeFile(window.DECK_NOTES);
+      }
+    }
+    if(!draftChecked){                                        // первый заход: поднять черновик прошлой сессии
+      draftChecked=true;
+      if(draftBase===null)draftBase=notesToMD();              // файла нет — база из вшитых data-notes
+      const d=readDraft();
+      if(d&&d.md){
+        if(d.base===draftBase&&parseNotesMD(d.md)){draftMD=d.md;updatePresenter()}
+        else stashDraft(d.md);                                // база разъехалась → файл главнее, правки в карман
+      }
+      if(staleDraft)notePlate('есть непринятые правки заметок из браузера','вернуть их',restoreStale);
+    }
+    syncBadge();
+  }
+  function flushPending(){                                    // редактор закрыт — доехать до файла, если он менялся
+    if(!pendingApply||editing||allOpen)return;
+    pendingApply=false;
+    if(typeof window.DECK_NOTES==='string'&&window.DECK_NOTES!==lastNotesMD)takeFile(window.DECK_NOTES);
+  }
+
+  // ── справка в окне докладчика (кнопка «? справка») ─────────────────────────
+  function helpSeen(){ try{return !!localStorage.getItem('present:help-seen')}catch(e){return true} }
+  function toggleHelp(show){
+    if(!presenter||presenter.closed)return;
+    const w=presenter.document.getElementById('helpwrap'); if(!w)return;
+    helpOpen=show===undefined?!helpOpen:!!show;
+    w.style.display=helpOpen?'flex':'none';
+    if(helpOpen){try{localStorage.setItem('present:help-seen','1')}catch(e){}}
+  }
+
+  // ── правка заметки текущего слайда (кнопка «✎ править» / двойной клик) ─────
+  function editButtons(on){                                   // «✎ править» ⇄ «✓ применить / ✕ отмена»
+    if(!presenter||presenter.closed)return;
+    const pd=presenter.document, sw=(id,vis)=>{const el=pd.getElementById(id); if(el)el.style.display=vis?'':'none'};
+    sw('b-ed',!on); sw('b-ok',on); sw('b-no',on);
+  }
+  function startEdit(){
+    if(!presenter||presenter.closed||allOpen||editing)return;
+    const pd=presenter.document, note=pd.getElementById('note'), ta=pd.getElementById('noteedit');
+    if(!note||!ta)return;
+    editing=true;
+    ta.value=slides[i].dataset.notes||'';
+    note.style.display='none'; ta.style.display='block'; editButtons(true);
+    ta.focus(); try{ta.setSelectionRange(ta.value.length,ta.value.length)}catch(e){}
+  }
+  function endEdit(save){
+    if(!editing)return;
+    editing=false;
+    try{
+      const pd=presenter.document, note=pd.getElementById('note'), ta=pd.getElementById('noteedit');
+      if(save&&ta&&ta.value.trim()!==(slides[i].dataset.notes||'').trim()){slides[i].dataset.notes=ta.value.trim();saveDraft()}
+      if(ta)ta.style.display='none';
+      if(note)note.style.display='';
+      editButtons(false);
+    }catch(e){}
+    flushPending(); updatePresenter();
+  }
+  function commitEdit(){endEdit(true)}
+  function cancelEdit(){endEdit(false)}
+
+  // ── редактор всех заметок разом («☰ все заметки») — текст, что уедет в notes.js ──
+  function openAllEditor(){
+    if(!presenter||presenter.closed||allOpen)return;
+    if(editing)commitEdit();
+    const pd=presenter.document, w=pd.getElementById('allwrap'), ta=pd.getElementById('alledit');
+    if(!w||!ta)return;
+    allOpen=true; ta.value=notesToMD(); w.style.display='flex'; ta.focus(); try{ta.setSelectionRange(0,0)}catch(e){}
+  }
+  function closeAllEditor(save){
+    if(!allOpen)return;
+    allOpen=false;
+    try{
+      const pd=presenter.document, w=pd.getElementById('allwrap'), ta=pd.getElementById('alledit');
+      if(save&&ta){
+        if(parseNotesMD(ta.value))saveDraft();
+        else notePlate('не нашёл ни одной секции «## NN» — правки не применены');
+      }
+      if(w)w.style.display='none';
+    }catch(e){}
+    flushPending(); updatePresenter();
+  }
+
+  // ── откат всех своих правок к файлу (кнопка «↺ откатить») ──────────────────
+  // Отброшенное не сгорает: уходит в тот же карман, что и при конфликте с файлом,
+  // а плашка снизу даёт передумать одним кликом.
+  function revertDraft(){
+    if(editing)cancelEdit();
+    if(allOpen)closeAllEditor(false);
+    if(!draftMD){notePlate('откатывать нечего — заметки и так из файла');return}
+    stashDraft(draftMD); clearDraft();
+    if(lastNotesMD!==null)parseNotesMD(lastNotesMD);
+    else slides.forEach((s,k)=>s.dataset.notes=bakedNotes[k]);   // файла заметок нет — вернуть вшитые в деку
+    updatePresenter();
+    notePlate(notesEverOk?'правки откачены к файлу '+notesName:'правки откачены к заметкам, вшитым в деку','всё-таки вернуть',restoreStale);
+  }
+
+  // ── выгрузка на диск: из file:// писать нельзя, поэтому скачивание / буфер ──
+  function exportNotes(){
+    if(editing)commitEdit();
+    if(allOpen)closeAllEditor(true);
+    const text=notesFileText(), warn=rawFixed?' · символы ` и ${ заменены (String.raw их не терпит)':'';
+    try{
+      // качаем из окна ДЕКИ: у него настоящий file://-адрес, presenter — about:blank
+      const a=document.createElement('a'), url=URL.createObjectURL(new Blob([text],{type:'text/javascript'}));
+      a.href=url; a.download=notesName; a.style.display='none'; document.body.appendChild(a); a.click();
+      setTimeout(()=>{try{URL.revokeObjectURL(url);a.remove()}catch(e){}},1000);
+      notePlate(notesName+' в загрузках — положи рядом с декой поверх старого'+warn);
+    }catch(e){ copyNotes(); }
+  }
+  function copyNotes(){
+    if(editing)commitEdit();
+    if(allOpen)closeAllEditor(true);
+    const text=notesFileText(), warn=rawFixed?' · символы ` и ${ заменены':'';
+    const w=presenter&&!presenter.closed?presenter:window;
+    const done=()=>notePlate('текст '+notesName+' скопирован — вставь в файл целиком'+warn);
+    const fallback=()=>{
+      try{
+        const d=w.document, ta=d.createElement('textarea');
+        ta.value=text; ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+        d.body.appendChild(ta); ta.select(); d.execCommand('copy'); ta.remove(); done();
+      }catch(e){ notePlate('скопировать не вышло — открой «☰ все» и скопируй текст вручную') }
+    };
+    try{
+      if(w.navigator.clipboard&&w.navigator.clipboard.writeText){w.navigator.clipboard.writeText(text).then(done,fallback);return}
+    }catch(e){}
+    fallback();
+  }
+
+  // ── клавиатура и клик по краям основного окна ──
+  document.addEventListener('keydown',e=>{
+    if(e.metaKey||e.ctrlKey||e.altKey)return;      // ⌘S/⌘P/⌘F — браузерные, деку не трогают
+    const k=e.key;
+    if(k==='ArrowRight'||k===' '||k==='PageDown'){e.preventDefault();go(i+1)}
+    else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(i-1)}
+    else if(k==='Home')go(0);
+    else if(k==='End')go(slides.length-1);
+    else if(k.toLowerCase()==='p')openPresenter();
+    else if(k.toLowerCase()==='b')toggleBlank();
+    else if(k.toLowerCase()==='s')savePDF();
+    else if(k.toLowerCase()==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+  });
+  document.getElementById('deck').addEventListener('click',e=>{
+    if(e.target.closest('a,button,video,audio,input,textarea,select,summary,[contenteditable]'))return; // интерактив в слайде не листает
+    go(e.clientX<window.innerWidth*0.25?i-1:i+1)
+  });
+
+  // ── самопроверка вёрстки: открой деку с ?check — подсветит слайды с переполнением ──
+  function checkOverflow(){
+    const bad=[];
+    slides.forEach((s,k)=>{
+      const was=s.classList.contains('active'); if(!was)s.classList.add('active');
+      if(s.scrollHeight-s.clientHeight>1)bad.push(fmt(k));
+      if(!was)s.classList.remove('active');
+    });
+    const msg=bad.length?'⚠ переполнение (контент выше экрана): слайды '+bad.join(', '):'✓ переполнений нет';
+    console.warn('[deck ?check] '+msg);
+    plate(msg+'  ·  клик — закрыть');
+  }
+  if(/[?&]check\b/.test(location.search))setTimeout(checkOverflow,400);
+
+  render();
+  loadNotes();
+</script>
+</body>
+</html>
