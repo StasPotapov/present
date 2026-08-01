@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Сборщик деки «Контекст. Вид. Голос.» (скилл /present, KERNEL v5).
+Сборщик деки «Контекст. Дизайн. Голос.» (скилл /present, KERNEL v5).
 
     python3 build.py            # пересобрать деку в deck/ (notes.js НЕ трогается, если он уже есть)
     python3 build.py --notes    # пересобрать И перезаписать notes.js из data-notes
@@ -30,8 +30,8 @@ SRC = HERE / "src"
 DECK_DIR = HERE / "deck"   # папка показа: html + notes.js (+ deck-assets), уносится целиком
 SKILL_KERNEL = Path.home() / ".claude/skills/present/assets/kernel.html"
 
-DECK_NAME = "kontekst-vid-golos-2026-07-28"
-TITLE = "Контекст. Вид. Голос. — как я делаю доклады с /present"
+DECK_NAME = "kontekst-dizayn-golos-2026-07-28"
+TITLE = "Контекст. Дизайн. Голос. — как я делаю доклады с /present"
 
 FORCE_NOTES = "--notes" in sys.argv
 
