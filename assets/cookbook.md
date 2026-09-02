@@ -1,13 +1,14 @@
-# Cookbook — библиотека рецептов для деки
+# Cookbook — техническая справка по деке
 
-Это **рецепты, а не форма**. Бери, ремикси, расширяй или игнорируй. Движок (`kernel.html`) даёт
-надёжную навигацию/анимации/заметки; здесь — готовые компоненты и один полный пример-арт-дирекшн.
-Каждую деку ты **проектируешь заново** под её контент (см. `art-direction.md`), а не заполняешь шаблон.
+Здесь **нет готовых видов и нечего скопировать**: раньше в этом файле лежала галерея компонентов и
+полный пример арт-дирекшна — и деки выходили их перекрашенными копиями. Визуал каждой деки
+придумывается заново под её контент; о чём при этом надо принять решение — `design-axes.md`,
+как читать бриф и референс — `art-direction.md`.
 
-> ⚠️ **НЕ собирай деку из одного и того же набора** (`title → enemy → cards → chain → clist → pipeline → typed`).
-> Это ПРИМЕРЫ сценариев, а не обязательная последовательность. Многие слайды — просто крупная типографика
-> или своя раскладка **без named-компонента**. Анимированные компоненты (pipeline, chain, glitch) — «фирменные»,
-> дорогие: 1–2 на всю деку максимум. Разные доклады → разные наборы слайдов. Копировать пример «под копирку» — плохо.
+Что осталось в этом файле — только то, что нельзя изобрести на месте:
+- **контракт классов kernel** — какие имена ждёт движок и какие состояния обязан описать твой CSS;
+- **контракт интерактива** — как авторский виджет уживается с навигацией, presenter-окном и печатью;
+- **техника** — офлайн-шрифты, base64-медиа, извлечение материала, проверки, PDF, доступность.
 
 **Самодостаточность (жёстко):** готовая дека — офлайн, без CDN / `@import` из сети / сетевых ссылок. Шрифты —
 системные ИЛИ вшитые base64 `@font-face`. Одно исключение разрешено НА СБОРКЕ: **с согласия пользователя**
@@ -46,27 +47,41 @@ Pipeline-атрибуты на `.pipeline` (ВСЕ опциональны): `dat
 появлением узла; вне — сразу при заходе. ⚠️ На слайде, где ЕСТЬ `.chain`, счётчики вне цепочки не
 запускаются (останутся «0») — держи их внутри узлов или выноси на другой слайд.
 
+**Минимальная разметка классов контракта** (структура обязательна, вид — твой):
+```html
+<span class="count" data-to="44">0</span>                          <!-- число-счётчик -->
+<div class="chain"><div class="node">…</div><span class="arrow">→</span><div class="node">…</div></div>
+<div class="clist"><div>строка</div><div>строка</div></div>          <!-- дети = шаги каскада -->
+<div class="pipeline"><div class="pstage" data-state="…" data-done="…" data-dur="900">…</div></div>
+<h2 data-type="Текст, который напечатается по буквам"></h2>          <!-- один на слайд -->
+```
+Всё остальное на слайде — свободная разметка под твою композицию: kernel не требует ни `.kicker`,
+ни `.lead`, ни `.title-wrap`, ни какой-либо «типовой» структуры слайда.
+
 ⚠️ **Скрытое до анимации — только через хуки kernel.** Если элемент стартует с `opacity:0` и проявляется
 анимацией, вешай на него `.reveal`/`[data-anim]` (или используй `.tab`/`.card`/`.clist`/`.chain`): print-слой
 раскрывает в PDF именно эти хуки. Свой класс с `opacity:0` вне контракта уедет в PDF невидимым.
 
 ---
 
-## Типографика без загрузок (системные стеки)
+## Типографика без загрузок (что реально есть в системе)
 
-Разнообразие даёт **тип шрифта**, а не скачивание. Готовые системные стеки:
+Справка о доступном офлайн — какой фейс к какому докладу, решаешь ты (это ось 3 в `design-axes.md`),
+здесь только гарантии наличия. На macOS/Windows надёжно доступны семейства:
 
-- **Гуманистический sans (модерн/корпоратив):** `-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',system-ui,sans-serif`
-- **Гротеск/нейтральный (swiss):** `'Helvetica Neue',Helvetica,Arial,'Segoe UI',system-ui,sans-serif`
-- **Serif-дисплей (editorial/эссе):** `'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif`
-- **Georgia-serif (тёплый текст):** `Georgia,Cambria,'Times New Roman',serif`
-- **Моноширинный (terminal/технично):** `'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace`
-- **Rounded/дружелюбный (там где есть):** `'SF Pro Rounded','Segoe UI',system-ui,sans-serif`
+| Категория | Стек, который не подведёт |
+|---|---|
+| Системный sans | `-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif` |
+| Нейтральный гротеск | `'Helvetica Neue',Helvetica,Arial,sans-serif` |
+| Узкий/плакатный | `Impact,Haettenschweiler,'Arial Narrow',sans-serif` |
+| Serif-дисплей | `'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif` |
+| Serif текстовый | `Georgia,Cambria,'Times New Roman',serif` |
+| Моноширинный | `'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace` |
+| Rounded (если есть) | `'SF Pro Rounded','Segoe UI',system-ui,sans-serif` |
 
-Приёмы: контраст serif-заголовок × sans-текст (editorial); всё моно (terminal); тяжёлый вес + отрицательный
-`letter-spacing` для гротеск-крупняка (swiss); `text-transform:uppercase`+широкий трекинг для kicker'ов.
-
----
+⚠️ Для русской деки проверяй кириллицу: у части плакатных фейсов её нет. Характер задаётся не
+столько выбором семейства, сколько весом, кеглем, `line-height`, `letter-spacing`, регистром и
+шириной колонки — на них и работай.
 
 ## Вшить open-source шрифт (с согласия пользователя, на сборке)
 
@@ -97,214 +112,38 @@ PY
 
 ## Фон (`#bg`)
 
-`#bg` — пустой слой над которым лежат слайды; стилизуй его в design layer. Идеи (все офлайн, чистый CSS):
+`#bg` — пустой слой под слайдами; стилизуется в design-слое. **Приёмы и правило выбора — в
+`design-axes.md`, ось 5** (десять вариантов). Здесь только техника и запреты:
 
-- **Aurora-пятна** (пример Cinematic ниже): три размытых `<span>` с `drift`-дрейфом.
-- **Grid / сетка:** `#bg{background:linear-gradient(#0001 1px,transparent 1px) 0 0/40px 40px, linear-gradient(90deg,#0001 1px,transparent 1px) 0 0/40px 40px}` (swiss/tech).
-- **Scanlines / CRT:** `#bg{background:repeating-linear-gradient(#0000 0 2px,#00ff9910 2px 3px)}` (terminal).
-- **Мягкий радиальный градиент:** `#bg{background:radial-gradient(1200px 800px at 70% 20%,#1b2a4a55,transparent)}` (corporate).
-- **Ничего:** оставь `#bg` пустым, крась `body` (editorial/minimal light).
-
-Если фон анимирован — гаси его в `@media (prefers-reduced-motion:reduce)`.
-
----
-
-## Компоненты-рецепты
-
-Ниже — разметка. Стили компонентов пиши под свой арт-дирекшн (пример полной реализации — блок
-«Cinematic Dark» в конце). Классы, которые ждёт kernel, помечены.
-
-### Титул
-```html
-<section class="slide active" data-notes="Молчи 3 сек, дай прочитать. [пауза]">
-  <div class="title-wrap">
-    <div class="badge mono">{{надзаголовок}}</div>
-    <h1>{{Заголовок}}<br><span class="accent">{{акцент}}</span></h1>
-    <div class="title-sub">{{подзаголовок}}</div>
-  </div>
-</section>
-```
-
-### Kicker (надстрочная метка акта)
-`<div class="kicker"><span class="dot">●</span> акт I</div>` — ставь вверху смыслового слайда.
-
-### Хаос / проблема — `.tabs`
-Вкладки пишем прямо в HTML (kernel переиграет их появление). Каждой — свой `animation-delay`.
-```html
-<div class="tabs">
-  <div class="tab" style="animation-delay:.04s">вкладка 1</div>
-  <div class="tab" style="animation-delay:.12s">ещё чат</div>
-  <div class="tab" style="animation-delay:.20s">docs??</div>
-  <div class="tab" style="animation-delay:.28s">final v2</div>
-</div>
-```
-
-### Громкое слово — `.enemy` (глитч)
-`<div class="enemy">СЛОВО</div>` — одно слово-враг, постоянный RGB-глитч.
-
-### Карточки — `.cards`
-```html
-<div class="cards">
-  <div class="card" style="animation-delay:.05s"><div class="ic">📋</div><div class="nm">{{Имя}}</div><div class="rl">{{роль}}</div></div>
-  <div class="card" style="animation-delay:.18s"><div class="ic">🏗️</div><div class="nm">{{Имя}}</div><div class="rl">{{роль}}</div></div>
-</div>
-```
-
-### Цитата / тезис — `.quote`
-`<div class="quote"><b>{{Тезис:}}</b> {{мысль.}}</div>`
-
-### Цепочка «идея→результат» — `.chain` (узлы по очереди + счётчики)
-```html
-<div class="chain">
-  <div class="node"><span class="big">{{слово}}</span><span class="lbl">{{подпись}}</span></div>
-  <div class="arrow">→</div>
-  <div class="node"><span class="big count" data-to="26">0</span><span class="lbl">{{подпись}}</span></div>
-  <div class="arrow">→</div>
-  <div class="node"><span class="big accent count" data-to="44">0</span><span class="lbl">{{подпись}}</span></div>
-</div>
-```
-
-### Список / «стена» — `.clist` (каскадный влёт; ТРЕБУЕТ `@keyframes gitin`)
-```html
-<div class="clist">
-  <div><span class="h">id1</span> <span class="s">{{пункт}}</span> <span class="t">{{деталь}}</span></div>
-  <div><span class="h">id2</span> <span class="s">{{пункт}}</span> <span class="t">{{деталь}}</span></div>
-  <div><span class="t">… ещё N</span></div>
-</div>
-```
-
-### Крупные цифры-итоги — `.stats`
-```html
-<div class="stats">
-  <div class="stat"><div class="n count" data-to="96">0</div><div class="l">{{подпись}}</div></div>
-  <div class="stat"><div class="n count" data-to="44">0</div><div class="l">{{подпись}}</div></div>
-</div>
-```
-
-### Терминал (статичный кадр) — `.term`
-```html
-<div class="term">
-  <div class="top"><i></i><i></i><i></i></div>
-  <div class="body"><span class="pr">❯</span> <span class="cmd">{{команда}}</span><br>
-    <span class="step">→ {{шаг}} …</span><br><span class="ok">✓ {{итог}}</span> <span class="cursor"></span></div>
-</div>
-```
-
-### Процесс по шагам (живой) — `.pipeline` ⟨ОПЦИОНАЛЬНО, максимум 1 на деку⟩
-> Не обязательный элемент. Часто уместнее **статичный** `.flow`/`.chain` (ниже) — они не «тикают» и не
-> отвлекают. Бери `.pipeline` только если живой прогон этапов реально несёт смысл. По умолчанию проходит
-> **один раз** и останавливается (цикл — только с `data-loop`).
-
-**Минимальный вид** (только этапы, один проход — без счётчика/точек/ленты):
-```html
-<div class="pipeline" data-fin="Готово ✓">
-  <div class="pstage" data-state="готовлю…" data-done="✓" data-dur="1100"><div class="pic">01</div><div class="pname">{{Этап 1}}</div><div class="pdesc">{{деталь}}</div><div class="pstate"></div></div>
-  <div class="parrow">→</div>
-  <div class="pstage" data-state="проверяю…" data-done="✓" data-dur="1200"><div class="pic">02</div><div class="pname">{{Этап 2}}</div><div class="pdesc">{{деталь}}</div><div class="pstate"></div></div>
-</div>
-```
-
-**Опциональные добавки** (по желанию, не по умолчанию): шапка-счётчик `#pipe-counter` + шкала точек
-`#pipe-dots`, лента `#pipe-feed`, прогон N предметов `data-total="N"`, бесконечный цикл `data-loop`:
-```html
-<div class="pipehead"><span class="lbl">{{метка}}</span><span class="cnt" id="pipe-counter">Item 1/6</span>
-  <span class="dots" id="pipe-dots"></span></div>
-<div class="pipeline" data-total="6" data-loop data-item="Item" data-feed="готово" data-fin="Готово ✓"> … </div>
-<div class="feed" id="pipe-feed"></div>
-```
-
-### Финал / панчлайн — `[data-type]` (печать по буквам)
-```html
-<div class="typed"><span data-type="{{команда или фраза}}" data-type-speed="105"></span><span class="tcur">▋</span></div>
-<div class="closer">«{{Финальная фраза-крючок.}}»</div>
-```
+- Дрейфующие размытые пятна («аврора») — приём из старых дек, по умолчанию НЕ используется.
+- Пустой `#bg` + цвет на `body` — законный и часто лучший выбор, особенно для светлых дек.
+- Фон анимируется, только если движение несёт смысл (поток, процесс, время); иначе он статичен.
+- Любая анимация фона гасится в `@media (prefers-reduced-motion:reduce)`.
+- Фон печатается в PDF копией внутри слайда (`freezeForPrint`), поэтому тяжёлые blur-слои
+  дают в печати мутное пятно — проверяй экспорт, если фон сложный.
 
 ---
 
-## Ещё сценарии слайдов (примеры для разных жанров, НЕобязательные)
+## Медиа: как встроить самодостаточно
 
-Чтобы деки не были «под копирку». Классы — просто хуки для твоего CSS; стилизуй под арт-дирекшн. Числа → `.count`;
-появление по заходу → `.reveal`.
+Вопрос «как это выглядит» решается арт-дирекшном; здесь только техника, чтобы дека осталась офлайн.
 
-**Деловые / аналитика**
-- `.metric-hero` — одна огромная цифра-KPI на весь экран: `<div class="metric-hero"><span class="count" data-to="87">0</span><span class="unit">%</span><p class="lead">подпись</p></div>`
-- `.ctable` — сравнительная таблица: обычная `<table class="ctable">…</table>` (стилизуй хедер/строки под тему).
-- `.beforeafter` — «до/после»: `<div class="beforeafter"><div class="ba a">…</div><div class="ba b">…</div></div>`
-
-**Сторителлинг / питч**
-- `.pullquote` — цитата-герой: `<blockquote class="pullquote">«…»<cite>— автор</cite></blockquote>`
-- `.statement` — один крупный тезис на весь экран (чистая типографика): `<div class="statement"><h1>Одна мысль.</h1></div>`
-- `.timeline` — вехи во времени: `<div class="timeline"><div class="mile reveal"><b>2019</b> событие</div> …</div>`
-
-**Структура / схемы**
-- `.flow` — статичная блок-схема (боксы+стрелки, НЕ анимированный pipeline): `<div class="flow"><div class="box">A</div><span class="fa">→</span><div class="box">B</div></div>`
-- `.divider` — перебивка-раздел «глава N»: `<div class="divider"><span class="ch">02</span><h2>Название раздела</h2></div>`
-
-**Сдержанное**
-- `.blist` — чистый список с иконками (не «стена кода»): `<ul class="blist"><li><span class="ic">✓</span> пункт</li> …</ul>`
-- `.cta` — деловой финал без терминала: `<div class="cta"><h2>Призыв</h2><p class="lead">контакт / ссылка</p></div>`
-
-## Медиа-рецепты (картинки/гифки, самодостаточно)
-
-### Встраивание (правило: лёгкое — inline, тяжёлое — рядом)
-- **Лёгкое (< ~800 КБ: фото, логотипы, скриншоты, диаграммы)** → **inline base64**, дека остаётся одним офлайн-файлом:
-  ```bash
-  # печатает data-URI в stdout (macOS); mime определяет file по содержимому
-  f=path/img.png; printf 'data:%s;base64,' "$(file --mime-type -b "$f")"; base64 -i "$f"
-  ```
-  Вставляй как `<img src="data:image/png;base64,iVBORw0K…">`.
-- **Тяжёлое (> ~800 КБ: крупные GIF/видео)** → **sidecar-папка внутри папки показа** (`deck/deck-assets/`, рядом с HTML), ссылка относительным путём `<img src="deck-assets/demo.gif">`. Оригиналы в рабочей папке не трогай — копируй. ⚠️ Предупреди пользователя: дека больше **не один файл** — уносить и пересылать надо папку `deck/` целиком.
-
-Не тяни картинки из сети (`src="http…"`) — нарушает самодостаточность.
-
-### `.photo-full` — полноэкранное фото-подложка + текст поверх
-```html
-<section class="slide" data-notes="…">
-  <img class="photo-bg" src="data:image/jpeg;base64,…" alt="">
-  <div class="scrim"></div>
-  <div class="photo-cap"><h2>{{Заголовок поверх фото}}</h2><p class="lead">{{строка}}</p></div>
-</section>
+**Правило веса.** Лёгкое (< ~800 КБ) → inline base64 прямо в `src`, дека остаётся одним файлом:
+```bash
+python3 -c "import base64,sys,pathlib;p=pathlib.Path(sys.argv[1]);print('data:image/'+p.suffix[1:].replace('jpg','jpeg')+';base64,'+base64.b64encode(p.read_bytes()).decode())" фото.jpg
 ```
-CSS-идея: `.photo-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}`
-`.scrim{position:absolute;inset:0;background:linear-gradient(90deg,#000c,#0000);z-index:-1}`. Опц.
-Ken-Burns: `.photo-bg.reveal{animation:kenburns 12s ease both}` + `@keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.12)}}` (класс `.reveal` → kernel переиграет; гаси в reduced-motion).
+Тяжёлое (крупные GIF/видео) → в `deck/deck-assets/`, ссылка относительная (`deck-assets/…`), и предупреди
+пользователя, что дека теперь ездит только вместе со своей папкой. Оригиналы копируй, а не перемещай.
 
-### `.split` — фото + текст в две колонки (`.split.reverse` зеркалит)
-```html
-<div class="split">
-  <div class="split-media"><img src="data:…" alt=""></div>
-  <div class="split-text"><h2>{{Заголовок}}</h2><p class="lead">{{текст}}</p></div>
-</div>
-```
-CSS-идея: `.split{display:grid;grid-template-columns:1fr 1fr;gap:3vw;align-items:center}`
-`.split-media img{width:100%;border-radius:16px}` · `.split.reverse{direction:rtl}.split.reverse>*{direction:ltr}`
-· `@media(max-width:760px){.split{grid-template-columns:1fr}}`.
-
-### `.gallery` — сетка изображений (каскад через `.reveal`)
-```html
-<div class="gallery">
-  <img class="reveal" style="animation-delay:.05s" src="data:…" alt="">
-  <img class="reveal" style="animation-delay:.15s" src="data:…" alt="">
-</div>
-```
-CSS-идея: `.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}`
-`.gallery img{width:100%;border-radius:12px}` · `.gallery .reveal{animation:rise .5s both}`.
-
-### `.figure` — одиночная картинка (диаграмма/скриншот) без кропа + подпись
-```html
-<div class="figure"><img src="data:…" alt=""><figcaption>{{подпись}}</figcaption></div>
-```
-CSS-идея: `.figure img{max-width:100%;max-height:64vh;object-fit:contain;border-radius:12px}`
-`.figure figcaption{color:var(--muted);font-size:.9rem;margin-top:.8rem}`.
-
-### `.gif-demo` / `.device` — GIF-демо в рамке-хроме (браузер/телефон)
-```html
-<div class="device browser"><div class="chrome"><i></i><i></i><i></i></div>
-  <img src="deck-assets/demo.gif" alt=""></div>
-```
-CSS-идея: рамка + шапка с тремя кружками; `img{display:block;width:100%}`.
-
----
+**Что важно технически, независимо от вида:**
+- пропорции не режь силой: `object-fit:cover` кропает, `contain` вписывает целиком — для схем и
+  скриншотов почти всегда нужен `contain`, иначе пропадут края диаграммы;
+- у картинки во весь кадр задавай и `width`, и `height` (или `inset:0`), иначе слайд «поедет» и
+  переполнится — это одна из частых причин срабатывания `?check`;
+- SVG вставляй инлайном (`<svg>` прямо в разметке) — он масштабируется без потерь и красится через
+  `currentColor`, то есть подчиняется палитре;
+- GIF в PDF даёт первый кадр — если демо важно для печатной версии, добавь статичный дубль-кадр;
+- альт-текст (`alt`) пиши всегда: он читается в presenter и попадает в текстовый слой PDF.
 
 ## Навигация колесом (крутилки)
 В `kernel.html`, константы вверху скрипта: `WHEEL_TH` (порог накопления дельты на шаг, по умолч. 40 —
@@ -356,6 +195,63 @@ python3 <каталог-скилла>/assets/validate.py ФАЙЛ.html
 ```
 Переполнение вёрстки (контент выше экрана) проверяет сам kernel: открой `file://…/ФАЙЛ.html?check` —
 появится плашка со списком проблемных слайдов.
+
+## Визуальная самопроверка в Chrome (claude-in-chrome)
+
+Валидатор проверяет плумбинг, но не видит вёрстку: наложенные слайды, обрезанный заголовок, серый
+текст на тёмном, пропавшую картинку он пропустит. Поэтому перед показом агент **смотрит деку сам**.
+Процедура ниже проверена на живой деке; отклонения от неё стоят потерянного времени.
+
+**1. Сервер.** Расширение не открывает `file://` (`Can't interact with browser-internal or unparseable
+URLs`), поэтому дека отдаётся по http. Порт свободный, сервер обязательно гасится в конце:
+```bash
+cd путь/к/deck && nohup python3 -m http.server 8777 --bind 127.0.0.1 >/dev/null 2>&1 &
+sleep 1 && curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8777/ФАЙЛ.html   # ждём 200
+# ...проверка...
+pkill -f "http.server 8777"
+```
+
+**2. Вкладка.** `tabs_context_mcp{createIfEmpty:true}` → `navigate` на
+`http://127.0.0.1:8777/ФАЙЛ.html?check`. Вкладку в конце закрыть (`tabs_close_mcp`).
+
+**3. Вердикт `?check` — двумя способами.** Плашка видна на первом же скриншоте, а текстом дешевле:
+`read_console_messages{pattern:"deck \?check"}` → `[deck ?check] ⚠ переполнение … слайды 03`.
+
+**4. Точный замер переполнения.** Окно браузера НЕ 16:9 (типично ~1.83) и `resize_window` его не
+выправляет — kernel меряет по фактическому окну, то есть строже/мягче реального экрана. Честный
+замер по эталону 16:9 — через `javascript_tool`:
+```js
+(()=>{const H=innerWidth/16*9,out=[];
+document.querySelectorAll('.slide').forEach((s,k)=>{const was=s.classList.contains('active');
+if(!was)s.classList.add('active');const h=s.scrollHeight;if(!was)s.classList.remove('active');
+if(h>H+1)out.push({n:k+1,over:Math.round(h-H)})});
+return {vw:innerWidth,vh:innerHeight,ideal:Math.round(H),ratio:+(innerWidth/innerHeight).toFixed(2),over:out}})()
+```
+`over:[{n:3,over:418}]` — слайд 03 выше экрана на 418 px. Погрешность: `vh`-единицы в padding
+считаются от реального окна, а не от эталона (~3 %), — на решение «резать или нет» это не влияет.
+
+**5. Режим съёмки.** Функции kernel глобальные: `go(k)`, `freezeForPrint()`, `unfreezeAfterPrint()`,
+`checkOverflow()`, `plate()`. Скриншот сразу после `go()` ловит слайд **в середине входной анимации**
+(`slidefade` .55 s) — текст полупрозрачный, цвета врут, чинить по такому кадру нечего. Перед обходом:
+```js
+document.head.insertAdjacentHTML('beforeend','<style id="shotmode">*{animation:none!important;transition:none!important}</style>');
+freezeForPrint();                                             // счётчики досчитаны, каскады/цепочки/pipeline в финале
+document.querySelectorAll('.deck-plate').forEach(p=>p.remove());   // плашка ?check не должна лезть в кадр
+```
+Дальше на каждый слайд: `go(k)` (через `javascript_tool`) → `computer{action:"screenshot"}`, без пауз.
+После обхода вернуть деку в живое состояние:
+```js
+document.getElementById('shotmode')?.remove(); unfreezeAfterPrint();
+```
+
+**6. Что искать на кадрах.** Контент, вылезший за экран или обрезанный сверху; несколько слайдов
+одновременно (см. Don't про `.slide`); текст на фоне без контраста; заголовок, разъехавшийся на строку
+из одного слова; пустой прямоугольник вместо картинки; хром деки (`#bar`/`#counter`), налезающий на
+контент. Нашёл — правь и переснимай затронутые слайды.
+
+**7. Чего НЕ делать.** Не нажимать `S` и `⌘P` — откроется системный диалог печати и заблокирует
+расширение до ручного закрытия пользователем. Presenter (`P`) агенту тоже проверять нечем — это
+отдельное окно и живой сценарий пользователя.
 Затем `open ФАЙЛ.html` (macOS). Проверь: листается стрелками/колесом/свайпом, `P` открывает presenter
 ОТДЕЛЬНЫМ окном (не вкладкой) и оно синхронно, `B` гасит экран, медиа видны, заметок на самой деке нет. Живые заметки: измени строку в
 `<slug>-notes.js` при открытом presenter — текст обновится в течение пары секунд (индикатор
@@ -370,107 +266,122 @@ python3 <каталог-скилла>/assets/validate.py ФАЙЛ.html
 
 ## Do / Don't
 - **Do:** одна мысль — один слайд; короткие заголовки; каждое число — счётчик; у каждого слайда `data-notes`;
-  проектируй визуал под КОНТЕНТ (разные доклады → разные деки); всё офлайн.
-- **Don't:** не вали 15 буллетов на слайд; не тяни шрифты/картинки из сети; не редактируй `<script id="kernel">`
+  визуал проектируется под КОНТЕНТ по осям (`design-axes.md`), а композиция меняется по ходу деки; всё офлайн.
+- **Don't:** не переопределяй `.slide{display:…}` в design-слое — база держит слайды на
+  `.slide{display:none}` + `.slide.active{display:flex}`, и твой `display:flex` покажет ВСЕ слайды разом
+  (валидатор это не ловит, скриншот ловит сразу); задавай в design-слое `padding`/`gap`/`justify-content`,
+  а `display` — только через `.slide.active`;
+  не вали 15 буллетов на слайд; не бери визуал из прошлых дек, чужих `*.html` во входной папке
+  или из головы «как обычно» — оси решаются заново под этот доклад; не тяни шрифты/картинки из сети; не редактируй `<script id="kernel">`
   и chrome-DOM; не ставь пакеты; не выдумывай статистику; не более одной «громкой» анимации на слайд;
+  не вешай клик на `div` без `[data-interactive]` — kernel примет его за клик по слайду и пролистает;
   не используй `backdrop-filter` в слайдах — конфликтует с входной transform-анимацией слайда (`slidefade`),
   рамка рендерится с глитчем; вместо него статичная радиальная/линейная заливка.
 
 ---
 
-## ПРИМЕР готового арт-дирекшна: «Cinematic Dark»
-Тёмный кинематографичный стиль (дрейф-аврора, янтарный акцент, моно-акценты). Это ОДИН из возможных
-языков — копируй/адаптируй, но не считай дефолтом. Вставляется целиком в `<style id="design">`.
-Фон требует три `<span>` в `#bg`: `<div id="bg"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>`.
+## Интерактивность: контракт с kernel
+
+Готовых виджетов здесь нет и не будет — по той же причине, по которой отсюда убрана галерея
+компонентов. **Что** делать интерактивным и стоит ли вообще — ось 9 в `design-axes.md`. Здесь —
+только плумбинг: как виджет уживается с навигацией, presenter-окном и печатью.
+
+**Куда писать JS.** В отдельный блок скрипта `<script id="interactive">` **после**
+`<script id="kernel">`, перед закрывающим `</body>`. Вставляешь сборочным скриптом — матчь
+ПОСЛЕДНЕЕ вхождение `</body>`: первое лежит внутри kernel, в строке, собирающей presenter-окно. Сам kernel по-прежнему не трогается. Ванильный JS,
+без библиотек, офлайн — как и всё остальное в деке.
+
+**Что kernel v6 берёт на себя** (в v5 и раньше этого нет — на старом движке интерактив ломает
+навигацию, и деку надо перенести на свежий `kernel.html`):
+
+| Ситуация | Поведение движка |
+|---|---|
+| клик по `a,button,label,summary,details,video,audio,input,textarea,select,[contenteditable],[role="button"]` | слайд НЕ листается |
+| клик по своей зоне, помеченной `[data-interactive]` | слайд НЕ листается (опт-аут для любой авторской вёрстки) |
+| любая клавиша, когда фокус в `input/textarea/select/[contenteditable]` | до навигации не доходит — `p`, `b`, `s`, пробел печатаются, а не жмут хоткеи |
+| пробел или Enter, когда фокус на кнопке/ссылке/`summary` | активируют элемент, а не листают |
+| клик, колесо и тач-жест внутри `[data-scroll]` | достаются зоне: прокрутка и выделение текста слайд не листают |
+
+Стрелки `← →` листают деку всегда, даже когда фокус на кнопке виджета: после клика фокус
+остаётся на нём, и терять там навигацию нельзя.
+
+**Что остаётся на тебе:**
+
+- **Сброс при заходе на слайд.** Kernel переигрывает только свои аниматоры, про твой виджет он
+  не знает: зритель ушёл со слайда и вернулся — виджет останется в том состоянии, в каком его
+  бросили. Нужен старт с чистого листа — слушай появление класса `active`:
+  ```js
+  document.querySelectorAll('.slide').forEach(s=>{
+    new MutationObserver(()=>{ if(s.classList.contains('active')) resetWidget(s) })
+      .observe(s,{attributes:true,attributeFilter:['class']});
+  });
+  ```
+  Наблюдатель срабатывает в микротаске, а не мгновенно: проверяя сброс из консоли, ставь паузу
+  между `go()` и чтением состояния — иначе увидишь старое значение и пойдёшь чинить исправное.
+- **Клавиатура и фокус.** Кликабельное — это `<button>`, а не `<div onclick>`: так работают
+  `Tab` и `Enter`, так kernel узнаёт интерактив и не листает слайд. Своя разметка вместо кнопки —
+  вешай `[data-interactive]`, `tabindex` и `role="button"`, иначе с клавиатуры до виджета не
+  добраться. И помни: по Enter/Space браузер синтетический `click` на не-кнопку НЕ шлёт — движок
+  клавишу до навигации не пропустит, но нажатие обрабатываешь ты сам, своим `keydown`.
+- **Печать.** `freezeForPrint()` про виджет не знает: в PDF уедет ровно то состояние, что в DOM
+  на момент печати. Данные, спрятанные за нажатием, либо продублируй статикой, либо честно скажи
+  пользователю, что в PDF их не будет. Собственный класс с `opacity:0` вне хуков контракта
+  напечатается невидимым (см. предупреждение выше по файлу).
+- **`?check` меряет дефолтное состояние.** Аккордеон, раскрывающийся на пол-экрана, проверяй
+  раскрытым — руками, глазами и на реальном 16:9.
+- **Presenter-превью.** Мини-превью — iframe со снимком `documentElement.outerHTML`, то есть твой
+  скрипт выполнится там ещё раз. Код должен быть идемпотентным, лёгким и без побочных эффектов
+  наружу (`window.open`, запись в `localStorage`, глобальные таймеры) — иначе окно докладчика
+  начнёт жить своей жизнью.
+- **Заметки.** У интерактивного слайда в `data-notes` — ремарка, что и когда нажимать
+  (`[кликни «после» — цифра сменится]`). Докладчик читает заметки, а не догадывается.
+- **Аффорданс.** Курсор `pointer`, видимое состояние (нажато/выбрано/раскрыто), при нужде —
+  микроподпись. И держи виджет подальше от углов: там живёт хром деки (`#bar`, `#counter`,
+  `#hint`, `z-index:50`), он перекроет хит-зону.
+- **Движение** внутри виджета гасится в `@media (prefers-reduced-motion:reduce)`, как и всё
+  остальное.
+
+**Прокручиваемая зона** (длинная таблица, список, код) — сама зона плюс пометка для движка:
+```html
+<div class="ledger" data-scroll style="overflow:auto;max-height:52vh">…</div>
+```
+Без `[data-scroll]` колесо уйдёт в навигацию и пролистает слайд вместо прокрутки.
+
+---
+
+## Скелет design-слоя (структура, а НЕ вид)
+
+Готового арт-дирекшна здесь намеренно нет: пока в cookbook лежал один полный пример, деки выходили
+его перекрашенными копиями — вплоть до дословных `--bg:#0a0b0f` и `--accent:#f5b942` в разных
+докладах. Визуальные решения выбираются по `design-axes.md` (9 осей), а ниже — только каркас: какие
+слоты обязан заполнить design-слой, чтобы kernel не сыграл в пустоту.
 
 ```css
-:root{
-  --bg:#0a0b0f; --surface:#14161f; --surface2:#1c1f2b;
-  --text:#eceef3; --muted:#878b99; --line:#2a2e3c;
-  --accent:#f5b942; --green:#4ade80; --danger:#f4604f; --blue:#6aa8ff;
-  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,monospace;
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',system-ui,sans-serif;
-}
-body{background:#000;color:var(--text);font-family:var(--sans)}
-.slide{padding:7vh 9vw}
-h1{font-size:clamp(2.4rem,6vw,5rem);font-weight:800;line-height:1.02;letter-spacing:-.02em}
-h2{font-size:clamp(1.8rem,4.2vw,3.4rem);font-weight:750;line-height:1.08;letter-spacing:-.015em}
-.lead{font-size:clamp(1.1rem,2vw,1.6rem);color:var(--muted);line-height:1.5;max-width:48ch;margin-top:1.4rem}
-.accent{color:var(--accent)} .green{color:var(--green)} .danger{color:var(--danger)} .blue{color:var(--blue)} .muted{color:var(--muted)} .mono{font-family:var(--mono)}
-.kicker{font-family:var(--mono);font-size:.85rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:1.6rem}
-.kicker .dot{color:var(--accent)}
-#bar{background:linear-gradient(90deg,var(--accent),var(--green))}
-#counter{color:var(--muted);opacity:1} #hint{color:#4a4e5c;opacity:1}
-/* фон-аврора */
-#bg{filter:blur(85px);opacity:.4}
-#bg span{position:absolute;width:46vw;height:46vw;border-radius:50%;mix-blend-mode:screen;animation:drift 26s ease-in-out infinite}
-#bg .a1{background:#b8862e;top:-8%;left:-6%}
-#bg .a2{background:#1f6d45;bottom:-18%;right:-4%;animation-delay:-9s}
-#bg .a3{background:#26407a;top:28%;right:22%;animation-delay:-17s}
-@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(8%,10%) scale(1.2)}66%{transform:translate(-7%,-8%) scale(.85)}}
-@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-/* title */
-.title-wrap{display:flex;flex-direction:column;gap:.4rem}
-.title-wrap h1{margin-top:1.8rem}
-.title-sub{font-size:clamp(1rem,1.7vw,1.4rem);color:var(--muted);margin-top:2rem;font-family:var(--mono)}
-.badge{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mono);font-size:.8rem;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:.4rem .9rem;width:fit-content}
-/* tabs */
-.tabs{display:flex;gap:6px;flex-wrap:wrap;max-width:60ch;margin-top:.5rem}
-.tab{font-family:var(--mono);font-size:.72rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-top-color:#3a3030;border-radius:7px 7px 0 0;padding:.35rem .7rem;opacity:0;animation:rise .4s forwards}
-/* enemy */
-.enemy{font-size:clamp(3rem,11vw,9rem);font-weight:850;letter-spacing:-.03em;color:var(--danger);line-height:.95;animation:enemyglitch 2s infinite}
-@keyframes enemyglitch{0%,88%,100%{text-shadow:none;transform:none}90%{text-shadow:-3px 0 #06b6d4,3px 0 #f4604f;transform:translateX(2px) skewX(-1deg)}94%{text-shadow:3px 0 #06b6d4,-3px 0 #f4604f;transform:translateX(-2px)}97%{text-shadow:-2px 0 #06b6d4,2px 0 #f4604f;transform:none}}
-/* cards */
-.cards{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:2.4rem}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1.3rem 1.5rem;min-width:160px;opacity:0;animation:rise .5s forwards}
-.card .ic{font-size:2rem}.card .nm{font-weight:700;margin-top:.5rem;font-size:1.1rem}.card .rl{color:var(--muted);font-size:.85rem;margin-top:.15rem}
-.quote{margin-top:2.4rem;border-left:3px solid var(--accent);padding:.5rem 0 .5rem 1.3rem;max-width:60ch}.quote b{color:var(--accent)}
-/* chain */
-.chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin-top:3rem;font-family:var(--mono)}
-.node{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1rem 1.3rem;display:flex;flex-direction:column;gap:.3rem}
-.node .big{font-size:1.7rem;font-weight:800;color:var(--accent)}
-.node .lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-.arrow{display:flex;align-items:center;color:var(--line);font-size:1.6rem;padding:0 .7rem}
-.chain.seq .node{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
-.chain.seq .node.show{opacity:1;transform:none}
-.chain.seq .arrow{opacity:.18;transition:opacity .5s ease,color .5s ease,text-shadow .5s ease}
-.chain.seq .arrow.show{opacity:1;color:var(--accent);text-shadow:0 0 16px rgba(245,185,66,.85)}
-/* clist — ТРЕБУЕТ @keyframes gitin */
-.clist{font-family:var(--mono);font-size:clamp(.6rem,1.15vw,.92rem);line-height:1.55;background:#070809;border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.6rem;margin-top:1.4rem;max-height:62vh;overflow:hidden;column-count:2;column-gap:2.4rem}
-.clist .h{color:#5a6cf5}.clist .s{color:var(--green)}.clist .t{color:var(--muted)}
-.clist.cascade>div{opacity:0}
-@keyframes gitin{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
-/* stats */
-.stats{display:flex;gap:2.5rem;flex-wrap:wrap;margin-top:2.2rem}
-.stat .n{font-size:clamp(2rem,4.5vw,3.6rem);font-weight:850;color:var(--green)}
-.stat .l{color:var(--muted);font-size:.9rem;margin-top:.2rem}
-/* term */
-.term{font-family:var(--mono);background:#070809;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:2rem;max-width:80ch}
-.term .top{background:var(--surface);padding:.6rem 1rem;display:flex;gap:.5rem;border-bottom:1px solid var(--line)}
-.term .top i{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--line)}
-.term .top i:nth-child(1){background:#f4604f}.term .top i:nth-child(2){background:#f5b942}.term .top i:nth-child(3){background:#4ade80}
-.term .body{padding:1.4rem 1.6rem;font-size:clamp(.8rem,1.4vw,1.05rem);line-height:1.85}
-.term .cmd{color:var(--text)}.term .pr,.term .ok{color:var(--green)}.term .step{color:var(--muted)}
-.cursor{display:inline-block;width:9px;height:1.1em;background:var(--green);vertical-align:-2px;animation:blink 1s steps(1) infinite}
-@keyframes blink{50%{opacity:0}}
-/* pipeline */
-.pipehead{display:flex;align-items:center;gap:.8rem;font-family:var(--mono);font-size:.85rem;margin:.6rem 0 1.1rem;flex-wrap:wrap}
-.pipehead .lbl{color:var(--muted);letter-spacing:.15em}.pipehead .cnt{color:var(--accent);font-weight:700}.pipehead .cnt .ok{color:var(--green)}
-.dots{display:flex;gap:5px}.sdot{width:18px;height:6px;border-radius:3px;background:var(--line);display:inline-block;transition:background .3s}.sdot.full{background:var(--green)}
-.pipeline{display:flex;align-items:stretch;gap:0;margin-top:.3rem;font-family:var(--mono);flex-wrap:wrap}
-.pstage{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;min-width:122px;transition:opacity .3s,border-color .3s,box-shadow .3s;opacity:.4}
-.pstage.on{opacity:1;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 26px -8px var(--accent)}
-.pstage.guard.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green),0 0 26px -8px var(--green)}
-.pstage.done{opacity:.92;border-color:#2f6b43}
-.pstage .pic{font-size:1.3rem}.pstage .pname{font-weight:700;margin-top:.35rem;font-size:.92rem}.pstage .pdesc{color:var(--muted);font-size:.68rem;margin-top:.15rem;line-height:1.3}.pstage .pstate{font-size:.72rem;margin-top:.5rem;min-height:1.15em}
-.pstate .mut{color:var(--muted)}.pstate .ok{color:var(--green)}
-.parrow{display:flex;align-items:center;color:var(--line);padding:0 .4rem;font-size:1.2rem}
-.feed{font-family:var(--mono);font-size:.8rem;margin-top:1rem;min-height:3.4em;line-height:1.75;color:var(--muted)}.feed .ok{color:var(--green)}
-/* typed + closer */
-.typed{font-family:var(--mono);font-size:clamp(1.3rem,3.4vw,2.6rem);font-weight:700;color:var(--bg);background:var(--accent);border-radius:14px;padding:1.1rem 1.8rem;width:fit-content;margin-top:2.2rem;animation:typedglow 2.6s ease-in-out infinite}
-@keyframes typedglow{0%,100%{box-shadow:0 18px 50px -18px rgba(245,185,66,.6)}50%{box-shadow:0 18px 70px -10px rgba(245,185,66,.95)}}
-.tcur{display:inline-block;color:var(--bg);font-weight:800;animation:blink 1s steps(1) infinite}
-.closer{font-size:clamp(1.3rem,2.6vw,2rem);font-style:italic;margin-top:2.4rem;max-width:42ch;line-height:1.4}
-@media (max-width:760px){.clist{column-count:1}.chain{gap:.4rem}}
-@media (prefers-reduced-motion:reduce){#bg span,.enemy,.typed{animation:none}}
+/* 1. ТОКЕНЫ — имена свои, значения из твоего арт-дирекшна (оси 4 и 3) */
+:root{ /* фон, поверхность, текст, приглушённый, линия, 1 акцент; шрифтовые стеки */ }
+
+/* 2. ОСНОВА — body и #bg (ось 5: чаще всего #bg вообще не трогается) */
+body{ /* цвет фона и текста, базовый шрифт */ }
+
+/* 3. ТИПОГРАФИКА — h1/h2 и текстовый класс; характер несут line-height,
+      letter-spacing и ширина колонки, а не выбор фейса (ось 3) */
+
+/* 4. КОМПОЗИЦИЯ — классы-схемы для РАЗНЫХ типов слайдов, а не один вид на всё (ось 1) */
+.slide.poster{ } .slide.split{ } .slide.hero-num{ }
+
+/* 5. ХРОМ — часть визуала, оформление можно менять (ось 8) */
+#bar{ } #counter{ } #hint{ }
+
+/* 6. ПЕРЕХОД СЛАЙДА — переопределяется одноимённым правилом, kernel это допускает (ось 6) */
+@keyframes slidefade{ /* свой характер входа: наезд / шторка / сдвиг / просто фейд */ }
+
+/* 7. КОМПОНЕНТЫ — только те, что реально нужны этой деке; по контракту классов выше
+      обязательны состояния: .chain.seq .node/.node.show, @keyframes gitin для .clist,
+      .pstage/.pstage.on/.pstage.done для .pipeline, animation у .reveal/.tab/.card */
+
+/* 8. ДОСТУПНОСТЬ */
+@media (prefers-reduced-motion:reduce){ /* гасим движение фона и «громкие» анимации */ }
 ```
+
+Как выглядит каждый слот — решается заново под доклад. Нужен образец чужого вкуса — это `design.md`
+пользователя или URL-референс (`art-direction.md`), а не соседняя дека.

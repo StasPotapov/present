@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Сборщик деки «Контекст. Дизайн. Голос.» (скилл /present, KERNEL v5).
+Сборщик деки «Контекст. Дизайн. Голос.» (скилл /present).
 
-    python3 build.py            # пересобрать деку в deck/ (notes.js НЕ трогается, если он уже есть)
-    python3 build.py --notes    # пересобрать И перезаписать notes.js из data-notes
+    python3 build.py                    # пересобрать деку в deck/ (notes.js НЕ трогается, если он уже есть)
+    python3 build.py --notes            # пересобрать И перезаписать notes.js из data-notes
+    python3 build.py --kernel PATH      # взять движок по явному пути
 
 Что делает:
-  1. берёт движок kernel.html ДОСЛОВНО (из ассетов скилла /present; фолбэк — src/kernel-v5.html);
+  1. берёт движок kernel.html ДОСЛОВНО (из ассетов установленного скилла /present либо по --kernel);
+     дека собиралась на KERNEL v5, но собирается и на более новых — они обратно совместимы;
   2. вставляет src/design.css в <style id="design">, подставив в него @font-face Inter
      (src/inter-faces.css — base64, cyrillic+latin, roman+italic; сеть не нужна);
   3. вставляет src/slides.html в #deck, заменив маркеры __IMG:файл__ на inline data-URI;
@@ -28,7 +30,12 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
 DECK_DIR = HERE / "deck"   # папка показа: html + notes.js (+ deck-assets), уносится целиком
-SKILL_KERNEL = Path.home() / ".claude/skills/present/assets/kernel.html"
+# Движок ищется там, куда обычно ставят скилл: глобально в ~/.claude или локально в проекте.
+KERNEL_CANDIDATES = [
+    Path.home() / ".claude/skills/present/assets/kernel.html",
+    HERE.parent / "assets/kernel.html",              # этот репозиторий, если он же и есть скилл
+    Path(".claude/skills/present/assets/kernel.html"),
+]
 
 DECK_NAME = "kontekst-dizayn-golos-2026-07-28"
 TITLE = "Контекст. Дизайн. Голос. — как я делаю доклады с /present"
@@ -41,10 +48,18 @@ def read(p: Path) -> str:
 
 
 # ── 1. движок ────────────────────────────────────────────────────────────────
-kernel_path = SKILL_KERNEL if SKILL_KERNEL.exists() else SRC / "kernel-v5.html"
+if "--kernel" in sys.argv:
+    kernel_path = Path(sys.argv[sys.argv.index("--kernel") + 1]).expanduser()
+else:
+    kernel_path = next((p for p in KERNEL_CANDIDATES if p.exists()), None)
+if kernel_path is None or not kernel_path.exists():
+    sys.exit(
+        "!! не нашёл kernel.html. Поставь скилл /present (см. README, раздел «Установка»)\n"
+        "   или укажи движок явно: python3 build.py --kernel путь/к/kernel.html"
+    )
 kernel = read(kernel_path)
-if "KERNEL v5" not in kernel:
-    sys.exit(f"!! {kernel_path} — не похоже на KERNEL v5, сборку остановил")
+if "KERNEL v" not in kernel:
+    sys.exit(f"!! {kernel_path} — не похоже на движок present, сборку остановил")
 print(f"движок: {kernel_path}")
 
 # ── 2. design layer ──────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 `deck/kontekst-dizayn-golos-2026-07-28.html` · 17 слайдов · собрана 28.07.2026 ·
 **пересобрана 29.07.2026 с моторным слоем из Claude Design** ·
 **01.08.2026 блоки конвейера переименованы: «Слова» → «Контекст», «Вид» → «Дизайн»; на карте появился третий ручей** ·
-kernel `v5` из скилла `/present`
+kernel `v6` из скилла `/present`
 
 Источники: `slides.md` (версия 2, собрана с прогона на диктофон) + `design.md` (= `DESIGN.md`,
 экспорт стиля **Playful** со styles.refero.design) + три скриншота прежних дек.
@@ -38,7 +38,6 @@ python3 build.py --notes   # пересобрать И перезаписать 
 | `src/design.css` | весь беспоук-CSS деки (уезжает в `<style id="design">`) |
 | `src/slides.html` | 17 секций слайдов с `data-notes` (уезжает в `#deck`) |
 | `src/inter-faces.css` | 4 блока `@font-face` Inter в base64 (roman/italic × cyrillic/latin), 280 КБ |
-| `src/kernel-v5.html` | копия движка из ассетов скилла — фолбэк, если скилл переехал |
 
 Картинки в `src/slides.html` помечены маркером `IMG:имя-файла` (в двойных подчёркиваниях);
 `build.py` подставляет вместо них inline data-URI из JPG в корне папки.
