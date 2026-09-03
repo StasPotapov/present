@@ -4,7 +4,8 @@
 Использование: python3 validate.py путь/к/деке.html
 
 Проверяет: целостность kernel (маркер версии, base/print-стили, chrome-DOM, presenter, экспорт в PDF),
-остаточные {{…}}-плейсхолдеры, сетевые ссылки (дека должна быть офлайн), синтаксис
+остаточные {{…}}-плейсхолдеры, сетевые ссылки (дека должна быть офлайн)
+и локальные ссылки на отсутствующие файлы, синтаксис
 JS через node --check (kernel, <script id="interactive"> и <slug>-notes.js), синхронность
 секций notes.js со слайдами, интерактив (нужен kernel v6+, клик на не-интерактивных тегах),
 наличие сопутствующих файлов (slides.md, design.md, DECK.md — рядом с декой или уровнем выше)
@@ -24,6 +25,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from urllib.parse import unquote
 
 def node_error(stderr: str) -> str:
     """Строка с сутью ошибки из вывода node --check (последняя строка — версия Node, она бесполезна)."""
@@ -169,6 +171,35 @@ def main():
                 "клик на не-интерактивном теге без [data-interactive] — kernel пролистает слайд поверх обработчика: "
                 + "; ".join(bad_click[:3])
             )
+
+    # ── 3d. Локальные ссылки на отсутствующие файлы ─────────────────────────
+    # Зеркало к разделу 3: там ловятся ссылки НАРУЖУ, тут — ссылки внутрь, ведущие в никуда
+    # (переименовали картинку в deck-assets/, забыли положить файл рядом с декой).
+    # Скрипты и код-примеры вырезаются: `img.src='frames/'+i+'.png'` и <code>&lt;img src="x.png"&gt;</code>
+    # ссылками не являются, а падение валидатора на живой деке дороже пропущенной картинки.
+    scan = re.sub(r"(<(script|pre|code)\b[^>]*>).*?(</\2>)", r"\1\3", html, flags=re.S | re.I)
+    missing_refs = []
+    for m_ref in re.finditer(
+        r"""(?:^|[\s"'])(?:src|srcset|href)\s*=\s*["']([^"']+)["']|url\(\s*["']?([^"')]+?)["']?\s*\)""",
+        scan, re.I | re.M,
+    ):
+        raw = (m_ref.group(1) or m_ref.group(2) or "").strip()
+        # srcset — список "файл дескриптор, файл дескриптор"; у обычной ссылки список из одного элемента
+        for part in raw.split(","):
+            ref = part.strip().split()[0] if part.strip() else ""
+            if not ref:
+                continue
+            rel = unquote(ref).split("?")[0].split("#")[0]
+            # схему проверяем после unquote: внутри data-URI со встроенным SVG попадается url(%23id) —
+            # это ссылка на фрагмент, а не на файл, и до декодирования она на "#" не похожа
+            if not rel or rel.startswith(("/", "#")) or re.match(r"[a-z][a-z0-9+.\-]*:", rel, re.I):
+                continue                          # любая схема и абсолютный путь — не наше дело
+            if not re.search(r"\.[A-Za-z0-9]{1,6}$", rel):
+                continue                          # без расширения это не путь к файлу
+            if not (deck.parent / rel).exists():
+                missing_refs.append(ref[:60])
+    if missing_refs:
+        errors.append("ссылки на отсутствующие файлы: " + ", ".join(sorted(set(missing_refs))[:6]))
 
     # ── 4. Слайды и заметки ─────────────────────────────────────────────────
     slide_count = len(re.findall(r'<section[^>]*class="[^"]*\bslide\b', html))

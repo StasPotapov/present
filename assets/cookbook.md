@@ -193,14 +193,16 @@ find . -name '*.kt' | wc -l                  # счёт файлов (подст
 ```bash
 python3 <каталог-скилла>/assets/validate.py ФАЙЛ.html
 ```
-Переполнение вёрстки (контент выше экрана) проверяет сам kernel: открой `file://…/ФАЙЛ.html?check` —
+Переполнение вёрстки (контент выше экрана) проверяет сам kernel: открой `file://…/ФАЙЛ.html?check` (агенту — только по http, см. ниже) —
 появится плашка со списком проблемных слайдов.
 
 ## Визуальная самопроверка в Chrome (claude-in-chrome)
 
 Валидатор проверяет плумбинг, но не видит вёрстку: наложенные слайды, обрезанный заголовок, серый
 текст на тёмном, пропавшую картинку он пропустит. Поэтому перед показом агент **смотрит деку сам**.
-Процедура ниже проверена на живой деке; отклонения от неё стоят потерянного времени.
+Проверка стоит на двух опорах, и обе обязательны: **аудитор** (п.5) даёт числа — переполнение по 16:9, вылет за кадр,
+битые картинки, мелкий кегль, обрезанный и наложенный текст, пустые слайды; **кадры** (п.6–7) дают то, что числами не берётся —
+контраст, ритм, композицию. Процедура ниже проверена на живой деке; отклонения от неё стоят потерянного времени.
 
 **1. Сервер.** Расширение не открывает `file://` (`Can't interact with browser-internal or unparseable
 URLs`), поэтому дека отдаётся по http. Порт свободный, сервер обязательно гасится в конце:
@@ -213,45 +215,158 @@ pkill -f "http.server 8777"
 
 **2. Вкладка.** `tabs_context_mcp{createIfEmpty:true}` → `navigate` на
 `http://127.0.0.1:8777/ФАЙЛ.html?check`. Вкладку в конце закрыть (`tabs_close_mcp`).
+Вход батчем — можно, но порядок принципиален: холостое `read_console_messages` идёт ПЕРВЫМ, до
+`navigate`, иначе трекинг включится уже после загрузки и вердикт `?check` (kernel печатает его через
+400 мс) в чтение не попадёт — см. ⚠️ в п.3. Рабочий порядок:
+`read_console_messages` (взводит трекер) → `navigate` → `computer{wait 1}` → оба чтения из п.3.
 
-**3. Вердикт `?check` — двумя способами.** Плашка видна на первом же скриншоте, а текстом дешевле:
-`read_console_messages{pattern:"deck \?check"}` → `[deck ?check] ⚠ переполнение … слайды 03`.
-
-**4. Точный замер переполнения.** Окно браузера НЕ 16:9 (типично ~1.83) и `resize_window` его не
-выправляет — kernel меряет по фактическому окну, то есть строже/мягче реального экрана. Честный
-замер по эталону 16:9 — через `javascript_tool`:
-```js
-(()=>{const H=innerWidth/16*9,out=[];
-document.querySelectorAll('.slide').forEach((s,k)=>{const was=s.classList.contains('active');
-if(!was)s.classList.add('active');const h=s.scrollHeight;if(!was)s.classList.remove('active');
-if(h>H+1)out.push({n:k+1,over:Math.round(h-H)})});
-return {vw:innerWidth,vh:innerHeight,ideal:Math.round(H),ratio:+(innerWidth/innerHeight).toFixed(2),over:out}})()
+**3. Консоль: вердикт и ошибки — два разных чтения.**
 ```
-`over:[{n:3,over:418}]` — слайд 03 выше экрана на 418 px. Погрешность: `vh`-единицы в padding
-считаются от реального окна, а не от эталона (~3 %), — на решение «резать или нет» это не влияет.
+read_console_messages{tabId:T,pattern:"deck \?check"}      → [deck ?check] ⚠ переполнение … слайды 03
+read_console_messages{tabId:T,onlyErrors:true,pattern:"."}  → упавший design/interactive-скрипт
+```
+`tabId` обязателен всегда; `pattern` по схеме нет, но ставь его — без него вываливается весь лог
+(`"."` = «любое сообщение», фильтрует только `onlyErrors`). Второе чтение нужно
+потому, что валидатор даёт лишь `node --check` — синтаксис; скрипт, упавший на старте
+(`querySelector(…)` вернул `null`), проходит валидатор и роняет деку молча.
+**Отсутствие вердикта `[deck ?check]` — само по себе диагноз:** kernel до него не дошёл, ищи ошибку выше.
+⚠️ Инструмент считает сообщения с момента СВОЕГО первого вызова на вкладке («Console tracking starts
+when this tool is first called»), поэтому ошибки самой загрузки он может не застать. Пустой результат
+при отсутствующем вердикте — не «чисто», а «не смотрел»: перезагрузи вкладку (`navigate` на тот же URL)
+и прочитай снова, теперь трекинг уже включён.
 
-**5. Режим съёмки.** Функции kernel глобальные: `go(k)`, `freezeForPrint()`, `unfreezeAfterPrint()`,
-`checkOverflow()`, `plate()`. Скриншот сразу после `go()` ловит слайд **в середине входной анимации**
-(`slidefade` .55 s) — текст полупрозрачный, цвета врут, чинить по такому кадру нечего. Перед обходом:
+**4. Режим съёмки.** Функции kernel глобальные: `go(k)`, `freezeForPrint()`, `unfreezeAfterPrint()`,
+`checkOverflow()`, `plate()`. Скриншот сразу после `go()` ловит слайд в середине входной анимации
+(`slidefade` .55 s) — текст полупрозрачный, цвета врут. Но одного `animation:none` мало: стиль ниже
+чинит ещё две ловушки, и **собирать его руками нельзя**.
 ```js
-document.head.insertAdjacentHTML('beforeend','<style id="shotmode">*{animation:none!important;transition:none!important}</style>');
-freezeForPrint();                                             // счётчики досчитаны, каскады/цепочки/pipeline в финале
+document.head.insertAdjacentHTML('beforeend','<style id="shotmode">'
++'*{animation:none!important;transition:none!important}'
++'.tab,.card,.reveal,[data-anim],.clist.cascade>*,.chain.seq .node,.chain.seq .arrow{opacity:1!important;transform:none!important}'
++'#deck .bgcopy{display:none!important}'
++'</style>');
+freezeForPrint();                                                  // счётчики досчитаны, каскады/цепочки/pipeline в финале
 document.querySelectorAll('.deck-plate').forEach(p=>p.remove());   // плашка ?check не должна лезть в кадр
+'shotmode on'
 ```
-Дальше на каждый слайд: `go(k)` (через `javascript_tool`) → `computer{action:"screenshot"}`, без пауз.
-После обхода вернуть деку в живое состояние:
-```js
-document.getElementById('shotmode')?.remove(); unfreezeAfterPrint();
-```
+Зачем вторая строка: design-слой ПО КОНТРАКТУ держит `.clist.cascade>*` и `.chain.seq .node` на
+`opacity:0` до анимации, а типовая карточка — на `animation:rise .4s forwards` из `opacity:0`. С
+`animation:none` анимации нет вовсе, значит нет и её финального состояния: без принудительного
+`opacity:1` каскадные списки и карточки снимутся ПУСТЫМИ. Селекторы — те же, что kernel держит
+в `<style id="print">` ровно для этого случая: **список связан с kernel** — меняли print-слой,
+синхронизируйте и `shotmode`, иначе он тихо разъедется.
+Зачем третья: `freezeForPrint()` кладёт в каждый слайд копию фона, но копируется она вместе с
+`id="bg"`, а правило `#bg.bgcopy{position:absolute;z-index:-1}` живёт только в `@media print`.
+На экране копия матчится базовым `#bg{position:fixed;z-index:0}` и ложится ПОВЕРХ текста — кадр
+выходит с вуалью фона или вовсе без контента.
 
-**6. Что искать на кадрах.** Контент, вылезший за экран или обрезанный сверху; несколько слайдов
+**5. Аудитор макета.** Один вызов `javascript_tool` на всю деку. Гоняется ТОЛЬКО в режиме съёмки
+(иначе счётчики стоят на нуле, `[data-type]` пуст, а слайд меряется в середине `slidefade` — все
+замеры врут). Активный слайд не сбивает, возвращает только проблемы:
+```js
+(()=>{if(!document.getElementById('shotmode'))return'СНАЧАЛА включи режим съёмки (п.4)';
+if(document.getElementById('shot169'))return'СНИМИ стенд (п.6): он зажимает body, а эталон считается от innerWidth — числа соврут';
+const W=innerWidth,H=W*9/16,MIN=W*H*.01,S=[...document.querySelectorAll('.slide')],out=[],
+ live=S.filter(s=>getComputedStyle(s).display!=='none').length;
+S.forEach((s,k)=>{const was=s.classList.contains('active');if(!was)s.classList.add('active');
+ const p=[],T=[],add=m=>{if(p.length<6&&!p.includes(m))p.push(m)};
+ if(s.scrollHeight-H>2)add('выше 16:9 на '+Math.round(s.scrollHeight-H)+'px');
+ if(s.innerText.trim().length<12&&!s.querySelector('img,svg,canvas,video'))add('почти пусто: '+s.innerText.trim().length+' симв.');
+ s.querySelectorAll('*').forEach(e=>{if(e.closest('#bg,.bgcopy'))return;
+  if(e.tagName==='IMG'&&e.complete&&!e.naturalWidth)return add('битая картинка: '+(e.getAttribute('src')||'').slice(0,28));
+  const r=e.getBoundingClientRect(),cs=getComputedStyle(e);
+  if(!r.width||!r.height||cs.visibility==='hidden')return;
+  if(r.right>W+2||r.left<-2||r.top<-2)add('вылезает за кадр: '+(e.tagName+'.'+((typeof e.className==='string'?e.className:e.getAttribute('class'))||'').split(' ')[0]).slice(0,24));
+  if(![...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))return;
+  const f=parseFloat(cs.fontSize),t=e.textContent.trim().slice(0,18);
+  if(f<H*.013)add('кегль '+Math.round(f)+'px: '+t);
+  if(cs.overflow!=='visible'&&(e.scrollWidth>e.clientWidth+2||e.scrollHeight>e.clientHeight+2))add('обрезан: '+t);
+  T.push([r,e,t])});
+ T.forEach(([a,ea,ta],i)=>T.slice(i+1).forEach(([b,eb,tb])=>{if(ea.contains(eb)||eb.contains(ea))return;
+  if(a.width*a.height<MIN||b.width*b.height<MIN)return;
+  const w=Math.min(a.right,b.right)-Math.max(a.left,b.left),h=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top);
+  if(w>2&&h>2&&w*h>.3*Math.min(a.width*a.height,b.width*b.height))add('наложение: '+ta+' / '+tb)}));
+ if(!was)s.classList.remove('active');if(p.length)out.push({n:k+1,p})});
+return{ratio:+(innerWidth/innerHeight).toFixed(3),ideal:Math.round(H),visible:live,bad:out}})()
+```
+Читается так: `visible` обязан быть `1` (больше — design-слой перебил `.slide{display}`, см. Don't),
+`bad:[]` — чисто. Пример: `{"ratio":1.828,"ideal":945,"visible":1,"bad":[{"n":3,"p":["выше 16:9 на 418px","кегль 9px: источник: ЦБ РФ"]}]}`.
+Погрешность: `vh`-единицы в padding считаются от реального окна, а не от эталона (~3 %), — на решение
+«резать или нет» это не влияет. Кегль и наложения — **кандидаты, а не приговор**: много срабатываний
+на одном слайде означает скорее неверный порог, чем плохую деку.
+
+Три порога выставлены по живой деке, не на глаз, — не крути их без нужды:
+- **кегль `H*0.013`** (≈11 px на кадре 1512×851). Подписи 12–13 px в деках легальны и массовы: порог
+  `0.016` пометил 13 слайдов из 17 на заведомо хорошей деке. Ловить надо нечитаемое, а не мелкое.
+- **наложения — только между блоками крупнее 1 % кадра** (~113×113 px). Без этого фильтра каждая
+  стрелка или значок, лежащие поверх карточки, считаются наложением: это слоистая композиция, а не баг.
+- **выход за кадр меряется поэлементно**, а не через `scrollWidth` слайда. `scrollWidth` растёт
+  от псевдоэлементов (декоративное подчёркивание, тень), которых нет в DOM: срабатывание есть,
+  показать нечего, чинить нечего.
+
+Контраст аудитор НЕ считает и считать не может: под текстом обычно `rgba(0,0,0,0)`, а реальный фон
+рисует `#bg` градиентом. Контраст — работа кадров (п.7).
+
+**6. Кадр 16:9 и обход.** Окно браузера НЕ 16:9 (типично ~1.83), и `resize_window` его не выправляет —
+не трать на него вызовы. Числа берёт аудитор по эталону, а вот композицию на кадре неверных пропорций
+оценивать нельзя. **Если `ratio` из аудитора вышел за 1.70–1.86** — поставь стенд:
+```js
+document.head.insertAdjacentHTML('beforeend','<style id="shot169">'
++'html{background:#808080!important}'
++'body{position:fixed!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;'
++'width:min(100vw,calc(100vh*16/9))!important;height:min(100vh,calc(100vw*9/16))!important;overflow:hidden!important}'
++'#deck{width:100%!important;height:100%!important}'
++'</style>');'stage on'
+```
+Зажимается именно `body`: его `transform` делает его containing block для ВСЕХ `position:fixed`
+потомков, поэтому `#bg` и хром деки (`#bar`/`#counter`/`#hint`) уезжают внутрь кадра — проверка
+«счётчик налезает на контент» остаётся честной, и отдельно зажимать `#bg` не нужно. Фон полей держится
+на явном `background` у `html`: пока фон корня прозрачен, фон `body` уходит на весь канвас. `#deck`
+обязательно переводится на `100%/100%` — иначе `100vw/100vh` вылезут за стенд и контент обрежется.
+Серый `#808080` — маркер «это не дека»; дека сама серая — бери `#ff00ff`. `vh`/`vw` внутри слайдов
+остаются от реального окна, дрейф равен отклонению ratio (при 1.828 — 2.7 %): стенд нужен для
+композиции, числа всё равно у аудитора. В коридоре 1.70–1.86 стенд не ставится — риск без выигрыша.
+Порядок обязателен: **аудитор (п.5) отрабатывает ДО стенда** — он считает эталон от `innerWidth`,
+а зажатый стендом `body` даёт заниженные числа; аудитор проверяет это сам и при `shot169` не запускается.
+Вернулся к аудитору после правок (SKILL.md, Шаг 6) — сначала сними стенд (п.9), потом считай.
+
+Обход — `browser_batch` чанками по 4–6 слайдов; JS-шаг возвращает подпись, и она приходит текстом
+ровно перед своим кадром:
+```json
+{"actions":[
+ {"name":"javascript_tool","input":{"action":"javascript_exec","tabId":T,"text":"go(0);'кадр 1/10'"}},
+ {"name":"computer","input":{"action":"wait","duration":0.2,"tabId":T}},
+ {"name":"computer","input":{"action":"screenshot","tabId":T}},
+ {"name":"javascript_tool","input":{"action":"javascript_exec","tabId":T,"text":"go(1);'кадр 2/10'"}},
+ {"name":"computer","input":{"action":"wait","duration":0.2,"tabId":T}},
+ {"name":"computer","input":{"action":"screenshot","tabId":T}}
+]}
+```
+`wait` нужен: в батче между вызовами нет сетевой паузы, и скриншот успевает поймать предыдущий кадр.
+Сверяй подпись с `#counter` в углу кадра — расхождение видно сразу. Батч экономит round-trips, а не
+токены (10 кадров стоят одинаково в одном ответе и в десяти), поэтому чанки: увидев системную
+проблему на первых кадрах, обход бросают и идут чинить. Батч **останавливается на первой ошибке**
+и оставляет деку в режиме съёмки — выход отдельным шагом (п.9), не хвостом батча.
+
+**7. Что искать на кадрах.** Контент, вылезший за экран или обрезанный сверху; несколько слайдов
 одновременно (см. Don't про `.slide`); текст на фоне без контраста; заголовок, разъехавшийся на строку
 из одного слова; пустой прямоугольник вместо картинки; хром деки (`#bar`/`#counter`), налезающий на
-контент. Нашёл — правь и переснимай затронутые слайды.
+контент. Мелкую деталь под подозрением увеличивай `computer{tabId:T,action:"zoom",region:[x0,y0,x1,y1]}`,
+а не гадай по кадру целиком. Нашёл — правь и переснимай затронутые слайды.
 
-**7. Чего НЕ делать.** Не нажимать `S` и `⌘P` — откроется системный диалог печати и заблокирует
+**8. Чего НЕ делать.** Не нажимать `S` и `⌘P` — откроется системный диалог печати и заблокирует
 расширение до ручного закрытия пользователем. Presenter (`P`) агенту тоже проверять нечем — это
-отдельное окно и живой сценарий пользователя.
+отдельное окно и живой сценарий пользователя (`window.open` из `javascript_tool` браузер блокирует:
+нет user gesture). Не гонять аудитор вне режима съёмки. Не ставить `save_to_disk` у скриншотов —
+кадры нужны тебе, а не пользователю. Не чинить аспект через `resize_window`: окно не слушается
+(«Bounds must be at least 50% within visible screen space»), для этого есть стенд из п.6.
+
+**9. Выход.** Вернуть деку в живое состояние, закрыть вкладку, погасить сервер:
+```js
+document.getElementById('shotmode')?.remove();
+document.getElementById('shot169')?.remove();
+unfreezeAfterPrint();'shotmode off'
+```
 Затем `open ФАЙЛ.html` (macOS). Проверь: листается стрелками/колесом/свайпом, `P` открывает presenter
 ОТДЕЛЬНЫМ окном (не вкладкой) и оно синхронно, `B` гасит экран, медиа видны, заметок на самой деке нет. Живые заметки: измени строку в
 `<slug>-notes.js` при открытом presenter — текст обновится в течение пары секунд (индикатор
