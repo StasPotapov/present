@@ -76,6 +76,12 @@ def main():
         errors.append("нет openPresenter — kernel-скрипт повреждён или устарел")
     if "freezeForPrint" not in html:
         errors.append("нет freezeForPrint — kernel-скрипт старый (нет экспорта в PDF) или повреждён")
+    # Маркер версии остался v6, но печать с тех пор чинилась: деку, собранную на старом v6, иначе
+    # не отличить — а она печатается с серыми прямоугольниками поверх контента и весит на порядок
+    # больше (Skia пишет размытые тени растровой маской, Quartz рисует её непрозрачной).
+    elif "flattenShadows" not in html:
+        warns.append("kernel без flattenShadows — движок до починки печати: PDF пойдёт серыми "
+                     "наложениями и десятками МБ; пересобери деку на свежем assets/kernel.html")
     for fn, what in [("commitEdit", "правки заметок прямо в presenter"), ("exportNotes", "выгрузки notes.js из presenter")]:
         if fn not in html:
             errors.append(f"нет {fn} — kernel-скрипт старее v5 (нет {what}) или повреждён")

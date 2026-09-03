@@ -1,222 +1,227 @@
-<img width="1324" height="503" alt="Снимок экрана — 2026-08-01 в 21 31 20" src="https://github.com/user-attachments/assets/0c693272-8163-4518-81ea-02a329ef2208" />
+<img width="1324" height="503" alt="Снимок экрана — 2026-08-01 в 21 31 20" src="https://github.com/user-attachments/assets/0c693272-8163-4518-81ea-02a329ef2208" />
 
-# present — скилл для Claude Code
+**English** · [Русский](README.ru.md)
 
-Агентский скилл, который собирает **беспоук HTML-презентацию** (деку) по папке-контексту, тексту доклада или теме.
+# present — a skill for Claude Code
 
-Не шаблон-заполнялка: Claude читает материал, сам выбирает арт-дирекшн и проектирует деку под конкретный контент — разные доклады дают визуально разные деки (структура, палитра, типографика, фон, характер движения).
+An agent skill that builds a **bespoke HTML presentation** (a deck) from a context folder, a talk transcript, or a single topic.
 
-На выходе — **самодостаточный HTML**: открывается офлайн в браузере, без CDN и сетевых ссылок.
+It is not a template filler: Claude reads your material, picks the art direction itself and designs the deck around that specific content — different talks come out as visually different decks (structure, palette, typography, background, character of motion).
 
-Режима два, и выбирает их пользователь вопросом в начале: **быстрый** — одна дека одним файлом, ничего
-больше на диске не появляется; **полный** — доклад с текстом слайдов, брифом, папкой показа и манифестом.
+The output is a **self-contained HTML file**: it opens offline in a browser, with no CDN and no network references.
+
+There are two modes, and the user picks one when the skill starts: **quick** — a single deck as a single
+file, nothing else lands on disk; **full** — a talk with slide text, a design brief, a presentation folder
+and a manifest.
 
 ---
 
-## Как я делаю доклады: Контекст · Дизайн · Голос
+## How I make talks: Context · Design · Voice
 
-Скилл — только один шаг конвейера. Сам конвейер важнее, поэтому сначала про него.
+The skill is only one step of a pipeline. The pipeline matters more, so let's start there.
 
-Главная идея: **три файла вместо одного**. Раньше всё лежало в одном PowerPoint — и текст, и дизайн, и речь; тянешь за одно — разваливается всё. Здесь это три разные работы с тремя артефактами. И правило ровно одно: **сначала любым способом получаем `slides.md`, и только потом занимаемся дизайном.**
+The core idea: **three files instead of one**. It all used to live in a single PowerPoint — text, design and speech together; pull one thread and everything unravels. Here it is three separate jobs with three artefacts. And there is exactly one rule: **first get `slides.md` by any means, and only then deal with design.**
 
-### 1. Контекст → `slides.md`
+### 1. Context → `slides.md`
 
-Первый шаг называется «контекст», а не «слова», намеренно: **неважно, откуда взялся материал** — важно, что на выходе `slides.md`. Два основных входа, оба **голосом**:
+The first step is called "context", not "words", on purpose: **it does not matter where the material came from** — what matters is that `slides.md` comes out the other end. Two main entry points, both **spoken out loud**:
 
-- **Обсудить идею.** Открываешь party mode в [BMAD](https://github.com/bmad-code-org/BMAD-METHOD) на пустой папке и диктуешь свою идею свободным монологом: чего хочу рассказать, что должно быть, на что обратить внимание. Он прорабатывает и задаёт конкретные вопросы — получается сессия. На выходе `slides.md`: какие слайды и что на каждом рассказываю. Никакого дизайна.
-- **Сразу на диктофон.** Если доклад уже в голове — включаешь диктофон и наговариваешь целиком, как есть. Транскрибируешь ([OpenSuperWhisper](https://github.com/Starmel/OpenSuperWhisper) локально, модель `large-v3` — на M-чипе быстро и качественно, сразу со знаками и англицизмами) и отдаёшь расшифровку в BMAD: «вот весь доклад, разложи на слайды».
-- **Готовые материалы.** Контекстом может быть что угодно: статьи по теме, целый репозиторий (тогда цифры для слайдов берутся из реального `git log`), внутренние доки, чужая презентация. Скидываешь в BMAD ровно так же: «вот материал, разложи по слайдам».
+- **Talk the idea through.** Open party mode in [BMAD](https://github.com/bmad-code-org/BMAD-METHOD) on an empty folder and dictate your idea as a free-form monologue: what I want to say, what has to be in there, what to pay attention to. It works the idea over and asks concrete questions — it turns into a session. Out comes `slides.md`: which slides there will be and what I say on each. No design.
+- **Straight to the recorder.** If the talk is already in your head — hit record and say the whole thing as it comes. Transcribe it ([OpenSuperWhisper](https://github.com/Starmel/OpenSuperWhisper) locally, model `large-v3` — fast and accurate on an M-chip, punctuation and English loanwords included) and hand the transcript to BMAD: "here is the whole talk, break it into slides".
+- **Existing material.** Context can be anything: articles on the topic, an entire repository (then the numbers on your slides come from a real `git log`), internal docs, someone else's presentation. You drop it into BMAD exactly the same way: "here is the material, lay it out as slides".
 
-Разница между первыми двумя: в первом случае доклад **придумывается** вместе с нейронкой, во втором она его **раскладывает**, имея весь материал на руках. Все пути приводят в одну точку.
+The difference between the first two: in the first case the talk is **invented** together with the model, in the second the model **lays out** a talk it already has in full. All paths converge on the same point.
 
-> **Совет шире этого конвейера: говорите с нейронкой голосом.** Не только про доклады — с любой задачей. Рассказываешь всё, что есть по проблеме, вываливаешь мысли подряд, а она вычленяет суть. Когда говоришь, поток идёт свободнее: не редактируешь себя на ходу, не подбираешь формулировку.
+> **A piece of advice bigger than this pipeline: talk to the model with your voice.** Not just for talks — for any task. You say everything you have on the problem, dump your thoughts as they come, and it extracts the substance. When you speak, the flow is freer: you don't edit yourself mid-sentence, you don't hunt for the phrasing.
 
-### 2. Дизайн → `design.md` + дека
-<img width="1324" height="503" alt="Снимок экрана — 2026-08-01 в 21 31 30" src="https://github.com/user-attachments/assets/c99fbd81-322a-4a24-9d04-13d386675d4a" />
+### 2. Design → `design.md` + the deck
+<img width="1324" height="503" alt="Снимок экрана — 2026-08-01 в 21 31 30" src="https://github.com/user-attachments/assets/c99fbd81-322a-4a24-9d04-13d386675d4a" />
 
-Мы в эпохе AI — **PowerPoint не нужен, генерим HTML**: нейронки делают его качественно и быстро, там анимации, движение, интерактив.
+We are in the AI era — **you don't need PowerPoint, generate HTML**: models write it well and fast, and it gives you animation, motion and interactivity.
 
-- **Референс.** Верстать самому не надо — надо найти стиль. Например, [styles.refero.design](https://styles.refero.design): смотришь глазами, как выглядит, и у каждого стиля **сразу лежит готовый `design.md`** — копируешь себе в папку. Дизайн есть. `design.md` — уже практически стандарт, как `README.md`: файл, где описано, как всё должно выглядеть (шрифты, цвета, формы, отступы). Можно и наоборот: написать его руками или собрать с тем же BMAD.
-- **Сборка.** `/present <папка>` — скиллу нужны ровно два файла, `slides.md` и `design.md`. Он что-то переспросит, если надо, и соберёт деку. Это **база**, и база, как правило, не то, что нужно — зато потрачено мало времени, а результат уже в руках.
-- **Луп правок.** Смотришь на деку и правишь её **словами**: что не нравится, что где поправить, куда добавить анимацию. Допиливать можно бесконечно.
-- **[Claude Design](https://claude.ai/design) (опция, но очень советую).** После первой сборки скинь деку и свой `design.md` в Claude Design — он проверит, предложит своё решение, и оно будет рабочее. Чат плюс рабочая зона как панель в Figma: заметки кидаются прямо на макет. Входит в подписку Claude (Pro / Max / Team / Enterprise), отдельно платить не надо. Шаг необязательный — конвейер работает и без него.
+- **A reference.** You don't have to do the layout yourself — you have to find a style. For example [styles.refero.design](https://styles.refero.design): you look at how it actually appears, and every style **ships with a ready `design.md`** — copy it into your folder. Design done. `design.md` is by now practically a standard, like `README.md`: a file describing how everything should look (fonts, colours, shapes, spacing). You can go the other way too: write it by hand or put it together with BMAD.
+- **The build.** `/present <folder>` — the skill needs exactly two files, `slides.md` and `design.md`. It will ask a question or two if it has to, and build the deck. That is the **baseline**, and a baseline is usually not what you want — but it cost you little time and it is already in your hands.
+- **The revision loop.** You look at the deck and fix it **with words**: what you don't like, what to change where, where to add motion. You can keep polishing forever.
+- **[Claude Design](https://claude.ai/design) (optional, but strongly recommended).** After the first build, drop the deck and your `design.md` into Claude Design — it will review it and propose its own solution, and that solution will work. A chat plus a working canvas like a Figma panel: you pin notes straight onto the layout. Included in the Claude subscription (Pro / Max / Team / Enterprise), nothing extra to pay. The step is optional — the pipeline works without it.
 
-`design.md` здесь — главный файл, а не украшение: один и тот же материал под тремя разными брифами даёт три совершенно разные деки.
+`design.md` here is the main file, not decoration: the same material under three different briefs gives three completely different decks.
 
-### 3. Голос → петля назад в `slides.md`
+### 3. Voice → the loop back into `slides.md`
 
-Дека готова — и вот здесь большинство останавливается, а самое ценное дальше.
+The deck is ready — and this is where most people stop, while the most valuable part is still ahead.
 
-- **Прогон на диктофон.** Запускаешь деку, включаешь запись (на самом компьютере) и проходишь свои слайды вслух, своими словами, как будто зал уже сидит. Видишь ошибку — тут же вслух её и проговариваешь, всё пишется. Сразу узнаёшь две вещи: **сколько доклад длится на самом деле** и **где ты плывёшь** — там, где начал мычать, плохой слайд, а не ты.
-- **Расшифровка.** [OpenSuperWhisper](https://github.com/Starmel/OpenSuperWhisper) локально → сырой текст со всей водой и всеми «эээ». Бесплатно, никуда ничего не уходит.
-- **Нейронка как цензор.** Обратно в BMAD: изучи, порежь где не надо, скажи где я не прав. И главный трюк — **назови хронометраж**: «у меня двадцать минут, вот тайминги по слайдам, ужми». Подрежет ровно то, что не жалко. На выходе — **твои слова**, просто причёсанные, а не то, что нейронка нафигачила от себя.
-- **Обратно в `slides.md`** и пересборка. Теперь в деке лежит то, что ты реально говоришь, — слайды подтянулись под живую речь, а не наоборот.
+- **A run-through on the recorder.** Start the deck, start recording (on the computer itself) and walk your slides out loud, in your own words, as if the room were already seated. Spot a mistake — say it out loud right there, it all gets recorded. You immediately learn two things: **how long the talk actually runs** and **where you flounder** — where you started mumbling, the slide is bad, not you.
+- **Transcription.** [OpenSuperWhisper](https://github.com/Starmel/OpenSuperWhisper) locally → raw text with all the filler and every "uhh". Free, and nothing leaves your machine.
+- **The model as an editor.** Back into BMAD: read this, cut what needs cutting, tell me where I'm wrong. And the key trick — **give it the time budget**: "I have twenty minutes, here are the per-slide timings, squeeze it". It trims exactly what you won't miss. What comes out is **your words**, just tidied up — not something the model made up on its own.
+- **Back into `slides.md`** and rebuild. Now the deck holds what you actually say — the slides followed the live speech, not the other way round.
 
-Ради этой стрелки всё и разносилось на три файла: каждый круг доклад становится короче и точнее, а переделывать заново ничего не надо.
+That arrow back is the whole reason for splitting into three files: every lap the talk gets shorter and sharper, and nothing has to be rebuilt from scratch.
 
-### Два круга
+### Two loops
 
-| Круг | Что меняет | Как |
+| Loop | What it changes | How |
 |---|---|---|
-| **Большой** | *что* я говорю — структура, порядок, дизайн | правка `slides.md` → пересборка деки |
-| **Малый** | *какими словами* — формулировки | правка заметки прямо в окне докладчика → выгрузил `notes.js` → положил рядом с декой. Ни редактора, ни пересборки |
+| **Big** | *what* I say — structure, order, design | edit `slides.md` → rebuild the deck |
+| **Small** | *in which words* — the phrasing | edit the note right in the presenter window → export `notes.js` → drop it next to the deck. No editor, no rebuild |
 
-Малый круг крутится столько раз, сколько раз ты прогнал доклад вслух.
+The small loop turns as many times as you run the talk out loud.
 
-### Инструменты конвейера
+### Pipeline tools
 
-| Шаг | Инструмент | Зачем | Обязателен? |
+| Step | Tool | What for | Required? |
 |---|---|---|---|
-| Контекст | [BMAD METHOD](https://github.com/bmad-code-org/BMAD-METHOD) | party mode и саб-агенты под презентации и сторителлинг: раскрутить идею, разложить расшифровку по слайдам, потом причесать текст под хронометраж | нет — годится любой чат, где можно обсудить текст |
-| Контекст / Голос | [OpenSuperWhisper](https://github.com/Starmel/OpenSuperWhisper), модель `large-v3` | локальная транскрипция диктофона: обёртка над whisper.cpp для macOS — глобальный хоткей на диктовку, drag & drop записей, модели качаются из самого приложения. Быстро на M-чипе, со знаками и англицизмами, бесплатно и офлайн | нет — годится что угодно, что кладёт текст в поле ввода (в macOS есть и системная диктовка) |
-| Дизайн | [styles.refero.design](https://styles.refero.design) | галерея чистых референсов, у каждого стиля лежит готовый `design.md` — копируешь себе в папку | нет — `design.md` можно написать руками или собрать с BMAD |
-| Дизайн | **этот скилл** | `slides.md` + `design.md` → один офлайн HTML с presenter-окном и экспортом в PDF | — |
-| Дизайн | [Claude Design](https://claude.ai/design) | прогнать готовую деку с её `design.md`: проверит, предложит рабочее решение; заметки прямо на макет | нет — входит в подписку Claude, но конвейер работает и без него |
+| Context | [BMAD METHOD](https://github.com/bmad-code-org/BMAD-METHOD) | party mode and sub-agents for presentations and storytelling: work the idea up, break a transcript into slides, then tighten the text to the time budget | no — any chat where you can talk the text over will do |
+| Context / Voice | [OpenSuperWhisper](https://github.com/Starmel/OpenSuperWhisper), model `large-v3` | local transcription of your recordings: a whisper.cpp wrapper for macOS — a global dictation hotkey, drag & drop for recordings, models downloaded from inside the app. Fast on an M-chip, punctuation and loanwords included, free and offline | no — anything that puts text into an input field works (macOS has built-in dictation too) |
+| Design | [styles.refero.design](https://styles.refero.design) | a gallery of clean references, each style shipping a ready `design.md` — copy it into your folder | no — `design.md` can be written by hand or assembled with BMAD |
+| Design | **this skill** | `slides.md` + `design.md` → one offline HTML with a presenter window and PDF export | — |
+| Design | [Claude Design](https://claude.ai/design) | run the finished deck through with its `design.md`: it reviews and proposes something that works; notes pinned onto the layout | no — included in the Claude subscription, and the pipeline works without it |
 
 ---
 
-## Что умеет готовая дека
+## What the finished deck can do
 
-- Листается `←` `→`, колесом мыши, свайпом; позиция хранится в `#хэше` — F5 не сбивает слайд.
-- `P` — **окно докладчика**: заметки, следующий слайд, таймер, переключение слайдов отсюда же. В идеале два монитора: один стримишь, второй перед тобой. Шарить на экран нужно деку, не его.
-- Заметки правятся **прямо в этом окне**: двойной клик по тексту → поправил → применил. Замычал на репетиции — тут же переформулировал, пока мысль свежая.
-- `B` — чёрный экран, `F` — fullscreen.
-- `S` — **экспорт в PDF**: kernel замораживает все слайды в финальном кадре (счётчики досчитаны, анимации доиграны), страница 16:9 без полей, слайд = страница, текст остаётся текстом. Попросят «пришлите слайды» — есть что прислать.
-- `?check` в адресе — подсветка слайдов, где контент выше экрана.
-- **Слайды, в которые можно ткнуть.** HTML умеет то, чего не умеет PDF, и скилл этим пользуется точечно:
-  проходит по слайдам, ищет места, где зритель поймёт больше, если переключит сам, и предлагает варианты
-  — решает пользователь. Движок уступает виджетам дорогу: клик по кнопке или подписи не листает слайд,
-  буквы в поле ввода не жмут хоткеи, прокручиваемая зона крутится сама. Норма — один-два таких слайда
-  на деку, и каждый читается, даже если по нему не нажали.
-- **Живые заметки** в файле `<slug>-notes.js` рядом с декой: правятся в presenter-окне или во внешнем редакторе — подхватываются на лету без пересборки. Копия вшита в HTML как fallback, так что деку можно переслать одним файлом.
+- Navigate with `←` `→`, the mouse wheel or a swipe; the position lives in the `#hash` — F5 doesn't lose your slide.
+- `P` — the **presenter window**: notes, next slide, timer, and slide switching from there too. Ideally two monitors: one you share, one in front of you. Share the deck to the screen, not this window.
+- Notes are edited **right in that window**: double-click the text → fix it → apply. Mumbled during rehearsal — rephrase it on the spot, while the thought is fresh.
+- `B` — black screen, `F` — fullscreen.
+- `S` — **export to PDF**: the kernel freezes every slide in its final frame (counters counted up, animations played out), the page is 16:9 with no margins, one slide per page, text stays text. Blurred shadows are deliberately printed flat — Chrome writes them as a raster mask that Preview paints as a grey rectangle over your content — and the deck looks the same as ever on screen. When someone asks you to "send the slides" — you have something to send.
+- `?check` in the address bar — highlights slides whose content is taller than the screen.
+- **Slides you can poke at.** HTML does things PDF cannot, and the skill uses that sparingly: it goes
+  through the slides, looks for places where the audience would understand more if they switched something
+  themselves, and offers options — the user decides. The engine yields to widgets: a click on a button or a
+  caption doesn't flip the slide, typing in an input doesn't trigger hotkeys, a scrollable area scrolls on
+  its own. One or two such slides per deck is the norm, and each one reads fine even if nobody clicks it.
+- **Live notes** in a `<slug>-notes.js` file next to the deck: edit them in the presenter window or in an external editor — they are picked up on the fly, no rebuild. A copy is embedded in the HTML as a fallback, so the deck can still be sent as a single file.
 
-Дека открыта как локальный файл, а из локального файла браузер на диск писать не умеет — поэтому правки заметок живут черновиком в браузере (F5 переживают), а на диск переносятся кнопкой «⤓ notes.js»: скачал, положил рядом с декой поверх старого. Файл главнее черновика; несохранённые правки не теряются — presenter предложит их вернуть.
+The deck runs as a local file, and a browser cannot write to disk from one — so note edits live as a draft in the browser (they survive F5) and reach the disk via the "⤓ notes.js" button: download it, drop it next to the deck over the old one. The file wins over the draft; unsaved edits are not lost — the presenter offers to bring them back.
 
-## Установка
+## Install
 
-Скилл ставится копированием в каталог skills — глобально (доступен во всех проектах) или локально в проект.
+The skill is installed by copying it into a skills directory — globally (available in every project) or locally in one project.
 
-Глобально:
+Globally:
 
 ```bash
 git clone https://github.com/StasPotapov/present.git ~/.claude/skills/present
 ```
 
-Или в конкретный проект:
+Or into a specific project:
 
 ```bash
 git clone https://github.com/StasPotapov/present.git .claude/skills/present
 ```
 
-Проверить, что Claude Code видит скилл: `/present` в списке команд.
+To check that Claude Code sees the skill: `/present` in the command list.
 
-## Использование
+## Usage
 
 ```
-/present <папка-контекст | файл | тема | URL-референс>
+/present <context folder | file | topic | reference URL>
 ```
 
-Первым делом Claude спрашивает режим. **Быстрый** — когда надо просто показать мысль картинками:
-ни `slides.md`, ни брифа, ни интервью, ни плана на подтверждение; на диске появляется ровно один
-`<slug>.html`, черновики остаются во временной папке сессии. **Полный** — всё, что описано ниже.
-Быструю деку потом не жалко раскрутить до полного доклада: скиллу отдают готовый HTML и говорят, что
-доделать — дека сама себе контекст (текст в слайдах, речь в `data-notes`, арт-дирекшн в её же стилях).
+The first thing Claude asks about is the mode. **Quick** — for when you just need to show an idea in
+pictures: no `slides.md`, no brief, no interview, no plan to approve; exactly one `<slug>.html` lands on
+disk, drafts stay in the session's temp folder. **Full** — everything described below. A quick deck is
+not wasted if you later grow it into a full talk: hand the finished HTML back to the skill and say what
+to add — the deck is its own context (text in the slides, speech in `data-notes`, art direction in its
+own styles).
 
-Для полного режима на вход лучше всего заходит **папка с контекстом**:
+For the full mode, the input that works best is a **context folder**:
 
 ```
 my-talk/
-├── slides.md     # текст по слайдам + заметки спикера
-├── design.md     # дизайн-бриф (арт-дирекшн)
-└── *.png/jpg     # медиа для встраивания
+├── slides.md     # slide text + speaker notes
+├── design.md     # design brief (art direction)
+└── *.png/jpg     # media to embed
 ```
 
-Два входных файла — обязательное условие сборки:
+The two input files are a hard requirement for the build:
 
-- **`slides.md`** — что говорится: разбивка по слайдам (`---`, `## Слайд N` или заголовки), пары «тезис слайда → заметка спикера».
-- **`design.md`** — как выглядит: дизайн-бриф. Экспорт со styles.refero.design (палитра-токены, типо-шкала, компоненты, Do/Don't, готовый `:root`) применяется точно.
+- **`slides.md`** — what gets said: a breakdown into slides (`---`, `## Slide N` or headings), pairs of "slide point → speaker note".
+- **`design.md`** — how it looks: the design brief. An export from styles.refero.design (palette tokens, type scale, components, Do/Don't, a ready `:root`) is applied precisely.
 
-Чего нет — Claude доберёт коротким интервью (или поможет найти готовый бриф) и **сохранит файлом**, и только потом покажет план деки. Если оба файла уже есть — интервью пропускается.
+Whatever is missing, Claude collects in a short interview (or helps you find a ready brief) and **saves as a file**, and only then shows you the deck plan. If both files already exist, the interview is skipped.
 
-Работает и без папки: сырой текст доклада, расшифровка, тезисы, одна тема, путь к репозиторию (тогда цифры для слайдов-доказательств берутся из реального `git log`), URL-референс для извлечения дизайн-ДНК.
+It also works without a folder: raw talk text, a transcript, bullet points, a single topic, a path to a repository (then the numbers on your evidence slides come from a real `git log`), a reference URL to extract design DNA from.
 
-Контент скилл **не выдумывает** — числа и факты берутся из материалов или уточняются вопросом.
+The skill does **not invent content** — numbers and facts come from your material or are confirmed with a question.
 
-## Что получается на выходе
+## What you get
 
-**Быстрый режим** — один файл и больше ничего:
-
-```
-куда сказал/
-└── <slug>.html      движок, стили, слайды, заметки и медиа base64 — всё внутри
-```
-
-**Полный режим.** Твоя рабочая папка остаётся твоей: материалы, сырьё и исходники лежат где лежали. Всё, что нужно деке для показа, скилл складывает в отдельную подпапку `deck/` — её можно целиком заархивировать и унести на любой ноутбук, ничего не выбирая руками.
+**Quick mode** — one file and nothing else:
 
 ```
-доклад/
-├── slides.md                    вход: текст по слайдам
-├── design.md                    вход: дизайн-бриф
-├── transcript.md · *.jpg        сырьё и материалы — не тронуты
-├── src/ · build.py              исходники сборки (если дека собиралась скриптом)
-├── DECK.md                      манифест: карта слайдов, решения с их «почему», как править
-└── deck/                        ← самодостаточная папка показа
-    ├── <slug>-<дата>.html       сама дека
-    ├── <slug>-<дата>-notes.js   живые заметки (источник правды после первой генерации)
-    └── deck-assets/             только если медиа не влезло в base64
+wherever you asked/
+└── <slug>.html      engine, styles, slides, notes and base64 media — all inside
 ```
 
-`DECK.md` нужен, чтобы в следующей сессии не вычитывать монолитный HTML целиком: там карта слайдов и принятые решения с обоснованием. Собиралась скриптом — правятся исходники в `src/` и пересобирается, а не готовый HTML.
+**Full mode.** Your working folder stays yours: material, raw sources and build inputs stay where they are. Everything the deck needs in order to be presented goes into a separate `deck/` subfolder — you can zip that one folder and carry it to any laptop without picking files by hand.
 
-## Пример
-<img width="1324" height="503" alt="Снимок экрана — 2026-07-29 в 22 43 40" src="https://github.com/user-attachments/assets/3b95c197-2d8d-4f89-b73d-229adbe70cb3" />
+```
+talk/
+├── slides.md                    input: slide text
+├── design.md                    input: design brief
+├── transcript.md · *.jpg        raw material — untouched
+├── src/ · build.py              build sources (if the deck was built by script)
+├── DECK.md                      manifest: slide map, decisions with their "why", how to edit
+└── deck/                        ← the self-contained presentation folder
+    ├── <slug>-<date>.html       the deck itself
+    ├── <slug>-<date>-notes.js   live notes (source of truth after the first generation)
+    └── deck-assets/             only if the media didn't fit into base64
+```
 
-В [`example/`](example/) лежит настоящая дека, собранная этим скиллом и прошедшая весь конвейер выше, — доклад «Контекст. Дизайн. Голос.», 16 слайдов. Там же её входы (`slides.md`, `design.md`), манифест `DECK.md` и скрипт сборки с исходниками, так что видно и раскладку папки, и режим «скрипт».
+`DECK.md` exists so that the next session doesn't have to read a monolithic HTML file end to end: it holds the slide map and the decisions with their rationale. If the deck was built by script, you edit the sources in `src/` and rebuild — never the finished HTML.
+
+## Example
+<img width="1324" height="503" alt="Снимок экрана — 2026-07-29 в 22 43 40" src="https://github.com/user-attachments/assets/3b95c197-2d8d-4f89-b73d-229adbe70cb3" />
+
+[`example/`](example/) holds a real deck built by this skill and run through the whole pipeline above — the talk "Context. Design. Voice.", 16 slides. Its inputs (`slides.md`, `design.md`), the `DECK.md` manifest and the build script with its sources are all there, so you can see both the folder layout and the "script" build mode. The talk itself is in Russian — it is there as a sample of format and layout, not as text to reuse.
 
 ```bash
 git clone https://github.com/StasPotapov/present.git
 open present/example/deck/kontekst-dizayn-golos-2026-07-28.html
 ```
 
-## Устройство скилла
+## How the skill is put together
 
-| Файл | Что это |
+| File | What it is |
 |---|---|
-| `SKILL.md` | процесс: ингест → режим → арт-дирекшн → гейт входных файлов → план → сборка → валидация → доводка |
-| `assets/kernel.html` | движок деки (KERNEL v6): навигация, аниматоры, presenter-окно, экспорт в PDF, guard'ы для интерактивных слайдов. Копируется **дословно**, весь визуал пишется в его `<style id="design">` и слайды в `#deck` |
-| `assets/design-axes.md` | 9 осей дизайн-решений — список вопросов, а не каталог ответов: композиция, поля, типографика, цвет, фон, движение, детали, хром, интерактивность |
-| `assets/art-direction.md` | как спроектировать визуал под контент; как применять `design.md`; источники брифов |
-| `assets/cookbook.md` | контракт классов kernel (`.count`, `.chain`, `.clist`, `.pipeline`, `[data-type]`…), контракт интерактива (куда писать свой JS и как он уживается с навигацией и печатью), офлайн-шрифты, медиа, проверки. Готовых компонентов и образцов арт-дирекшна там намеренно нет — иначе все деки выходят их перекрашенными копиями |
-| `assets/deck-template.md` | скелет `DECK.md` |
-| `assets/validate.py` | валидатор готовой деки |
+| `SKILL.md` | the process: ingest → mode → art direction → input-file gate → plan → build → validation → polish |
+| `assets/kernel.html` | the deck engine (KERNEL v6): navigation, animators, presenter window, PDF export, guards for interactive slides. Copied **verbatim**; all the visual design goes into its `<style id="design">` and the slides into `#deck` |
+| `assets/design-axes.md` | 9 axes of design decisions — a list of questions, not a catalogue of answers: composition, margins, typography, colour, background, motion, detail, chrome, interactivity |
+| `assets/art-direction.md` | how to design the visuals around the content; how to apply `design.md`; where to get briefs |
+| `assets/cookbook.md` | the kernel class contract (`.count`, `.chain`, `.clist`, `.pipeline`, `[data-type]`…), the interactivity contract (where your own JS goes and how it coexists with navigation and printing), offline fonts, media, checks. There are deliberately no ready-made components or art-direction samples in there — otherwise every deck comes out a recoloured copy of them |
+| `assets/deck-template.md` | the skeleton of `DECK.md` |
+| `assets/validate.py` | the validator for a finished deck |
 
-### Валидатор
+### Validator
 
 ```bash
-python3 assets/validate.py <дека>.html
+python3 assets/validate.py <deck>.html
 ```
 
-Проверяет целостность kernel (маркер `KERNEL v6`, базовые и print-стили, chrome, presenter, правку заметок, экспорт в PDF), остаточные `{{…}}`, сетевые ссылки и локальные ссылки на отсутствующие файлы, синтаксис JS (`node --check` по каждому блоку скрипта и по `notes.js`), посторонние script-блоки и порядок интерактивного блока относительно kernel, интерактив на движке ниже v6, клик, повешенный атрибутом на не-интерактивный тег, синхронность секций `notes.js` со слайдами, наличие `slides.md` / `design.md` / `DECK.md`.
+It checks kernel integrity (the `KERNEL v6` marker, base and print styles, chrome, presenter, note editing, PDF export), leftover `{{…}}`, network references and local links to missing files, JS syntax (`node --check` on every script block and on `notes.js`), stray script blocks and the order of the interactive block relative to the kernel, interactivity on an engine older than v6, a click bound by attribute to a non-interactive tag, section sync between `notes.js` and the slides, and the presence of `slides.md` / `design.md` / `DECK.md`.
 
-Деку быстрого режима валидатор узнаёт сам — одиночный файл без комплекта — и комплекта с неё не спрашивает.
+A quick-mode deck is recognised by the validator on its own — a single file with no companion set — and it doesn't ask for the set.
 
-## Требования
+## Requirements
 
 - Claude Code.
-- Для валидатора — `python3` (stdlib) и `node` (для `--check`; без него проверка синтаксиса просто пропускается).
-- Экспорт в PDF проверен в Chrome; из Safari результат стоит сверить глазами.
-- Расширение **Claude in Chrome** — им Claude проверяет деку перед сдачей: прогоняет автопроверку
-  макета (переполнение, битые картинки, мелкий кегль, обрезанный и наложенный текст) и осматривает
-  кадры глазами. Проверка обязательна в обоих режимах; нет расширения — Claude честно скажет об этом
-  и попросит пролистать деку с `?check` самостоятельно.
-- Опционально: скилл **defuddle** — им читается URL-референс. Нет его — используется `WebFetch`.
+- For the validator — `python3` (stdlib) and `node` (for `--check`; without it the syntax check is simply skipped).
+- PDF export is verified in Chrome; from Safari it is worth checking the result by eye.
+- Optional: **poppler** (`brew install poppler`) — Claude uses `pdfinfo`/`pdfimages`/`pdfseparate` to check the exported PDF. Without it that check degrades to file size plus a `qlmanage` render of the first page.
+- The **Claude in Chrome** extension — this is what Claude uses to check the deck before handing it over:
+  it runs the layout audit (overflow, broken images, tiny type, clipped and overlapping text) and looks at
+  the frames itself. The check is mandatory in both modes; without the extension Claude says so plainly and
+  asks you to page through the deck with `?check` yourself.
+- Optional: the **defuddle** skill — used to read a reference URL. Without it, `WebFetch` is used.
 
-Никаких `npm install` / `pip install`: скилл использует только преустановленные инструменты. Шрифты — системные стеки либо вшитый base64 open-source шрифт (с согласия, единственное разрешённое сетевое действие на сборке).
+No `npm install` / `pip install`: the skill uses preinstalled tools only. Fonts are system stacks, or one embedded base64 open-source font (with your consent — the only network action allowed during a build).
 
-## Язык
+## Language
 
-Скилл общается по-русски.
+**The skill itself is written in Russian and talks to you in Russian.** `SKILL.md` and every asset are in Russian, and so is the dialogue during a build; the deck it produces is in whatever language your material is. This README is the translated part — the Russian original is [README.ru.md](README.ru.md).
 
 ---
 
-Пользуйтесь. Но использовать именно этот скилл — не обязательно: **напишите свой**. Когда сам такое сделаешь и поймёшь, что можешь создать себе что угодно под себя, — вот тогда и понимаешь настоящую силу нейронок.
+Use it. But using *this* skill is not the point: **write your own**. Once you build something like it yourself and realise you can make anything you want for yourself — that is when you see what these models are actually for.

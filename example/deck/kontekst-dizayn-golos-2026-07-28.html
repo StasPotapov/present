@@ -29,6 +29,10 @@
   S — сохранить в PDF: дека замирает в финальном кадре (все слайды, фон, цвета, картинки)
   и открывается диалог печати → «Сохранить как PDF». Страница 16:9 без полей; ⌘P даёт то же
   самое. Размер листа — единственная санкционированная правка в блоке стилей print (@page).
+  В печати размытые тени становятся тонкой обводкой того же цвета, а растровые текстуры фона
+  (шум/сетка на псевдослоях) гасятся: Chrome пишет и то и другое растровой маской, которую
+  Quartz — движок Preview и Quick Look — рисует серым прямоугольником поверх контента, да и
+  весит она на порядок больше. На экране всё возвращается (unfreezeAfterPrint).
   Позиция хранится в URL-хэше (#N): F5 / переоткрытие возвращают на текущий слайд.
   Самопроверка: открой деку с ?check в адресе — подсветит слайды с переполнением.
   Заметки спикера — атрибут data-notes у секции слайда; показываются ТОЛЬКО в
@@ -648,6 +652,17 @@ h1 .mg,h2 .mg{
     /* хуки kernel, которые до анимации намеренно скрыты — показать в финальном виде */
     .tab,.card,.reveal,[data-anim],.clist.cascade>*,.chain.seq .node,.chain.seq .arrow
       {opacity:1!important;transform:none!important}
+    /* Размытая тень уезжает в PDF растровой маской (SMask), а Quartz — движок Preview,
+       Quick Look и вставки PDF в macOS-приложения — рисует такую маску НЕПРОЗРАЧНЫМ серым
+       прямоугольником поверх соседнего контента. У текста лечится только выключением;
+       у блоков размытые слои переписывает flattenShadows() в векторный хайрлайн. */
+    *{text-shadow:none!important}
+    /* Растровая текстура фона (шум, сетка — background-image:url(…)) размножается по копии
+       на каждый слайд и раздувает файл на порядок: 16 слайдов давали 27 МБ вместо 2 МБ,
+       при том что шум с opacity ~.04 в PDF не читается вовсе. Классы ставит freezeForPrint(),
+       и только тем псевдослоям, у которых текстура действительно есть — градиентные
+       пятна фона остаются векторными и печатаются как задумано. */
+    #deck .bgcopy.rb::before,#deck .bgcopy.ra::after{display:none!important}
   }
 </style>
 </head>
@@ -1204,6 +1219,7 @@ Whisper, локально на макбуке, модель large-v3. На M-ч�
     if(frozen)return; frozen=true;
     if(blank)toggleBlank();                                  // блэкаут не должен попасть в PDF
     const bgSrc=document.getElementById('bg');               // берём ДО клонирования (id продублируется)
+    markRasterLayers(bgSrc);
     slides.forEach(s=>{
       s.querySelectorAll('.count[data-to]').forEach(c=>c.textContent=c.dataset.to);
       s.querySelectorAll('[data-type]').forEach(el=>el.textContent=el.dataset.type);
@@ -1220,17 +1236,87 @@ Whisper, локально на макбуке, модель large-v3. На M-ч�
       // копия фона первым ребёнком слайда. id="bg" СОХРАНЯЕМ намеренно: иначе не сработают
       // design-селекторы (#bg{filter:blur(…)}, #bg span{…}) и фон напечатается не тем, чем задуман.
       if(bgSrc && !s.querySelector('.bgcopy')){
-        const c=bgSrc.cloneNode(true); c.classList.add('bgcopy'); s.prepend(c);
+        const c=bgSrc.cloneNode(true); c.classList.add('bgcopy');
+        if(__kRaster.b)c.classList.add('rb');
+        if(__kRaster.a)c.classList.add('ra');   // см. print-слой: гасим только растровые слои
+        s.prepend(c);
       }
+    });
+  }
+  // Растровая текстура на псевдослоях фона (шум/сетка) — вычисляется ОДИН раз по исходному
+  // #bg: у псевдоэлементов нет своего DOM-узла, пометить их можно только классом на копии.
+  const __kRaster={b:false,a:false};
+  function markRasterLayers(bgSrc){
+    __kRaster.b=__kRaster.a=false;
+    if(!bgSrc)return;
+    ['::before','::after'].forEach((ps,i)=>{
+      const bi=getComputedStyle(bgSrc,ps).backgroundImage;
+      if(!bi||bi==='none')return;
+      // Гасим слой, только если он растровый ЦЕЛИКОМ: в `radial-gradient(…), url(…)`
+      // display:none снёс бы вместе с текстурой и градиент — фон напечатался бы голым.
+      const L=shadowLayers(bi);
+      if(L.length&&L.every(x=>/^url\(/.test(x)))__kRaster[i?'a':'b']=true;
+    });
+  }
+  // Размытые box-shadow → векторный хайрлайн того же цвета: PDF перестаёт быть грязным
+  // в Quartz (см. print-слой) и худеет. Неразмытые слои — кольца-акценты вроде
+  // `0 0 0 2px accent` — остаются нетронутыми: они и так вектор.
+  function shadowLayers(v){
+    const out=[]; let depth=0, cur='';
+    for(const ch of v){
+      if(ch==='(')depth++; if(ch===')')depth--;
+      if(ch===','&&depth===0){out.push(cur.trim()); cur='';} else cur+=ch;
+    }
+    if(cur.trim())out.push(cur.trim());
+    return out;
+  }
+  // Альфу поднимаем только у rgb/rgba: в oklch/lab/color() цвет отдаётся как есть —
+  // хайрлайн будет бледнее задуманного, но останется валидным CSS (иначе CSSOM молча
+  // отклонит присваивание, и размытая тень уедет в PDF растровой маской).
+  function liftAlpha(col,min){
+    const m=col.match(/^rgba?\(([^)]+)\)/); if(!m)return col;
+    const p=m[1].split(',').map(parseFloat), a=p.length>3?p[3]:1;
+    return 'rgba('+(p[0]|0)+', '+(p[1]|0)+', '+(p[2]|0)+', '+Math.max(a,min)+')';
+  }
+  function flattenShadows(){
+    document.querySelectorAll('#deck *').forEach(el=>{
+      const sh=getComputedStyle(el).boxShadow;
+      if(!sh||sh==='none')return;
+      const keep=[]; let hair=null, inner=null;
+      shadowLayers(sh).forEach(L=>{
+        const ins=/\binset\b/.test(L);
+        const col=(L.match(/^([a-z-]+\([^)]*\)|#[0-9a-f]+|[a-z]+)/i)||[''])[0];   // rgb/rgba, oklch/lab/color(), hex, имя
+        const nums=(L.replace(col,'').match(/-?[\d.]+px/g)||[]).map(parseFloat);
+        if(!(nums.length>2&&nums[2]>0)){keep.push(L); return;}      // без blur — оставляем как есть
+        const c=liftAlpha(col,.14);
+        if(ins){ if(!inner)inner='inset 0 0 0 1px '+c; }
+        else if(!hair)hair='0 0 0 1px '+c;
+      });
+      if(hair===null&&inner===null)return;                          // размытых слоёв не было
+      const prev=el.style.boxShadow;
+      el.style.boxShadow=[...keep,hair,inner].filter(Boolean).join(', ');
+      if(el.style.boxShadow===prev)return;   // CSSOM отклонил значение — метку не ставим, откатывать нечего
+      el.dataset.pshadow=prev||'∅';
+    });
+  }
+  function restoreShadows(){
+    document.querySelectorAll('#deck [data-pshadow]').forEach(el=>{
+      el.style.boxShadow=el.dataset.pshadow==='∅'?'':el.dataset.pshadow;
+      delete el.dataset.pshadow;
     });
   }
   function unfreezeAfterPrint(){
     if(!frozen)return; frozen=false;
     document.querySelectorAll('#deck .bgcopy').forEach(c=>c.remove());
+    restoreShadows();
     slides.forEach(s=>s.querySelectorAll('.clist > *').forEach(d=>d.style.animation=''));
     render();   // активный слайд переиграет аниматоры; остальные — при заходе на них
   }
-  window.addEventListener('beforeprint',freezeForPrint);   // ⌘P и печать из меню — тоже корректные
+  // Уплощение теней вешается ТОЛЬКО на печать: flattenShadows() пишет инлайновый box-shadow,
+  // а инлайн действует во всех медиа — вызови его из freezeForPrint(), и режим съёмки
+  // (cookbook.md, п.4) снимал бы кадры самопроверки с плоскими тенями вместо настоящих.
+  // Клавиша S идёт сюда же: savePDF() → window.print() поднимает beforeprint.
+  window.addEventListener('beforeprint',()=>{freezeForPrint(); flattenShadows();});   // ⌘P и печать из меню — тоже корректные
   window.addEventListener('afterprint',unfreezeAfterPrint);
   function plate(text){                                     // служебная плашка (скрыта в печати)
     const d=document.createElement('div'); d.className='deck-plate';
