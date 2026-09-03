@@ -218,6 +218,12 @@ A quick-mode deck is recognised by the validator on its own — a single file wi
 
 No `npm install` / `pip install`: the skill uses preinstalled tools only. Fonts are system stacks, or one embedded base64 open-source font (with your consent — the only network action allowed during a build).
 
+## License
+
+[MIT](LICENSE) — take it, change it, ship it, only keep the copyright notice. That covers the skill: `SKILL.md`, the assets, the deck engine, the validator and the build script.
+
+The **talk content** in [`example/`](example/) is not covered: slide text, speaker notes, deck screenshots and the QR code are the author's personal talk, © 2026 Stas Potapov, all rights reserved. Read it as a sample of format and layout, take the techniques — but don't reuse the text as your own. Details in [`example/NOTICE.md`](example/NOTICE.md).
+
 ## Language
 
 **The skill itself is written in Russian and talks to you in Russian.** `SKILL.md` and every asset are in Russian, and so is the dialogue during a build; the deck it produces is in whatever language your material is. This README is the translated part — the Russian original is [README.ru.md](README.ru.md).
