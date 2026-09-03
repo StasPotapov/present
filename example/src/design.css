@@ -8,19 +8,39 @@
 /*__INTER_FACES__*/   /* сюда build.py вставляет @font-face Inter (base64, cyrillic+latin, roman+italic) */
 
 :root{
-  /* палитра — токены брифа один в один */
+  /* палитра — токены брифа один в один.
+     ВСЯ она перекрывается инлайном на <html> виджетом слайда 09 (src/interactive.js):
+     нажатие на превью чужой деки подменяет эти переменные её палитрой, уход со слайда
+     снимает подмену. Поэтому цвет в правилах ниже пишется только через var(), а не хардкодом. */
   --canvas:#f6f2ee; --paper:#ffffff; --ink:#111111; --black:#000000;
   --slate:#0f172a; --charcoal:#414040; --stone:#848383; --mist:#e8e5e0;
-  --sand:#e2dcd6; --driftwood:#c3c1bf; --midnight:#202126; --magenta:#ff2e95;
+  --sand:#e2dcd6; --driftwood:#c3c1bf; --midnight:#202126;
+  --accent-rgb:255,46,149;            /* акцент числами: rgba(var(--accent-rgb),α) во всех прозрачностях */
+  --magenta:rgb(var(--accent-rgb));
+  /* «на чём лежит текст»: белый годится не в каждой палитре — на жёлтом акценте
+     и на светлом ink нужен тёмный контр-цвет, иначе надпись пропадает */
+  --on-accent:#fff; --on-ink:#fff; --on-black:#fff;
+  /* цвет выбранной подписи на 09: по умолчанию акцент, но в жёлтой теме мелкий жёлтый
+     текст на сиреневом фоне не вытягивает контраст — там она переопределяется на белый */
+  --cap-on:var(--magenta);
 
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --serif:Georgia,'Iowan Old Style','Times New Roman',serif;   /* системный, для темы «мятный editorial» */
   --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+
+  /* лицо заголовков: подпись Playful — тяжёлый КУРСИВНЫЙ Inter; тема слайда 09 подменяет и это */
+  --h-family:var(--sans); --h-style:italic; --h1-w:900; --h2-w:700; --h-track:-.002em;
 
   /* единственный shadow-stack системы: 80px «подъём» + 8px контактная кромка */
   --sh-xl:rgba(0,0,0,.22) 0 32px 80px 0, rgba(0,0,0,.08) 0 2px 8px 0;
   --sh-sm:rgba(0,0,0,.13) 0 14px 38px 0, rgba(0,0,0,.06) 0 2px 6px 0;
 
   --r-card:44px; --r-node:28px; --r-img:16px; --r-pill:99px;
+
+  /* фон и прогресс-лента — тоже часть палитры (их перекрашивает тема слайда 09) */
+  --bg-glow:rgba(var(--accent-rgb),.10);
+  --bg-warm:rgba(226,220,214,.85);
+  --bar-grad:linear-gradient(90deg,var(--magenta),#ff8ac4);
 }
 
 /* ── база ─────────────────────────────────────────────────────────────── */
@@ -34,8 +54,8 @@ body{
 /* фон: тёплая бумага + один розовый отсвет в углу + едва слышная зернистость */
 #bg{
   background:
-    radial-gradient(58vw 46vh at 92% -8%, rgba(255,46,149,.10), transparent 68%),
-    radial-gradient(52vw 44vh at -8% 104%, rgba(226,220,214,.85), transparent 70%);
+    radial-gradient(58vw 46vh at 92% -8%, var(--bg-glow), transparent 68%),
+    radial-gradient(52vw 44vh at -8% 104%, var(--bg-warm), transparent 70%);
 }
 #bg::after{
   content:''; position:absolute; inset:0; opacity:.045; pointer-events:none;
@@ -43,18 +63,18 @@ body{
 }
 
 /* хром деки — под светлую бумагу */
-#bar{background:linear-gradient(90deg,var(--magenta),#ff8ac4)}
+#bar{background:var(--bar-grad)}
 #counter{color:var(--stone); opacity:1; font-family:var(--mono); font-weight:600}
 #hint{color:var(--driftwood); opacity:1; font-family:var(--mono)}
 
 /* ── типографика ──────────────────────────────────────────────────────── */
 h1{
-  font-weight:900; font-style:italic; line-height:1;
-  font-size:clamp(2.5rem,6.6vw,6rem); letter-spacing:-.002em; color:var(--ink);
+  font-family:var(--h-family); font-weight:var(--h1-w); font-style:var(--h-style); line-height:1;
+  font-size:clamp(2.5rem,6.6vw,6rem); letter-spacing:var(--h-track); color:var(--ink);
 }
 h2{
-  font-weight:700; font-style:italic; line-height:1.04;
-  font-size:clamp(1.85rem,4.3vw,3.5rem); letter-spacing:-.002em; color:var(--ink);
+  font-family:var(--h-family); font-weight:var(--h2-w); font-style:var(--h-style); line-height:1.04;
+  font-size:clamp(1.85rem,4.3vw,3.5rem); letter-spacing:var(--h-track); color:var(--ink);
 }
 h3{font-weight:700; font-size:clamp(1rem,1.6vw,1.38rem); line-height:1.2}
 .lead{
@@ -74,7 +94,7 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 /* ── чёрная лента-навигация: где мы в конвейере (переосмысленный category bar) ── */
 .nav{
   display:inline-flex; align-items:center; gap:clamp(14px,1.6vw,26px);
-  background:var(--black); color:#fff; border-radius:var(--r-pill);
+  background:var(--black); color:var(--on-black); border-radius:var(--r-pill);
   padding:.62em 1.5em; width:fit-content; font-weight:500;
   font-size:clamp(.7rem,.92vw,.86rem); margin-bottom:clamp(1.4rem,3.2vh,2.6rem);
 }
@@ -88,8 +108,8 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
   padding:.62em 1.2em; font-weight:600; white-space:nowrap;
   font-size:clamp(.76rem,1.02vw,.94rem); width:fit-content;
 }
-.pill.solid{background:var(--magenta); color:#fff}
-.pill.dark{background:var(--black); color:#fff; font-weight:500}
+.pill.solid{background:var(--magenta); color:var(--on-accent)}
+.pill.dark{background:var(--black); color:var(--on-black); font-weight:500}
 .pill.ghost{background:transparent; border:1px solid var(--sand); color:var(--charcoal); font-weight:500}
 .pill.paper{background:var(--paper); color:var(--ink); box-shadow:var(--sh-sm)}
 .pill.mono{font-family:var(--mono); letter-spacing:0}
@@ -121,7 +141,7 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
   opacity:0; animation:rise .45s cubic-bezier(.2,.8,.25,1) both;
 }
 
-/* ── 03/15 · карта конвейера и петли ──────────────────────────────────── */
+/* ── 03 · карта конвейера и петли ──────────────────────────────────── */
 /* петля живёт ВНУТРИ ряда, к которому относится (.stages / .cycrow) — иначе
    её левый конец уезжает под соседние блоки и стрелка указывает не туда */
 .hasloop{padding-bottom:clamp(2.4rem,5.2vh,3.4rem)}
@@ -140,9 +160,6 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 }
 /* border-width пишем в три значения: верх обязан остаться 0, иначе петля
    рисует лишнюю линию по нижней кромке карточек */
-.loopline.hot{opacity:1; border-style:solid; border-width:0 3px 3px}
-.loopline.thin{border-style:dashed; border-width:0 2px 2px; opacity:.55}
-.loopline.thin .cap,.loopline.thin .head{color:var(--charcoal)}
 
 .map{display:flex; align-items:center; gap:clamp(.8rem,1.8vw,1.6rem); margin-top:clamp(1.8rem,4.4vh,3rem)}
 .inflows{display:flex; flex-direction:column; gap:.7rem; flex:none}
@@ -164,13 +181,13 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
   box-shadow:var(--sh-xl); display:flex; flex-direction:column; gap:.25rem; min-width:0;
 }
 .stage .idx{font-family:var(--mono); font-size:.72rem; color:var(--magenta); font-weight:700}
-.stage .nm{font-weight:800; font-style:italic; font-size:clamp(1rem,1.7vw,1.5rem); line-height:1.1}
+.stage .nm{font-family:var(--h-family); font-weight:800; font-style:var(--h-style); font-size:clamp(1rem,1.7vw,1.5rem); line-height:1.1}
 .stage .art{font-family:var(--mono); font-size:clamp(.68rem,.9vw,.8rem); color:var(--charcoal); letter-spacing:0}
 .stage .art b{color:var(--ink)}
 .stage.on{box-shadow:0 0 0 2px var(--magenta), var(--sh-xl)}
 .ar{display:flex; align-items:center; color:var(--driftwood); font-size:clamp(1.1rem,1.7vw,1.5rem); flex:none}
 
-/* ── 04 · две колонки ─────────────────────────────────────────────────── */
+/* ── 04/08 · две колонки ─────────────────────────────────────────────────── */
 .split{display:grid; grid-template-columns:1fr auto 1fr; gap:clamp(.9rem,2.2vw,2rem); align-items:center; margin-top:clamp(1rem,2.6vh,1.8rem)}
 .split .ar{justify-content:center; color:var(--magenta); font-weight:800}
 
@@ -191,7 +208,7 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 /* ── 06 · розовая полоса-акцент + реплики ─────────────────────────────── */
 .slide.wash::before{
   content:''; position:absolute; inset:0; z-index:-1;
-  background:radial-gradient(78vw 78vh at 50% 112%, rgba(255,46,149,.5), rgba(206,150,224,.26) 44%, rgba(246,242,238,0) 74%);
+  background:radial-gradient(78vw 78vh at 50% 112%, rgba(var(--accent-rgb),.5), rgba(206,150,224,.26) 44%, rgba(246,242,238,0) 74%);
 }
 .vs{display:flex; align-items:center; gap:clamp(.8rem,2vw,1.6rem); flex-wrap:wrap; margin-top:clamp(1.6rem,3.6vh,2.6rem)}
 .bub{
@@ -199,7 +216,7 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
   box-shadow:var(--sh-sm); font-style:italic; font-weight:600; color:var(--charcoal);
   font-size:clamp(.9rem,1.35vw,1.2rem);
 }
-.bub.b{background:var(--ink); color:#fff; border-radius:28px 28px 8px 28px}
+.bub.b{background:var(--ink); color:var(--on-ink); border-radius:28px 28px 8px 28px}
 .bub.b em{color:var(--magenta); font-style:italic}
 .vs .ar{color:var(--stone)}
 
@@ -225,12 +242,62 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 .codecard.clean{color:var(--ink)}
 .codecard.clean .t{color:var(--magenta); font-weight:600}
 
+/* ── 08 · окно с лентой референсов (скролл styles.refero.design) ───────── */
+.refcol{display:flex; flex-direction:column; gap:clamp(.5rem,1.4vh,.9rem); min-width:0}
+.refwin{
+  position:relative; overflow:hidden; border:1px solid var(--mist); border-radius:20px;
+  box-shadow:var(--sh-sm); background:var(--paper);
+}
+.refbar{
+  display:flex; align-items:center; gap:.4rem; padding:.5rem .8rem;
+  border-bottom:1px solid var(--mist); font-family:var(--mono);
+  font-size:clamp(.54rem,.76vw,.68rem); color:var(--stone);
+}
+.refbar i{width:.42em; height:.42em; border-radius:50%; background:var(--sand); flex:none}
+.refbar span{margin-left:.5rem}
+.reflib{
+  position:relative; height:clamp(130px,23vh,225px);
+  background-repeat:no-repeat; background-size:100% auto; background-position:0 0;
+  animation:reflib-scroll 38s ease-in-out infinite alternate;
+}
+/* нижний край растворяется в бумаге окна — лента читается как бесконечная */
+.reflib::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(transparent 82%,var(--paper));
+}
+@keyframes reflib-scroll{from{background-position:0 0} to{background-position:0 100%}}
+
 /* ── 09 · три деки ────────────────────────────────────────────────────── */
 .gallery{display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(.8rem,1.9vw,1.6rem); margin-top:clamp(1.2rem,3vh,2rem)}
 .gallery figure{margin:0}
 .gallery img{width:100%; display:block; border-radius:var(--r-img); box-shadow:var(--sh-xl)}
 .gallery figcaption{margin-top:.65rem; text-align:center; font-size:clamp(.7rem,.92vw,.82rem); color:var(--stone); font-weight:500}
-.onecap{margin-top:clamp(1rem,2.4vh,1.6rem); text-align:center; font-style:italic; font-weight:700; font-size:clamp(1rem,1.8vw,1.5rem)}
+.onecap{margin-top:clamp(1rem,2.4vh,1.6rem); text-align:center; font-family:var(--h-family); font-style:var(--h-style); font-weight:var(--h2-w); font-size:clamp(1rem,1.8vw,1.5rem)}
+
+/* превью — не картинки, а КНОПКИ: нажатие переодевает всю деку в палитру выбранного
+   design.md (логика — src/interactive.js, kernel v6 по клику в <button> слайд не листает).
+   Кнопке нужен полный сброс браузерных стилей, иначе она принесёт свой фон, рамку и шрифт. */
+.deckpick{
+  appearance:none; -webkit-appearance:none; background:none; border:0; padding:0; margin:0;
+  font:inherit; color:inherit; text-align:center; display:block; width:100%;
+  cursor:pointer; border-radius:var(--r-img);
+  transition:transform .32s cubic-bezier(.2,.8,.25,1);
+}
+/* ⚠️ ПОДЪЁМ ЖИВЁТ НА КНОПКЕ, А НЕ НА КАРТИНКЕ: на <img class="reveal"> transform намертво
+   держит заполненная анимация rise (`animation … both` перебивает обычные объявления
+   каскада, и порядок правил в файле тут не спасает). У .deckpick анимаций нет — работает.
+   Hover не заводим намеренно: на проекторе курсора нет (ось 9, список рецидивов). */
+.deckpick img{transition:box-shadow .32s ease}
+.deckpick:focus-visible{outline:3px solid var(--magenta); outline-offset:7px}
+.deckpick[aria-pressed="true"]{transform:translateY(-7px) scale(1.015)}
+.deckpick[aria-pressed="true"] img{box-shadow:0 0 0 3px var(--magenta), var(--sh-xl)}
+.gallery figure.on figcaption{color:var(--cap-on); font-weight:700}
+/* подсказка-аффорданс: без неё зритель не догадается, что превью нажимаются */
+.pickhint{
+  margin-top:.55rem; text-align:center; color:var(--stone);
+  font-size:clamp(.7rem,.92vw,.82rem); font-weight:500; min-height:1.4em;
+}
+.pickhint b{color:var(--cap-on); font-weight:700}
 
 /* ── 10/13 · статичная схема ──────────────────────────────────────────── */
 .flow{display:flex; align-items:center; gap:clamp(.5rem,1.2vw,1rem); flex-wrap:wrap; margin-top:clamp(1.2rem,3vh,2rem)}
@@ -253,17 +320,30 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 }
 .spec b{color:var(--magenta); font-family:var(--mono)}
 
-/* ── 11/15 · круг правок ──────────────────────────────────────────────── */
+/* ── 10 · развилка режимов: быстрый и полный ──────────────────────────── */
+.modes{display:flex; flex-direction:column; gap:.6rem; margin-top:clamp(1rem,2.6vh,1.7rem)}
+.mode{
+  display:flex; align-items:baseline; gap:clamp(.55rem,1.3vw,1.05rem); flex-wrap:wrap;
+  background:var(--paper); border-radius:var(--r-node); padding:.85rem 1.2rem; box-shadow:var(--sh-sm);
+}
+.mode.on{box-shadow:0 0 0 2px var(--magenta), var(--sh-sm)}   /* про него доклад */
+.mode .tag{
+  flex:none; border-radius:var(--r-pill); padding:.32em .85em; background:var(--mist);
+  color:var(--charcoal); font-size:clamp(.64rem,.82vw,.74rem); font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase;
+}
+.mode.on .tag{background:var(--magenta); color:var(--on-accent)}
+.mode b{font-weight:700; font-size:clamp(.82rem,1.12vw,1rem)}
+.mode .lbl{color:var(--stone); font-weight:500; font-size:clamp(.7rem,.92vw,.84rem)}
+
+/* ── 11 · круг правок ──────────────────────────────────────────────── */
 .cyc{padding-bottom:clamp(2.2rem,4.8vh,3rem)}
-.cyc+.cyc{margin-top:clamp(1.2rem,3vh,2.2rem)}
 .cycrow{position:relative; display:flex; align-items:center; gap:clamp(.5rem,1.2vw,1rem); flex-wrap:nowrap}
 .cycrow .box{
   background:var(--paper); border-radius:var(--r-node); padding:.9rem 1.2rem; box-shadow:var(--sh-sm);
   font-weight:600; font-size:clamp(.78rem,1.08vw,.98rem); flex:1; min-width:0;
 }
 .cycrow .box .lbl{display:block; font-weight:500; color:var(--stone); font-size:.82em; margin-top:.12rem}
-.cyclabel{font-weight:800; font-style:italic; font-size:clamp(.95rem,1.5vw,1.3rem); margin-bottom:.6rem}
-.cyclabel span{font-style:normal; font-weight:500; color:var(--stone); font-size:.78em; margin-left:.5em}
 .branch{display:flex; gap:clamp(.9rem,2.2vw,1.8rem); align-items:flex-start; margin-top:clamp(1.2rem,3vh,2rem)}
 .branch>*{flex:1}
 .badge-opt{
@@ -275,7 +355,7 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 .rec{display:flex; align-items:center; gap:clamp(1.2rem,3vw,2.6rem); margin-top:clamp(2rem,4.6vh,3.2rem); flex-wrap:wrap}
 .recdot{
   width:clamp(58px,6.4vw,92px); aspect-ratio:1; border-radius:50%; background:var(--magenta);
-  position:relative; flex:none; box-shadow:0 14px 40px -10px rgba(255,46,149,.75);
+  position:relative; flex:none; box-shadow:0 14px 40px -10px rgba(var(--accent-rgb),.75);
 }
 .recdot::after{
   content:''; position:absolute; inset:0; border-radius:50%; border:2px solid var(--magenta);
@@ -285,7 +365,7 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 .timer{font-family:var(--mono); font-weight:700; letter-spacing:-.02em; font-size:clamp(2.2rem,6.4vw,5rem); line-height:1}
 .timer .u{color:var(--stone); font-size:.32em; font-weight:500; letter-spacing:0; margin-left:.5em}
 
-/* ── 16 · клавиша ─────────────────────────────────────────────────────── */
+/* ── 15 · клавиша ─────────────────────────────────────────────────────── */
 .keys{display:flex; align-items:center; gap:clamp(1.2rem,3vw,2.4rem); margin-top:clamp(1rem,2.6vh,1.8rem); flex-wrap:wrap}
 .keycap{
   display:inline-flex; align-items:center; justify-content:center; background:var(--paper);
@@ -296,29 +376,29 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 .demo-list{display:flex; flex-direction:column; gap:.55rem; margin-top:clamp(1.2rem,3vh,2rem)}
 .demo-list div{display:flex; align-items:center; gap:.7rem; font-size:clamp(.86rem,1.2vw,1.05rem); color:var(--slate)}
 .demo-list .n{
-  flex:none; width:1.7em; height:1.7em; border-radius:50%; background:var(--magenta); color:#fff;
+  flex:none; width:1.7em; height:1.7em; border-radius:50%; background:var(--magenta); color:var(--on-accent);
   display:grid; place-items:center; font-size:.78em; font-weight:700; font-family:var(--mono);
 }
 
-/* ── 17 · финальный постер ────────────────────────────────────────────── */
+/* ── 16 · финальный постер ────────────────────────────────────────────── */
 .final{display:grid; grid-template-columns:auto 1fr; gap:clamp(1.6rem,4vw,3.4rem); align-items:center}
 .qrcard{
   background:var(--paper); border-radius:var(--r-card); padding:1.3rem; box-shadow:var(--sh-xl);
   width:clamp(168px,19vw,236px); aspect-ratio:1; display:grid; place-items:center;
 }
 .qr{width:100%; height:auto; display:block; color:var(--ink)}
-.typed{font-style:italic; font-weight:900; color:var(--magenta); font-size:clamp(2rem,5.4vw,4.4rem); line-height:1.02; letter-spacing:-.002em}
+.typed{font-family:var(--h-family); font-style:var(--h-style); font-weight:var(--h1-w); color:var(--magenta); font-size:clamp(2rem,5.4vw,4.4rem); line-height:1.02; letter-spacing:var(--h-track)}
 .tcur{color:var(--magenta); animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
 .triad{display:flex; gap:clamp(.6rem,1.6vw,1.2rem); flex-wrap:wrap; margin-top:clamp(1.2rem,3vh,2rem)}
 .triad span{
-  font-style:italic; font-weight:900; font-size:clamp(1.1rem,2.4vw,2rem);
-  color:var(--ink); letter-spacing:-.002em;
+  font-family:var(--h-family); font-style:var(--h-style); font-weight:var(--h1-w);
+  font-size:clamp(1.1rem,2.4vw,2rem); color:var(--ink); letter-spacing:var(--h-track);
 }
 .triad span+span::before{content:'·'; color:var(--magenta); margin-right:clamp(.6rem,1.6vw,1.2rem); font-style:normal}
 
 /* ── адаптив и доступность ────────────────────────────────────────────── */
-@media (max-width:900px){
+@media screen and (max-width:900px){
   .split,.ba,.final{grid-template-columns:1fr}
   .map{flex-wrap:wrap} .gallery{grid-template-columns:1fr}
   .branch{flex-direction:column}
@@ -339,14 +419,17 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 #bg::before{
   content:''; position:absolute; width:74vw; height:78vh; right:-16vw; top:-24vh;
   border-radius:50%; pointer-events:none;
-  background:radial-gradient(closest-side, rgba(255,46,149,.14), rgba(255,46,149,0) 70%);
+  background:radial-gradient(closest-side, rgba(var(--accent-rgb),.14), rgba(var(--accent-rgb),0) 70%);
   animation:orb 34s ease-in-out infinite alternate;
 }
 @keyframes orb{
   from{transform:translate3d(0,0,0) scale(1)}
   to{transform:translate3d(-7vw,7vh,0) scale(1.16)}
 }
-#bar{box-shadow:0 0 16px rgba(255,46,149,.45)}
+#bar{box-shadow:0 0 16px rgba(var(--accent-rgb),.45)}
+/* 09 · дека переоделась — фон проявляется заново, чтобы смена палитры читалась как событие */
+#bg.swap{animation:bgswap .5s ease both}
+@keyframes bgswap{from{opacity:.2} to{opacity:1}}
 
 /* ── вход слайда ──────────────────────────────────────────────────────── */
 .slide{animation:slidein .58s cubic-bezier(.2,.75,.2,1) both}
@@ -356,6 +439,9 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
    и ?check честно ловил переполнение. Эффект тот же, лишней высоты нет. */
 .slide.wash::before{transform-origin:50% 100%; animation:washin 1.5s cubic-bezier(.2,.8,.25,1) both}
 @keyframes washin{from{opacity:0; transform:scale(1.1)} to{opacity:1; transform:none}}
+/* печатный сброс kernel — `*{animation:none!important}` — псевдоэлементы НЕ матчит,
+   поэтому в PDF волна стартовала заново с opacity:0 и не попадала в кадр вовсе */
+@media print{.slide.wash::before{animation:none!important; opacity:1!important; transform:none!important}}
 
 /* ── общие кадры ──────────────────────────────────────────────────────── */
 @keyframes fadein{from{opacity:0} to{opacity:1}}
@@ -377,7 +463,7 @@ code{font-family:var(--mono); font-size:.92em; letter-spacing:0}
 
 /* ── маркер: розовая полоса «дочерчивается» под акцентными словами ─────── */
 h1 .mg,h2 .mg{
-  background-image:linear-gradient(rgba(255,46,149,.16),rgba(255,46,149,.16));
+  background-image:linear-gradient(rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.16));
   background-repeat:no-repeat; background-position:0 90%; background-size:100% .15em;
   animation:hl .8s .48s cubic-bezier(.2,.8,.25,1) both;
 }
@@ -388,7 +474,7 @@ h1 .mg,h2 .mg{
   text-decoration:line-through; text-decoration-color:var(--magenta); text-decoration-thickness:3px;
   animation:strikein .55s .6s ease both;
 }
-@keyframes strikein{from{text-decoration-color:rgba(255,46,149,0)} to{text-decoration-color:var(--magenta)}}
+@keyframes strikein{from{text-decoration-color:rgba(var(--accent-rgb),0)} to{text-decoration-color:var(--magenta)}}
 
 /* ── каскад внутри блоков-схем и рядов ────────────────────────────────── */
 :is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*{
@@ -406,19 +492,21 @@ h1 .mg,h2 .mg{
 :is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(6){animation-delay:.56s}
 :is(.stages,.inflows,.flow,.cycrow,.specs,.pillrow,.demo-list,.gallery,.triad,.vs,.ba,.split,.final,.rec,.keys)>*:nth-child(7){animation-delay:.64s}
 
+/* ── 10 · режимы въезжают тем же каскадом, что и ряды-схемы ───────────── */
+.mode{animation:popin .52s cubic-bezier(.2,.8,.25,1) both}
+.mode:nth-child(1){animation-delay:.22s}
+.mode:nth-child(2){animation-delay:.32s}
+
 /* ── 09 · три деки лежат веером, как карты (бриф: слегка наклонённые тайлы) ── */
 .gallery figure:nth-child(1){--rot:-1.7deg}
 .gallery figure:nth-child(2){--rot:.8deg}
 .gallery figure:nth-child(3){--rot:-1deg}
 .onecap{animation:rise-s .6s .72s cubic-bezier(.2,.8,.25,1) both}
 
-/* ── петли 03/11/15: прочерчиваются сверху вниз, стрелка покачивается ──── */
+/* ── петли 03/11: прочерчиваются сверху вниз, стрелка покачивается ──── */
 .loopline{--lo:.75; animation:loopin .62s .68s cubic-bezier(.2,.8,.25,1) both}
-.loopline.hot{--lo:1}
-.loopline.thin{--lo:.55}
 @keyframes loopin{from{opacity:0; transform:translateY(-10px)} to{opacity:var(--lo,1); transform:none}}
 .loopline .head{animation:bob 2.8s 1.5s ease-in-out infinite}
-.cyclabel{animation:rise-s .5s .1s cubic-bezier(.2,.8,.25,1) both}
 
 /* ── 06 · реплики выпрыгивают из своего угла ──────────────────────────── */
 .bub{transform-origin:bottom left}
@@ -441,7 +529,7 @@ h1 .mg,h2 .mg{
   animation:pulse 2.4s 1.2s cubic-bezier(.2,.7,.3,1) infinite;
 }
 
-/* ── 16 · клавиша нажимается сама ─────────────────────────────────────── */
+/* ── 15 · клавиша нажимается сама ─────────────────────────────────────── */
 .keycap.big{animation:keypress 4.4s 1.6s ease-in-out infinite}
 @keyframes keypress{
   0%,72%,100%{transform:translateY(0); box-shadow:0 10px 0 var(--sand), var(--shadow-hit,rgba(0,0,0,.22) 0 32px 80px 0)}
@@ -449,11 +537,14 @@ h1 .mg,h2 .mg{
   88%{transform:translateY(0); box-shadow:0 10px 0 var(--sand), rgba(0,0,0,.22) 0 32px 80px 0}
 }
 
-/* ── 17 · карточка QR тихо подмигивает магентой ──────────────────────── */
+/* ── 16 · карточка QR тихо подмигивает магентой ──────────────────────── */
 .qrcard{border:2px solid var(--sand); animation:qrpulse 3.6s 1s ease-in-out infinite}
-@keyframes qrpulse{0%,100%{border-color:var(--sand)} 50%{border-color:rgba(255,46,149,.75)}}
+@keyframes qrpulse{0%,100%{border-color:var(--sand)} 50%{border-color:rgba(var(--accent-rgb),.75)}}
 
 /* ── доступность: одно правило гасит весь моторный слой ───────────────── */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important; animation-iteration-count:1!important}
+  .reflib{animation:none; background-position:0 0}
+  .deckpick,.deckpick img{transition:none}
+  .deckpick[aria-pressed="true"]{transform:none}
 }
