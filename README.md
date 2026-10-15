@@ -97,6 +97,17 @@ The deck runs as a local file, and a browser cannot write to disk from one — s
 
 ## Install
 
+**As a Claude Code plugin.** Run in Claude Code:
+
+```
+/plugin marketplace add StasPotapov/present
+/plugin install present@present
+```
+
+The skill is then called `/present:present`. To get a new version: `/plugin marketplace update present`,
+then `/plugin update present@present`.
+
+**From a clone.** Pick one way: with both, the skill loads twice.
 The skill is installed by copying it into a skills directory — globally (available in every project) or locally in one project.
 
 Globally:

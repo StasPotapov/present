@@ -96,6 +96,17 @@
 
 ## Установка
 
+**Плагином Claude Code.** Выполни в Claude Code:
+
+```
+/plugin marketplace add StasPotapov/present
+/plugin install present@present
+```
+
+Скилл тогда называется `/present:present`. Новая версия: `/plugin marketplace update present`,
+затем `/plugin update present@present`.
+
+**Из клона.** Выбери один способ: с обоими скилл загрузится дважды.
 Скилл ставится копированием в каталог skills — глобально (доступен во всех проектах) или локально в проект.
 
 Глобально:

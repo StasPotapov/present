@@ -1,0 +1,8 @@
+{
+  "name": "present",
+  "description": "A Claude Code skill that designs a bespoke offline HTML slide deck from a context folder, talk text or topic, with a presenter window and live speaker notes.",
+  "author": { "name": "Stas Potapov" },
+  "license": "MIT",
+  "keywords": ["presentation", "slides", "deck", "html"],
+  "skills": ["./"]
+}

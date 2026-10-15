@@ -1,0 +1,8 @@
+{
+  "name": "present",
+  "description": "present: bespoke HTML slide decks for Claude Code",
+  "owner": { "name": "Stas Potapov" },
+  "plugins": [
+    { "name": "present", "source": "./", "description": "The present skill" }
+  ]
+}
