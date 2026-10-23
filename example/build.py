@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Сборщик деки «Контекст. Дизайн. Голос.» (скилл /present, KERNEL v6).
+Сборщик деки «Контекст. Дизайн. Голос.» (скилл /present, KERNEL v7).
 
     python3 build.py            # пересобрать деку в deck/ (notes.js НЕ трогается, если он уже есть)
     python3 build.py --notes    # пересобрать И перезаписать notes.js из data-notes
 
 Что делает:
-  1. берёт движок kernel.html ДОСЛОВНО (из ассетов скилла /present; фолбэк — src/kernel-v6.html);
+  1. берёт движок kernel.html ДОСЛОВНО (из ассетов скилла /present; фолбэк — src/kernel-v7.html);
   2. вставляет src/design.css в <style id="design">, подставив в него @font-face Inter
      (src/inter-faces.css — base64, cyrillic+latin, roman+italic; сеть не нужна);
   3. вставляет src/slides.html в #deck, заменив маркеры __IMG:файл__ на inline data-URI;
@@ -45,11 +45,16 @@ def read(p: Path) -> str:
 
 
 # ── 1. движок ────────────────────────────────────────────────────────────────
-kernel_path = SKILL_KERNEL if SKILL_KERNEL.exists() else SRC / "kernel-v6.html"
+def kernel_version(p: Path) -> int:
+    m = re.search(r"KERNEL v(\d+)", read(p)) if p.exists() else None
+    return int(m.group(1)) if m else 0
+
+# берём движок посвежее: старая установка скилла не должна молча откатить деку на прошлую версию
+kernel_path = max([SKILL_KERNEL, SRC / "kernel-v7.html"], key=kernel_version)
+# v7 обязателен: на нём собрана дека; интерактиву слайда 09 нужны guard'ы v6+
+if kernel_version(kernel_path) < 7:
+    sys.exit(f"!! {kernel_path} — не похоже на KERNEL v7+, сборку остановил")
 kernel = read(kernel_path)
-# v6 обязателен: интерактив слайда 09 держится на его guard'ах (клик по кнопке не листает слайд)
-if "KERNEL v6" not in kernel:
-    sys.exit(f"!! {kernel_path} — не похоже на KERNEL v6, сборку остановил")
 print(f"движок: {kernel_path}")
 
 # ── 2. design layer ──────────────────────────────────────────────────────────

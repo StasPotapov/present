@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  KERNEL v6 — надёжный плумбинг презентации для скилла /present.
+  KERNEL v7 — надёжный плумбинг презентации для скилла /present.
   Это ЕДИНСТВЕННОЕ, что копируется дословно. НЕ редактируй chrome-DOM, print-слой и kernel-скрипт.
   Весь визуал деки пиши в design-слое стилей (второй style-блок в head) и в слайдах
   внутри контейнера deck. Имена блоков в этом комментарии намеренно НЕ в виде тегов,
@@ -48,6 +48,11 @@
   (localStorage + DOM, переживают F5), а на диск переносятся кнопкой ⤓ (скачать) или ⧉
   (скопировать) — файл кладётся рядом с декой поверх старого. Файл главнее: изменился
   снаружи — его версия применяется поверх, черновик предлагается вернуть плашкой.
+
+  БЕЗ ОКНА ДОКЛАДЧИКА (v7): атрибут data-presenter="off" на корневом теге html выключает
+  presenter целиком — P ничего не открывает, notes.js не грузится, из подсказки внизу
+  пропадает «P — заметки». Это единственная санкционированная правка вне design-слоя и
+  слайдов. Вернуть окно — убрать атрибут и дописать data-notes слайдам.
 -->
 <html lang="ru">
 <head>
@@ -1085,6 +1090,8 @@ Whisper, локально на макбуке, модель large-v3. На M-ч�
   {const h=parseInt(location.hash.slice(1),10); if(h>=1&&h<=slides.length)i=h-1;}   // F5/переоткрытие — на тот же слайд
   let chainGen=0, pipeGen=0;
   const fmt=n=>String(n+1).padStart(2,'0');
+  const presenterOff=document.documentElement.dataset.presenter==='off';   // дека без окна докладчика (v7)
+  if(presenterOff){const h=document.getElementById('hint'); if(h)h.textContent=h.textContent.replace('P — заметки · ','');}
 
   // ── анимационный планировщик (анти-троттлинг) ────────────────────────────
   // Chrome «усыпляет» полностью перекрытое окно (occlusion): rAF не вызывается,
@@ -1367,7 +1374,7 @@ Whisper, локально на макбуке, модель large-v3. На M-ч�
   // Синхронно в обе стороны; работает из локального файла (file://), без BroadcastChannel.
   let presenter=null, startedAt=0, deckHTML='';
   function presenterHTML(){
-    return '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Presenter · заметки</title>'
+    return '<!doctype html><'+'html lang="ru"><head><meta charset="utf-8"><title>Presenter · заметки</title>'
     +'<style>*{box-sizing:border-box;margin:0;padding:0}'
     +'body{font:16px/1.5 system-ui,-apple-system,sans-serif;background:#0d0f14;color:#e7e9ef;height:100vh;display:flex;flex-direction:column;padding:16px;gap:12px}'
     +'header{display:flex;align-items:baseline;gap:22px;font:600 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#8b909c}'
@@ -1816,7 +1823,7 @@ Whisper, локально на макбуке, модель large-v3. На M-ч�
     else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(i-1)}
     else if(k==='Home')go(0);
     else if(k==='End')go(slides.length-1);
-    else if(k.toLowerCase()==='p')openPresenter();
+    else if(k.toLowerCase()==='p'){if(!presenterOff)openPresenter()}
     else if(k.toLowerCase()==='b')toggleBlank();
     else if(k.toLowerCase()==='s')savePDF();
     else if(k.toLowerCase()==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
@@ -1841,7 +1848,7 @@ Whisper, локально на макбуке, модель large-v3. На M-ч�
   if(/[?&]check\b/.test(location.search))setTimeout(checkOverflow,400);
 
   render();
-  loadNotes();
+  if(!presenterOff)loadNotes();
 </script>
 <script id="interactive">
 /* ══════════════════════════════════════════════════════════════════════════

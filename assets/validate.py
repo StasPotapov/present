@@ -11,8 +11,9 @@ JS через node --check (kernel, <script id="interactive"> и <slug>-notes.js
 наличие сопутствующих файлов (slides.md, design.md, DECK.md — рядом с декой или уровнем выше)
 и чистоту папки показа deck/ (в ней только html, notes.js, deck-assets/).
 
-Одиночная дека быстрого режима (лежит не в deck/, рядом нет ни одного файла комплекта)
-распознаётся сама: комплект с неё не спрашивается.
+Одиночная дека короткого пути (лежит не в deck/, рядом нет ни одного файла комплекта)
+распознаётся сама: комплект с неё не спрашивается. Дека без окна докладчика
+(data-presenter="off" на <html>, kernel v7+) не обязана иметь data-notes и notes.js.
 
 Exit 0 — ошибок нет (предупреждения допустимы), exit 1 — есть ошибки.
 Динамическую проверку переполнения слайдов делает сам kernel: открой деку с ?check.
@@ -43,7 +44,7 @@ def main():
     html = deck.read_text(encoding="utf-8")
     errors, warns = [], []
 
-    # Быстрый режим: дека собрана одним файлом, комплекта под неё нет и быть не должно.
+    # Короткий путь: дека собрана одним файлом, комплекта под неё нет и быть не должно.
     # Признак — по окружению, без служебных меток внутри деки: файл лежит не в папке показа
     # и рядом (и уровнем выше) нет ни одного файла комплекта.
     notes = deck.with_name(re.sub(r"\.html?$", "", deck.name) + "-notes.js")
@@ -54,6 +55,10 @@ def main():
         and not notes.exists()
         and not any((d / n).exists() for d in kit_dirs for n in kit_files)
     )
+    m_root = re.search(r"<html\b[^>]*>", html, re.I)   # только корневой тег: второй <html> живёт в строке presenter-окна
+    presenter_off = bool(m_root and re.search(r"\bdata-presenter\s*=\s*[\"']off[\"']", m_root.group(0)))   # kernel сравнивает строго: 'off'
+    # Комплект полного пути узнаётся по папке показа или манифесту: slides.md/DESIGN.md лежат и в чужих проектах
+    full_kit = deck.parent.name == "deck" or any((d / "DECK.md").exists() for d in kit_dirs)
 
     # ── 1. Целостность kernel ────────────────────────────────────────────────
     m_ver = re.search(r"KERNEL v(\d+)", html)
@@ -82,6 +87,11 @@ def main():
     elif "flattenShadows" not in html:
         warns.append("kernel без flattenShadows — движок до починки печати: PDF пойдёт серыми "
                      "наложениями и десятками МБ; пересобери деку на свежем assets/kernel.html")
+    if presenter_off and (kernel_ver is None or kernel_ver < 7):
+        errors.append('data-presenter="off" знает только kernel v7+ — на этом движке окно докладчика не выключится')
+    if presenter_off and full_kit:
+        errors.append('окно докладчика выключено (data-presenter="off"), а дека лежит в комплекте полного пути '
+                      "(deck/ или DECK.md) — доклад без заметок не отрепетировать; убери атрибут")
     for fn, what in [("commitEdit", "правки заметок прямо в presenter"), ("exportNotes", "выгрузки notes.js из presenter")]:
         if fn not in html:
             errors.append(f"нет {fn} — kernel-скрипт старее v5 (нет {what}) или повреждён")
@@ -213,12 +223,15 @@ def main():
         errors.append("не найдено ни одной секции .slide")
     else:
         without_notes = slide_count - len(re.findall(r"<section[^>]*data-notes", html))
-        if without_notes > 0:
+        if without_notes > 0 and not presenter_off:
             warns.append(f"{without_notes} слайд(ов) без data-notes (fallback-заметок)")
         if not re.search(r'<section[^>]*class="[^"]*\bactive\b', html):
             warns.append("нет слайда с классом active — пометь первый")
 
-    if notes.exists():
+    if notes.exists() and presenter_off:
+        warns.append(f'{notes.name} лежит рядом, но окно докладчика выключено — файл не читается; '
+                     "лишний — удали его, нужен — сними data-presenter=\"off\"")
+    elif notes.exists():
         ntxt = notes.read_text(encoding="utf-8")
         if "DECK_NOTES" not in ntxt:
             errors.append(f"{notes.name}: нет window.DECK_NOTES — kernel его не увидит")
@@ -232,7 +245,7 @@ def main():
         missing = [n for n in range(1, slide_count + 1) if n not in secs]
         if missing:
             warns.append(f"{notes.name}: нет секций для слайдов {missing}")
-    elif not standalone:
+    elif not standalone and not presenter_off:
         warns.append(f"нет файла живых заметок {notes.name} — presenter будет читать только вшитые data-notes")
 
     # ── 5. Скрипты деки и синтаксис JS (node --check) ───────────────────────
@@ -276,10 +289,14 @@ def main():
     # ── 6. Сопутствующие файлы (рабочая папка — рядом или уровнем выше) ─────
     # Раскладка скилла: дека лежит в <рабочая папка>/deck/, а slides.md/design.md/DECK.md — в самой
     # рабочей папке. Старые деки лежат прямо в рабочей папке, поэтому ищем в обоих местах.
-    if not standalone:
+    if not standalone and not (presenter_off and not full_kit):
         for name, why in [("slides.md", "текст слайдов"), ("design.md", "дизайн-бриф"), ("DECK.md", "манифест деки")]:
             if not any((d / name).exists() for d in kit_dirs):
                 warns.append(f"ни в папке деки, ни в рабочей папке нет {name} ({why})")
+        manifest = next((d / "DECK.md" for d in kit_dirs if (d / "DECK.md").exists()), None)
+        if manifest and "## Конвейер" not in manifest.read_text(encoding="utf-8"):
+            warns.append("в DECK.md нет раздела «Конвейер» — новая сессия не узнает, где остановились "
+                         "(шаблон — assets/deck-template.md)")
 
     # ── 7. Чистота папки показа ─────────────────────────────────────────────
     # В deck/ должно лежать только нужное для показа: html, его notes.js, sidecar deck-assets/.
@@ -305,7 +322,9 @@ def main():
     if errors:
         print(f"\nFAIL: ошибок {len(errors)}, предупреждений {len(warns)}")
         return 1
-    mode = "одиночная дека" if standalone else "дека с комплектом"
+    mode = "одиночная дека" if standalone or (presenter_off and not full_kit) else "дека с комплектом"
+    if presenter_off:
+        mode += ", без окна докладчика"
     print(f"✓ OK — {slide_count} слайдов, {mode}, ошибок нет, предупреждений {len(warns)}")
     return 0
 
