@@ -76,6 +76,8 @@ them, or ask if they conflict with the new speech.
 The check is the same as after any refinement: the validator, the auditor in Chrome (text length
 changes the layout only where the speech is visible on the slide, but the auditor costs one call)
 and the PDF, if the text on the slides changed.
+If `DECK.md` names a review page in Claude Design, republish it to the same URL (`stages/canvas.md`,
+"The review page"), so the comments stay on the current deck.
 
 ## Step 5 — End of lap
 

@@ -32,6 +32,12 @@ directly in the working folder), move it into `deck/` together with `notes.js` a
 
 
 ## Step 1 — Concept + art direction (internal)
+**The first build from a Claude Design canvas** (`DECK.md` names a canvas, and the Pipeline does not say "Build — done"):
+the canvas IS the structure and the art direction. In Step 1 only axis 9 (interactivity) remains. In Step 3 skip
+the slide list (the canvas shows it) but keep the interactivity question in the mode "together". Then build by
+`stages/canvas.md`, "Transfer", and go on to Step 5. Once the deck is built, the HTML is the main version: later
+builds are refinement (Step 6) and never transfer the canvas again, unless the person asks for it.
+
 Make: (a) the **structure** — the split into slides, what is on each slide, where the strong frames are; (b) the **art direction** —
 go through the axes in `assets/design-axes.md` (composition, margins, typography, color, background, motion, details, chrome,
 interactivity) and write one line of answer per axis. How to read the brief and the reference: `assets/art-direction.md`.
@@ -78,6 +84,7 @@ slider, the latency number recalculates", not "add interactivity". The last opti
 If there were no candidates, there is no question. Do not invent an extra step.
 
 ## Step 4 — Bespoke build
+From a canvas: the method is `stages/canvas.md`, "Transfer"; the rules below (folder, kernel, language, checks) still apply.
 Build **into the subfolder `deck/`** of the working folder (see "Folder layout"). Create it if it does not exist.
 **Deck language:** write the deck content (slide text, `data-notes`, `<title>`, the live notes file) in the person's language
 by default, or in the language the person asked for.
@@ -219,6 +226,8 @@ it builds from. Keep it up to date after every change (a rebuild must not roll t
   of the same color (on screen everything comes back). All print traps: `cookbook.md`, item 9.
 
 ## Step 6 — Refinement
+**Comments on the review page** (the person says "I left comments", or `DECK.md` names a review page): read and apply them
+by `stages/canvas.md`, "Read the canvas and its comments", then rebuild here and republish the page to the same URL.
 Offer to adjust: palette/density/motion, the treatment of the background, add/remove a slide, timings.
 **Before any change, read `<slug>-notes.js` again** — the person could edit the speaker notes in the presenter window
 and download the file. Copy these changes into `data-notes`. Do not overwrite them with old text from the HTML.
@@ -240,11 +249,12 @@ the file set until the person asks for promotion.
 - In `DECK.md`, update the Pipeline section (in the person's language; Russian: «Конвейер»): "Build — done"
   (Russian: «Сборка — готово»), the result in one line, the next step.
 - The order of the final message of the stage: result and path to the deck → controls (short, `? help` in the presenter
-  window explains the rest) → the Claude Design offer → the manual step block last.
+  window explains the rest) → the review page offer → the manual step block last.
   Do not run `open` in the mode "do it yourself": the person did not ask for a window on their screen.
-- After the first build, offer Claude Design in one line (an option, not a gate): "you can run the deck
-  together with `design.md` through Claude Design — it will propose its own solution; changes can then be moved into the
-  deck sources". If the person refuses or says nothing, do not repeat.
+- Recommend editing through Claude Design: if it is available and the deck has no review page yet, offer the review page
+  in one line (`stages/canvas.md`, "The review page"). It is the recommended way to edit: comments right on the slides,
+  and you see what each one refers to. It is an option, not a gate; if the person refuses or says nothing, do not repeat.
+  Claude Design is not available → the one-line hint from `stages/canvas.md`, once per session.
 - The default next step is the stage Voice (`stages/rehearse.md`). It starts with a manual step:
   a run-through of the talk aloud. The ways to do the run-through and the block format are in `stages/rehearse.md`, Step 1: read
   it, give the manual step from there, then stop.

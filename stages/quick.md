@@ -33,6 +33,10 @@ the person asked for.
 
 ## Steps
 
+The short path builds HTML directly. A Claude Design canvas is used only if the person asks for it: then draw the
+slides on a canvas by `stages/canvas.md` (no style options round, unless asked) and transfer them into the one file
+(`stages/canvas.md`, "Transfer", the short path paragraph).
+
 1. **Concept** — `stages/build.md`, Step 1, but axes 1, 4, 5 are enough (+9, if the content clearly asks for it).
    The answers are still your own, not "as usual". Keep the art direction in your head: there is no `DECK.md` here, and
    references "write it in `DECK.md`" from the assets do not apply on the short path. You lay out the text per slide
@@ -67,6 +71,9 @@ the person asked for.
 - Give the path to the file and say that this is the whole deck: to send it, send one file.
 - Remind the controls: `← →`/wheel/swipe — go through slides, `B` — black screen, `F` — fullscreen,
   `S` — PDF, `?check` in the address — highlight overflow. Mention `P` only if the window exists.
+- Recommend editing through Claude Design: if it is available, offer the review page in one line before the last line
+  (`stages/canvas.md`, "The review page"): the person comments right on the slides, and you see what each comment
+  refers to. Not available → the one-line hint from `stages/canvas.md`.
 - **In the last line, offer the presenter window** (if there is none): "I can add a presenter window
   with speaker notes — for giving a talk with this deck. Shall I?". This is one line, not an AskUserQuestion question.
 

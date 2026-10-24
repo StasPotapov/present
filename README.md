@@ -43,12 +43,12 @@ We are in the AI era — **you don't need PowerPoint, generate HTML**: models wr
 
 - **A reference.** You don't have to do the layout yourself — you have to find a style. For example [styles.refero.design](https://styles.refero.design): you look at how it actually appears, and every style **ships with a ready `design.md`** — copy it into your folder. Design done. `design.md` is by now practically a standard, like `README.md`: a file describing how everything should look (fonts, colours, shapes, spacing). You can go the other way too: write it by hand or put it together with BMAD.
 - **The build.** `/present <folder>` — the skill needs exactly two files, `slides.md` and `design.md`. It will ask a question or two if it has to, and build the deck. That is the **baseline**, and a baseline is usually not what you want — but it cost you little time and it is already in your hands.
-- **The revision loop.** You look at the deck and fix it **with words**: what you don't like, what to change where, where to add motion. You can keep polishing forever.
-- **[Claude Design](https://claude.ai/design) (optional, but strongly recommended).** After the first build the skill suggests it itself: drop the deck and your `design.md` into Claude Design — it will review it and propose its own solution, and that solution will work. A chat plus a working canvas like a Figma panel: you pin notes straight onto the layout. Included in the Claude subscription (Pro / Max / Team / Enterprise), nothing extra to pay. The step is optional — the pipeline works without it.
+- **The revision loop.** You look at the deck and fix it **with words**: what you don't like, what to change where, where to add motion. You can keep polishing forever. The easiest way is comments right on the slides in Claude Design — see the next point.
+- **Claude Design — strongly recommended.** It is now built into Claude, and the skill works with it itself. The slides are drawn on a Claude Design canvas: you can edit them by hand there and leave comments right on a slide. The agent sees every comment and knows which slide and element it refers to. The skill also offers to publish the finished HTML deck as a private page in Claude — you leave edits to it the same way, as comments. Included in the Claude subscription (Pro / Max / Team / Enterprise). The pipeline works without it too, editing is just less convenient.
 
 `design.md` here is the main file, not decoration: the same material under three different briefs gives three completely different decks.
 
-**In the skill** these are the "Design" and "Build" stages. With no `design.md`, the skill offers three roads: a ready style from refero (your step: drop the file into the folder), a brief from 3–4 questions, or design taken from a reference URL. Then the build, the check in Chrome and the revision loop.
+**In the skill** these are the "Design" and "Build" stages. If Claude Design is available, the design goes on a canvas by default: first 2–3 style options, you pick one and comment; then the whole deck on the canvas, you edit it by hand or with comments. The skill writes `design.md` from the canvas and moves the slides into an offline HTML deck on its own kernel: animations, presenter window, PDF. In the "do it yourself" mode the skill draws one option and goes on without stopping. Without Claude Design — three roads: a ready style from refero (your step: drop the file into the folder), a brief from 3–4 questions, or design taken from a reference URL. Then the build, the check in Chrome and the revision loop.
 
 ### 3. Voice → the loop back into `slides.md`
 
@@ -88,7 +88,7 @@ The small loop turns as many times as you run the talk out loud.
 | Context / Voice | [OpenSuperWhisper](https://github.com/Starmel/OpenSuperWhisper), model `large-v3` | local transcription of your recordings: a whisper.cpp wrapper for macOS — a global dictation hotkey, drag & drop for recordings, models downloaded from inside the app. Fast on an M-chip, punctuation and loanwords included, free and offline | no — the skill transcribes the recording itself if whisper is on the machine; otherwise anything that puts text into an input field works (macOS has built-in dictation too) |
 | Design | [styles.refero.design](https://styles.refero.design) | a gallery of clean references, each style shipping a ready `design.md` — copy it into your folder | no — the skill builds a brief from questions or from a reference URL |
 | All stages | **this skill** | leads from idea to deck: `slides.md` → `design.md` → one offline HTML with a presenter window and PDF export → run-through and trimming | — |
-| Design | [Claude Design](https://claude.ai/design) | run the finished deck through with its `design.md`: it reviews and proposes something that works; notes pinned onto the layout | no — included in the Claude subscription, and the pipeline works without it |
+| Design and edits | Claude Design | a canvas to design the deck and a page to edit the finished deck: edit by hand, comment right on the slides, the agent sees what each comment refers to | no, but strongly recommended — included in the Claude subscription; the pipeline works without it, editing is less convenient |
 
 ---
 
@@ -156,6 +156,7 @@ The skill works out where to start on its own:
 | a folder with `DECK.md` | continues from the step where it stopped |
 | a new run-through recording next to the deck | the "Voice" stage |
 | a finished deck (`*.html`) | polishing, or growing it into a talk |
+| the folder and "I left comments" | the skill reads the comments on the canvas or the review page, edits the deck and replies in the threads |
 
 The first thing Claude asks about is the path. **Short** — for when you just need to show an idea in
 pictures: no `slides.md`, no brief, no interview, no plan to approve; exactly one `<slug>.html` lands on
@@ -230,7 +231,8 @@ open present/example-quick/present-korotkiy-put.html
 |---|---|
 | `SKILL.md` | the router: ingest → path and working mode → which stage to start from → gates between stages → your manual steps → status in `DECK.md` |
 | `stages/context.md` | the "Context" stage: an idea, dictation, material or a recording → `slides.md` with a running-time estimate |
-| `stages/design.md` | the "Design" stage: refero, an interview or a reference URL → `design.md` |
+| `stages/design.md` | the "Design" stage: Claude Design canvas, refero, interview or reference URL → `design.md` |
+| `stages/canvas.md` | Claude Design: checking that it is available, the canvas, comments, moving the canvas into HTML, the review page |
 | `stages/build.md` | the "Build" stage: art direction → plan → build → check in Chrome and PDF → polish |
 | `stages/rehearse.md` | the "Voice" stage: recorded run-through → transcript → trimming to the budget → rebuild |
 | `stages/quick.md` | the short path: one page in one go, presenter window on request |
@@ -255,6 +257,7 @@ A short-path deck is recognised by the validator on its own — a single file wi
 ## Requirements
 
 - Claude Code.
+- Recommended: **Claude Design** — sign in to Claude Design with `/design-login` in Claude Code. The canvas and the review page go through it. The skill checks for Claude Design in every session. Without it, the skill suggests signing in, in one line, and works without it.
 - For the validator — `python3` (stdlib) and `node` (for `--check`; without it the syntax check is simply skipped).
 - PDF export is verified in Chrome; from Safari it is worth checking the result by eye.
 - Optional: **poppler** (`brew install poppler`) — Claude uses `pdfinfo`/`pdfimages`/`pdfseparate` to check the exported PDF. Without it that check degrades to file size plus a `qlmanage` render of the first page.

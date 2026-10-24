@@ -34,13 +34,14 @@ the section by the heading (English or Russian) or by this marker, so other lang
      Update it at the end of each stage and before each stop at a manual step. -->
 
 - **Work mode:** {{together | do it yourself}}
+- **Claude Design:** {{design on the canvas | straight to HTML | not available}} · canvas {{https://claude.ai/artifact/… | —}} · review page {{https://claude.ai/artifact/… | —}}
 - **Time budget:** {{20 min}} · pace {{~125 words/min — assumption until the first run-through | N words/min from run-through K}}
 - **Next step:** {{Voice — waiting for the person: run-through of the talk to a recording → put the audio into the folder and call /present <folder>}}
 
 | Stage | Status | Summary |
 |---|---|---|
 | Context | {{done}} | `slides.md`: {{N}} slides, estimate {{~18 min}} |
-| Design | {{done}} | `design.md`: {{source — refero "Playful" / interview / self}} |
+| Design | {{done}} | `design.md`: {{source — Claude Design canvas / refero "Playful" / interview / self}} |
 | Build | {{done}} | `deck/{{slug-date}}.html`, validator and Chrome clean |
 | Voice | {{waiting for the person: run-through}} | {{—}} |
 
@@ -56,6 +57,7 @@ Voice laps (each run-through is a row):
 
 - **Show folder:** `{{deck/}}` — `{{slug-date}}.html`, `{{slug-date}}-notes.js`{{, deck-assets/}}.
 - **Working folder:** `slides.md`, `design.md`, `DECK.md`{{, src/, build.py}}, materials and raw input.
+- **Claude Design:** {{canvas — the design sketch, the HTML is the main version | review page — a private copy of the deck for comments}}.
 
 ## Deck mode: {{"script" | "by hand"}}
 

@@ -3,7 +3,7 @@ name: present
 description: "Guides the person from an idea to a finished HTML presentation (deck): slide text, design brief, an offline single-file deck with a presenter window, a run-through aloud and trimming to the time budget. Short path: a one-page presentation in one go. Talks and writes the deck in the person's language."
 when_to_use: "\"make a presentation\", \"build slides\", \"a deck for my talk\", \"help me come up with a talk\", \"a simple presentation\", \"go through my run-through / rehearsal\", \"cut the talk to 20 minutes\", \"continue the talk\" — in any language. Input: an idea, a topic, text, a recording, a folder with slides.md and design.md, a repo, a reference URL or an existing deck. If the person needs a .pptx file, this is not the skill."
 argument-hint: "[idea / folder / file / recording / deck / reference URL]"
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill, AskUserQuestion, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__tabs_close_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__javascript_tool, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__browser_batch
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill, AskUserQuestion, Artifact, ArtifactComments, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__tabs_close_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__javascript_tool, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__browser_batch
 ---
 
 # present — from an idea to a bespoke HTML presentation
@@ -13,6 +13,10 @@ self-contained HTML deck, **designed for this content**. The deck opens offline 
 pages with arrows and the wheel. Speaker notes live in the presenter window and in the live notes
 file `<slug>-notes.js`. The short path gives a one-page presentation without a presenter window,
 in one go.
+
+**Edit slides through Claude Design** — recommend it everywhere. On a Claude Design canvas and on a
+review page the person comments right on a slide, and the agent sees which slide and element each
+comment refers to. How it works and how to check that it is available: `stages/canvas.md`.
 
 This file is the router: it decides the path and the stage to start from, and it holds the gates
 between stages. The stages are in `${CLAUDE_SKILL_DIR}/stages/`, transcription of recordings is in
@@ -61,6 +65,7 @@ decks (structure, palette, typography, background, motion), not one look in new 
 | Stages | one go: `stages/quick.md` | Context → Design → Build → Voice |
 | Output | exactly one `<slug>.html` | working folder: `slides.md`, `design.md`, `DECK.md`, show folder `deck/` |
 | Presenter window | none unless asked; the finish offers to add it | yes, with live notes |
+| Claude Design | canvas only if asked; the review page is offered once after the build | canvas by default (style options → whole deck → HTML); the review page is offered once after the first build |
 | Status | not kept | the Pipeline section in `DECK.md` |
 
 ## Intake (silent), then questions
@@ -81,8 +86,10 @@ Then questions — in one AskUserQuestion, only those without an answer:
    looks like one page"); the person decides. No question if there is a `DECK.md` (the path is full)
    or an existing deck (the path is known: refinement or promotion, `stages/build.md`).
 2. **How we work** — "together" (the stages go through questions) or "do it yourself" (Claude passes
-   the stage without questions and shows the result). Only for the full path. The person can switch
-   the mode at any stage with words like "go on yourself" / "let's do it together". "Do it yourself"
+   the stage without questions and shows the result). Only for the full path. If Claude Design is
+   available (`stages/canvas.md`) and the folder has no `design.md` yet, add a second question in
+   the same AskUserQuestion: "Design on a Claude Design canvas (recommended)" / "Straight to HTML".
+   Write the answer into the Pipeline section. The person can switch the mode at any stage with words like "go on yourself" / "let's do it together". "Do it yourself"
    stops only at manual steps and at the finish.
 3. **Place** — only if not given. Full path: a folder is given → work in it; not given → offer 2-3
    paths (for example `<current directory>/<slug>/`) plus "my own". Short path: where to put the
@@ -98,6 +105,7 @@ the first match wins. Say in one line which stage you start from and why.
 
 | What exists | Stage | File |
 |---|---|---|
+| the person says they left comments; `DECK.md` names a canvas or a review page | canvas before the transfer → Design; review page → Build, refinement | `stages/canvas.md`, then by stage |
 | a run-through recording or text (`rehearsal-*`) that is not in the laps table of `DECK.md`, next to a built deck | Voice | `stages/rehearse.md` |
 | `DECK.md` with a Pipeline section | the stage named in "Next step" | by stage |
 | an existing deck, the person asks to finish it | Build → refinement | `stages/build.md` |
