@@ -235,7 +235,7 @@ open present/example-quick/present-korotkiy-put.html
 | `stages/rehearse.md` | the "Voice" stage: recorded run-through → transcript → trimming to the budget → rebuild |
 | `stages/quick.md` | the short path: one page in one go, presenter window on request |
 | `stages/transcribe.md` | transcribing recordings for "Context" and "Voice": a transcription skill, `whisper-cli` or text from you |
-| `assets/kernel.html` | the deck engine (KERNEL v7): navigation, animators, presenter window and its off switch, PDF export, guards for interactive slides. Copied **verbatim**; all the visual design goes into its `<style id="design">` and the slides into `#deck` |
+| `assets/kernel.html` | the deck engine (KERNEL v8): navigation, animators, presenter window and its off switch, PDF export, guards for interactive slides. Copied **verbatim**; all the visual design goes into its `<style id="design">` and the slides into `#deck` |
 | `assets/design-axes.md` | 9 axes of design decisions — a list of questions, not a catalogue of answers: composition, margins, typography, colour, background, motion, detail, chrome, interactivity |
 | `assets/art-direction.md` | how to design the visuals around the content; how to apply `design.md`; where to get briefs |
 | `assets/cookbook.md` | the kernel class contract (`.count`, `.chain`, `.clist`, `.pipeline`, `[data-type]`…), the interactivity contract (where your own JS goes and how it coexists with navigation and printing), offline fonts, media, checks. There are deliberately no ready-made components or art-direction samples in there — otherwise every deck comes out a recoloured copy of them |
@@ -248,7 +248,7 @@ open present/example-quick/present-korotkiy-put.html
 python3 assets/validate.py <deck>.html
 ```
 
-It checks kernel integrity (the `KERNEL v7` marker, base and print styles, chrome, presenter, note editing, PDF export), leftover `{{…}}`, network references and local links to missing files, JS syntax (`node --check` on every script block and on `notes.js`), stray script blocks and the order of the interactive block relative to the kernel, interactivity on an engine older than v6, a click bound by attribute to a non-interactive tag, section sync between `notes.js` and the slides, and the presence of `slides.md` / `design.md` / `DECK.md`.
+It checks kernel integrity (the `KERNEL v8` marker, base and print styles, chrome, presenter, note editing, PDF export), leftover `{{…}}`, network references and local links to missing files, JS syntax (`node --check` on every script block and on `notes.js`), stray script blocks and the order of the interactive block relative to the kernel, interactivity on an engine older than v6, a click bound by attribute to a non-interactive tag, section sync between `notes.js` and the slides, and the presence of `slides.md` / `design.md` / `DECK.md`.
 
 A short-path deck is recognised by the validator on its own — a single file with no companion set — and it doesn't ask for the set. A deck with `data-presenter="off"` needs no notes; such a deck next to a full-path set is an error.
 
@@ -275,7 +275,11 @@ The **talk content** in [`example/`](example/) is not covered: slide text, speak
 
 ## Language
 
-**The skill itself is written in Russian and talks to you in Russian.** `SKILL.md` and every asset are in Russian, and so is the dialogue during a build; the deck it produces is in whatever language your material is. This README is the translated part — the Russian original is [README.ru.md](README.ru.md).
+The skill itself is written in English: `SKILL.md`, the stages and the assets. It talks to you in your language — the one you use when you call it. The deck is written in the same language by default: slide text, speaker notes, `slides.md` and `DECK.md`. Need another language — say so, and the skill writes the deck in it or translates an existing one.
+
+The kernel UI — the presenter window, hints — follows the deck's `lang` attribute: Russian for `ru`, English for any other language. Talk folders with the old Russian headings (`## Конвейер`, «На экране») keep working.
+
+This README has a Russian version: [README.ru.md](README.ru.md).
 
 ---
 

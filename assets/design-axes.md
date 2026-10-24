@@ -1,121 +1,131 @@
-# Оси дизайн-решений — о чём надо принять решение до сборки
+# Design axes — what to decide before the build
 
-Деки получались одинаковыми, потому что в ассетах лежал готовый образец и агент его перекрашивал:
-тёмный фон `#0a0b0f`, дрейфующая аврора, кикер-заголовок-лид на каждом слайде, тот же pipeline.
-Образец удалён. Осталось это — **список вопросов, а не каталог ответов**.
+Decks came out the same because the assets had a ready sample and the agent recolored it: a dark
+background `#0a0b0f`, a drifting aurora, kicker-title-lead on each slide, the same pipeline.
+The sample is removed. What remains is this — **a list of questions, not a catalog of answers**.
 
-Ниже нет ни одного готового решения, и это намеренно: примеры вариантов приводятся по два-три
-только чтобы показать разброс, а не чтобы выбрать из них. Ответ придумывается под конкретный доклад.
+Below there is no ready solution, and this is intentional: the examples of options come in twos
+and threes only to show the range, not to choose from them. The answer is invented for the specific talk.
 
-**Как пользоваться:** пройди оси до сборки, выпиши ответ одной строкой на каждую (это и есть твой
-арт-дирекшн, он же идёт в `DECK.md` на полном пути). Ответ «как обычно» — не ответ; если на ось нечего сказать,
-кроме дефолта, значит она не продумана.
+**How to use:** go through the axes before the build and write down a one-line answer for each
+(this is your art direction; on the full path it also goes into `DECK.md`). "As usual" is not an
+answer; if you have nothing to say on an axis except the default, the axis is not thought through.
 
 ---
 
-## Ось 1 — Композиция кадра
+## Axis 1 — Frame composition
 
-Где на экране живёт смысл? Одна доминирующая схема на деку + две-три контрастных для акцентных
-слайдов. (Разброс: плакат по центру ↔ узкая колонка у края ↔ экран, разрезанный пополам.)
+Where on the screen does the meaning live? One dominant scheme per deck + two or three contrasting
+ones for accent slides. (Range: a poster in the center ↔ a narrow column at the edge ↔ a screen cut in half.)
 
-Три слайда подряд с одинаковым силуэтом — признак, что ось не отработана. Проверяется по
-раскадровке ещё до вёрстки.
+Three slides in a row with the same silhouette are a sign that the axis is not done. Check this
+on the storyboard before the layout.
 
-## Ось 2 — Поля и выключка
+## Axis 2 — Margins and alignment
 
-Сколько воздуха и куда прижат текст? Тесно и по-деловому ↔ огромные поля манифеста; по центру ↔
-по левому краю ↔ по правому (редко, потому и свежо). Заголовок, обрезанный краем экрана, — приём.
+How much air, and to which side is the text pressed? Tight and businesslike ↔ huge manifesto
+margins; centered ↔ left-aligned ↔ right-aligned (rare, and so fresh). A title cut by the screen
+edge is a technique.
 
-## Ось 3 — Типографика
+## Axis 3 — Typography
 
-Одна система на всю деку. Что именно несёт характер: контраст двух семейств, разница весов одного
-гротеска, только моно, экстремальная разница кеглей? Крутить надо `line-height`, `letter-spacing`,
-регистр и ширину колонки — они меняют лицо сильнее, чем выбор фейса. Что доступно офлайн — в
-`cookbook.md`; какой из этого взять — решение этой оси.
+One system for the whole deck. What exactly carries the character: the contrast of two families,
+the weight difference within one grotesque, only mono, an extreme difference in sizes? Tune
+`line-height`, `letter-spacing`, case and column width — they change the face more than the choice
+of typeface. What is available offline is in `cookbook.md`; which of it to take is the decision of
+this axis.
 
-## Ось 4 — Цвет
+## Axis 4 — Color
 
-Какая логика, а не «какие цвета»: один акцент, означающий одно и то же ↔ два цвета, делящие экран ↔
-цвет, закреплённый за актом доклада ↔ инверсия светлоты между частями. Тёмная дека — осознанный
-выбор под тему, а не точка старта: если тема не про ночь, терминал или кино, начинай со светлой.
+Which logic, not "which colors": one accent that always means the same thing ↔ two colors that
+divide the screen ↔ a color fixed to an act of the talk ↔ a lightness inversion between parts. A
+dark deck is a conscious choice for the topic, not a starting point: if the topic is not about
+night, a terminal or cinema, start with a light one.
 
-## Ось 5 — Фон `#bg`
+## Axis 5 — Background `#bg`
 
-Пустой фон — законный и часто лучший ответ. Если фон есть, он должен что-то значить (материал,
-среда, ритм), а не быть обоями. Анимировать — только когда движение несёт смысл: движение на
-слайде должно принадлежать контенту. Любая анимация гасится в `prefers-reduced-motion`.
+An empty background is a valid and often the best answer. If there is a background, it must mean
+something (material, environment, rhythm), not be wallpaper. Animate it only when the motion
+carries meaning: motion on a slide must belong to the content. Any animation is turned off in
+`prefers-reduced-motion`.
 
-## Ось 6 — Движение
+## Axis 6 — Motion
 
-Два разных решения: **переход между слайдами** и **появление внутри слайда**.
+Two different decisions: **the transition between slides** and **the appearance inside a slide**.
 
-Переход переопределяется в design-слое — kernel это допускает, одноимённое правило перекрывает
-базовое (проверено):
+The transition is overridden in the design layer — the kernel allows this, a rule with the same
+name overrides the base one (verified):
 ```css
-@keyframes slidefade{ /* свой характер входа; работает и clip-path, и scale, и «вообще без движения» */ }
+@keyframes slidefade{ /* your own entry character; clip-path, scale and "no motion at all" all work */ }
 ```
-Длительность и кривая — тоже часть характера. Внутри слайда: сколько движения деке вообще положено
-и какой ровно один приём будет «фирменным». Дорогая анимация — одна-две на всю деку.
+Duration and curve are also part of the character. Inside a slide: how much motion the deck gets
+at all, and which exactly one technique is the "signature". Expensive animations — one or two for
+the whole deck.
 
-## Ось 7 — Детали
+## Axis 7 — Details
 
-Что проведено через всю деку как система: линейки, номера актов, угловые метки, подчёркивания —
-или ничего. Один приём читается как почерк, три разных — как каша.
+What runs through the whole deck as a system: rules, act numbers, corner marks, underlines — or
+nothing. One technique reads as handwriting, three different ones read as a mess.
 
-## Ось 8 — Хром деки
+## Axis 8 — Deck chrome
 
-`#bar`, `#counter`, `#hint` — часть визуала, а не служебка: толщина полосы, цвет, прозрачность,
-шрифт подсказки подчиняются арт-дирекшну. Меняется **только оформление**; DOM и скрипт kernel — нет.
+`#bar`, `#counter`, `#hint` are part of the visuals, not service parts: the bar thickness, color,
+opacity and hint font follow the art direction. **Only the styling** changes; the DOM and the
+kernel script do not.
 
-## Ось 9 — Интерактивность
+## Axis 9 — Interactivity
 
-HTML умеет то, чего не умеет PDF: в него можно ткнуть. Вопрос оси — **есть ли на этой деке
-момент, где зритель поймёт больше, если что-то произойдёт по его команде, а не само**. Нет
-такого момента — ось закрывается ответом «дека статична», и это полноценный ответ.
+HTML can do what PDF cannot: you can click it. The question of this axis — **does this deck have
+a moment where the audience understands more if something happens on their command, not by
+itself**. If there is no such moment, the axis closes with the answer "the deck is static", and
+this is a full answer.
 
-Что решить, если момент есть:
+What to decide if there is such a moment:
 
-- **Кто нажимает.** Докладчик со сцены — одно движение, крупная зона, работает с двух метров и
-  не требует прицеливания. Читатель, открывший ссылку сам, — можно тоньше и глубже, у него есть
-  время. Одна дека почти всегда про кого-то одного; выбери, про кого.
-- **Что нажатие добавляет к пониманию.** Взаимодействие оправдано, когда меняет мысль слайда:
-  зритель видит следствие, которого статичный кадр не показывает. Если после клика сказано ровно
-  то же самое, только с движением, — это анимация, а не интерактив, и ей место в оси 6.
-- **Слайд читается без нажатия.** Никто не тронул — мысль всё равно дошла. Интерактив
-  доказывает, углубляет, отвечает на вопрос из зала, но не является условием понимания:
-  на репетиции, в PDF и на чужом ноутбуке кликать может быть некому.
+- **Who clicks.** The speaker on stage — one movement, a large zone, works from two meters away
+  and needs no aiming. A reader who opened the link alone — it can be finer and deeper, the reader
+  has time. One deck is almost always about one of them; choose which.
+- **What the click adds to understanding.** Interaction is justified when it changes the idea of
+  the slide: the audience sees a consequence that a static frame does not show. If after the click
+  exactly the same thing is said, only with motion, it is an animation, not interactivity, and it
+  belongs to axis 6.
+- **The slide reads without a click.** Nobody touched it — the idea still got through.
+  Interactivity proves, deepens, answers a question from the audience, but it is not a condition of
+  understanding: at a rehearsal, in a PDF and on someone else's laptop there can be nobody to click.
 
-(Разброс, чтобы показать амплитуду, а не выбрать из него: переключение состояния «до/после»;
-параметр, который зритель крутит и видит, как меняется следствие; раскрытие данных, не влезших
-в кадр; выбор ветки, по которой пойдёт рассказ дальше.)
+(The range, to show the amplitude, not to choose from it: a "before/after" state toggle; a
+parameter the audience turns and sees how the consequence changes; opening data that did not fit
+into the frame; choosing the branch the story takes next.)
 
-**Дозировка — как у дорогой анимации: один-два интерактивных слайда на всю деку, не больше
-одного виджета на слайд.** Дека, где тыкается всё, читается как форма, а не как доклад.
+**The dose is the same as for expensive animation: one or two interactive slides for the whole
+deck, not more than one widget per slide.** A deck where everything is clickable reads as a form,
+not as a talk.
 
-Перебор и рецидивы этой оси: hover-эффекты (на проекторе курсора нет, на планшете нет hover);
-мелкие хит-зоны, в которые надо целиться мышью; слайд, непонятный без нажатия; интерактив,
-подменяющий уже готовый аниматор kernel (счётчик, каскад, pipeline) без причины.
+Excess and relapses on this axis: hover effects (a projector has no cursor, a tablet has no
+hover); small hit zones you have to aim at with the mouse; a slide that is unclear without a
+click; interactivity that replaces a ready kernel animator (counter, cascade, pipeline) without a
+reason.
 
-Техническая часть — раздел «Интерактивность: контракт с kernel» в `cookbook.md`: там куда писать
-JS, что движок берёт на себя и что остаётся на тебе (сброс при заходе на слайд, клавиатура,
-поведение в PDF).
+The technical part is the section "Interactivity: the kernel contract" in `cookbook.md`: where to
+write the JS, what the kernel does for you and what stays on you (reset on entering the slide,
+keyboard, behavior in PDF).
 
 ---
 
-## Что считать рецидивом
+## What counts as a relapse
 
-Эти решения уже были во множестве дек и по умолчанию не используются. Любое допустимо, но с
-причиной, записанной в `DECK.md` (на коротком пути — названной в финале):
+These decisions were already in many decks and are not used by default. Any of them is allowed,
+but with a reason written in `DECK.md` (on the short path — said in the finish):
 
-- тёмный фон около `#0a0b0f` с поверхностью `#14161f`, янтарный `#f5b942`, зелёный `#4ade80`;
-- дрейфующие размытые пятна в `#bg`;
-- моно-кикер капсом с широким трекингом над каждым заголовком;
-- одинаковая структура «кикер → h1 → лид» на большинстве слайдов;
-- базовый переход слайдов, оставленный как есть, при том что деке нужен характер.
+- a dark background near `#0a0b0f` with the surface `#14161f`, amber `#f5b942`, green `#4ade80`;
+- drifting blurred blobs in `#bg`;
+- a mono kicker in caps with wide tracking above each title;
+- the same structure "kicker → h1 → lead" on most slides;
+- the base slide transition left as is, when the deck needs character.
 
-## Связь с брифом
+## Link to the brief
 
-Пришёл `design.md` — он главнее осей: задаёт палитру, типографику, компоненты. Но бриф почти всегда
-молчит про композицию, фон, переход и хром — эти оси всё равно твои. Брифа нет и его собирают
-интервью — спрашивай по осям 1, 4 и 5 (композиция, цвет, фон): их пользователь чувствует, а про
-трекинг спрашивать бессмысленно.
+If `design.md` came, it has priority over the axes: it sets the palette, typography, components.
+But a brief is almost always silent about composition, background, transition and chrome — these
+axes are still yours. If there is no brief and an interview collects it, ask about axes 1, 4 and 5
+(composition, color, background): the person feels these, and asking about tracking makes no sense.

@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
-"""validate.py — статическая проверка готовой деки скилла /present.
+"""validate.py — static check of a finished deck built by the /present skill.
 
-Использование: python3 validate.py путь/к/деке.html
+Usage: python3 validate.py path/to/deck.html
 
-Проверяет: целостность kernel (маркер версии, base/print-стили, chrome-DOM, presenter, экспорт в PDF),
-остаточные {{…}}-плейсхолдеры, сетевые ссылки (дека должна быть офлайн)
-и локальные ссылки на отсутствующие файлы, синтаксис
-JS через node --check (kernel, <script id="interactive"> и <slug>-notes.js), синхронность
-секций notes.js со слайдами, интерактив (нужен kernel v6+, клик на не-интерактивных тегах),
-наличие сопутствующих файлов (slides.md, design.md, DECK.md — рядом с декой или уровнем выше)
-и чистоту папки показа deck/ (в ней только html, notes.js, deck-assets/).
+Checks: kernel integrity (version marker, base/print styles, chrome DOM, presenter window, PDF export),
+leftover {{…}} placeholders, network links (the deck must work offline)
+and local links to missing files, JS syntax
+with node --check (kernel, <script id="interactive"> and <slug>-notes.js), notes.js sections
+in sync with the slides, interactivity (needs kernel v6+, clicks on non-interactive tags),
+the companion files (slides.md, design.md, DECK.md — next to the deck or one level up),
+the Pipeline section of DECK.md (`## Pipeline` / `## Конвейер` or the line <!-- present:pipeline -->)
+and a clean show folder deck/ (only the html, notes.js, deck-assets/).
 
-Одиночная дека короткого пути (лежит не в deck/, рядом нет ни одного файла комплекта)
-распознаётся сама: комплект с неё не спрашивается. Дека без окна докладчика
-(data-presenter="off" на <html>, kernel v7+) не обязана иметь data-notes и notes.js.
+A single short-path deck (not in deck/, no kit file next to it) is detected
+automatically: the kit is not required for it. A deck without the presenter window
+(data-presenter="off" on <html>, kernel v7+) does not need data-notes and notes.js.
 
-Exit 0 — ошибок нет (предупреждения допустимы), exit 1 — есть ошибки.
-Динамическую проверку переполнения слайдов делает сам kernel: открой деку с ?check.
+Exit 0 — no errors (warnings are allowed), exit 1 — errors found.
+The kernel itself does the dynamic slide overflow check: open the deck with ?check.
 
-Только python3 stdlib; node — опционален.
+Python 3 stdlib only; node is optional.
 """
 import re
 import shutil
@@ -28,10 +29,13 @@ import tempfile
 from pathlib import Path
 from urllib.parse import unquote
 
+# The Pipeline section of DECK.md: a heading (## to ######) in English or Russian, any case and trailing text, or a marker line.
+PIPELINE_RE = re.compile(r"^[ \t>*-]*(?:#{2,6}[ \t]+(?:pipeline|конвейер)|<!--[ \t]*present:pipeline[ \t]*-->)", re.I | re.M)
+
 def node_error(stderr: str) -> str:
-    """Строка с сутью ошибки из вывода node --check (последняя строка — версия Node, она бесполезна)."""
+    """The line with the error from node --check output (the last line is the Node version, it is not useful)."""
     m = re.search(r"^\w*(?:Error|Exception):.*$", stderr, re.M)
-    return m.group(0).strip() if m else (stderr.strip().splitlines()[0] if stderr.strip() else "ошибка")
+    return m.group(0).strip() if m else (stderr.strip().splitlines()[0] if stderr.strip() else "error")
 
 def main():
     if len(sys.argv) != 2:
@@ -39,14 +43,14 @@ def main():
         return 2
     deck = Path(sys.argv[1]).resolve()
     if not deck.is_file():
-        print(f"✗ файл не найден: {deck}")
+        print(f"✗ file not found: {deck}")
         return 1
     html = deck.read_text(encoding="utf-8")
     errors, warns = [], []
 
-    # Короткий путь: дека собрана одним файлом, комплекта под неё нет и быть не должно.
-    # Признак — по окружению, без служебных меток внутри деки: файл лежит не в папке показа
-    # и рядом (и уровнем выше) нет ни одного файла комплекта.
+    # Short path: the deck is one file, it has no kit and must not have one.
+    # Detected from the surroundings, not from markers in the deck: the file is not in the show folder
+    # and no kit file is next to it (or one level up).
     notes = deck.with_name(re.sub(r"\.html?$", "", deck.name) + "-notes.js")
     kit_dirs = [deck.parent, deck.parent.parent]
     kit_files = ["slides.md", "design.md", "DECK.md"]
@@ -55,74 +59,74 @@ def main():
         and not notes.exists()
         and not any((d / n).exists() for d in kit_dirs for n in kit_files)
     )
-    m_root = re.search(r"<html\b[^>]*>", html, re.I)   # только корневой тег: второй <html> живёт в строке presenter-окна
-    presenter_off = bool(m_root and re.search(r"\bdata-presenter\s*=\s*[\"']off[\"']", m_root.group(0)))   # kernel сравнивает строго: 'off'
-    # Комплект полного пути узнаётся по папке показа или манифесту: slides.md/DESIGN.md лежат и в чужих проектах
+    m_root = re.search(r"<html\b[^>]*>", html, re.I)   # root tag only: a second <html> lives in a string of the presenter window
+    presenter_off = bool(m_root and re.search(r"\bdata-presenter\s*=\s*[\"']off[\"']", m_root.group(0)))   # the kernel compares strictly: 'off'
+    # A full-path kit is detected by the show folder or the manifest: slides.md/DESIGN.md also exist in other projects
     full_kit = deck.parent.name == "deck" or any((d / "DECK.md").exists() for d in kit_dirs)
 
-    # ── 1. Целостность kernel ────────────────────────────────────────────────
+    # ── 1. Kernel integrity ──────────────────────────────────────────────────
     m_ver = re.search(r"KERNEL v(\d+)", html)
     kernel_ver = int(m_ver.group(1)) if m_ver else None
     if kernel_ver is None:
-        warns.append("нет маркера версии KERNEL — движок старый или подменён; возьми свежий assets/kernel.html")
+        warns.append("no KERNEL version marker — the kernel is old or replaced; take a fresh assets/kernel.html")
     for anchor, what in [
-        ('<style id="base">', "базовый структурный CSS"),
-        ('<style id="design">', "design-слой"),
-        ('<style id="print">', "print-слой (экспорт в PDF по клавише S)"),
-        ('<div id="deck">', "контейнер слайдов"),
-        ('<script id="kernel">', "kernel-скрипт"),
-        ('id="bar"', "прогресс-бар"),
-        ('id="counter"', "счётчик"),
-        ('id="hint"', "подсказка"),
+        ('<style id="base">', "base structural CSS"),
+        ('<style id="design">', "design layer"),
+        ('<style id="print">', "print layer (PDF export with the S key)"),
+        ('<div id="deck">', "slide container"),
+        ('<script id="kernel">', "kernel script"),
+        ('id="bar"', "progress bar"),
+        ('id="counter"', "counter"),
+        ('id="hint"', "hint"),
     ]:
         if anchor not in html:
-            errors.append(f"не найден {anchor} ({what}) — kernel повреждён при сборке")
+            errors.append(f"{anchor} not found ({what}) — the build damaged the kernel")
     if "openPresenter" not in html:
-        errors.append("нет openPresenter — kernel-скрипт повреждён или устарел")
+        errors.append("no openPresenter — the kernel script is damaged or outdated")
     if "freezeForPrint" not in html:
-        errors.append("нет freezeForPrint — kernel-скрипт старый (нет экспорта в PDF) или повреждён")
-    # Маркер версии остался v6, но печать с тех пор чинилась: деку, собранную на старом v6, иначе
-    # не отличить — а она печатается с серыми прямоугольниками поверх контента и весит на порядок
-    # больше (Skia пишет размытые тени растровой маской, Quartz рисует её непрозрачной).
+        errors.append("no freezeForPrint — the kernel script is old (no PDF export) or damaged")
+    # The version marker stayed v6 while printing was fixed: without this check a deck built on an old v6
+    # looks the same, but it prints with grey rectangles over the content and is ten times larger
+    # (Skia writes blurred shadows as a raster mask, Quartz draws it opaque).
     elif "flattenShadows" not in html:
-        warns.append("kernel без flattenShadows — движок до починки печати: PDF пойдёт серыми "
-                     "наложениями и десятками МБ; пересобери деку на свежем assets/kernel.html")
+        warns.append("kernel without flattenShadows — a kernel from before the print fix: the PDF gets grey "
+                     "overlays and tens of MB; rebuild the deck on a fresh assets/kernel.html")
     if presenter_off and (kernel_ver is None or kernel_ver < 7):
-        errors.append('data-presenter="off" знает только kernel v7+ — на этом движке окно докладчика не выключится')
+        errors.append('only kernel v7+ knows data-presenter="off" — this kernel does not turn off the presenter window')
     if presenter_off and full_kit:
-        errors.append('окно докладчика выключено (data-presenter="off"), а дека лежит в комплекте полного пути '
-                      "(deck/ или DECK.md) — доклад без заметок не отрепетировать; убери атрибут")
-    for fn, what in [("commitEdit", "правки заметок прямо в presenter"), ("exportNotes", "выгрузки notes.js из presenter")]:
+        errors.append('the presenter window is off (data-presenter="off"), but the deck is in a full-path kit '
+                      "(deck/ or DECK.md) — you cannot rehearse a talk without speaker notes; remove the attribute")
+    for fn, what in [("commitEdit", "speaker notes editing in the presenter window"), ("exportNotes", "notes.js export from the presenter window")]:
         if fn not in html:
-            errors.append(f"нет {fn} — kernel-скрипт старее v5 (нет {what}) или повреждён")
-    # наследие sed-ловушки: base-стиль не должен оказаться внутри вводного комментария
+            errors.append(f"no {fn} — the kernel script is older than v5 (no {what}) or damaged")
+    # legacy of a sed trap: the base style must not end up inside the opening comment
     first_comment_end = html.find("-->")
     base_pos = html.find('<style id="base">')
     if base_pos != -1 and first_comment_end != -1 and base_pos < first_comment_end:
-        errors.append('<style id="base"> оказался внутри вводного комментария — сборка повредила разметку')
+        errors.append('<style id="base"> is inside the opening comment — the build damaged the markup')
 
-    # ── 2. Остаточные плейсхолдеры ───────────────────────────────────────────
+    # ── 2. Leftover placeholders ─────────────────────────────────────────────
     placeholders = sorted(set(re.findall(r"\{\{[^{}]{1,60}\}\}", html)))
     if placeholders:
-        errors.append("остаточные плейсхолдеры: " + ", ".join(placeholders[:8]))
+        errors.append("leftover placeholders: " + ", ".join(placeholders[:8]))
 
-    # ── 3. Сетевые ссылки (офлайн-контракт) ─────────────────────────────────
+    # ── 3. Network links (offline contract) ─────────────────────────────────
     net = []
     for pat, label in [
-        (r'(?:src|href)\s*=\s*["\']https?://', "src/href из сети"),
-        (r'@import\s+(?:url\()?["\']?https?://', "@import из сети"),
-        (r'url\(\s*["\']?https?://', "url() из сети"),
+        (r'(?:src|href)\s*=\s*["\']https?://', "src/href from the network"),
+        (r'@import\s+(?:url\()?["\']?https?://', "@import from the network"),
+        (r'url\(\s*["\']?https?://', "url() from the network"),
     ]:
         if re.search(pat, html):
             net.append(label)
     if net:
-        errors.append("сетевые ссылки (дека должна быть офлайн): " + "; ".join(net))
+        errors.append("network links (the deck must work offline): " + "; ".join(net))
 
-    # ── 3b. Ловушки design-слоя (перекрытие плумбинга) ──────────────────────
+    # ── 3b. Design layer traps (overriding the plumbing) ────────────────────
     m = re.search(r'<style id="design">(.*?)</style>', html, re.S)
     if m:
         design = m.group(1)
-        # внутри @media/@supports (print, prefers-reduced-motion) display у .slide законен — вырезаем их
+        # inside @media/@supports (print, prefers-reduced-motion) display on .slide is legal — cut them out
         def strip_at_blocks(css):
             out, i = [], 0
             while i < len(css):
@@ -140,29 +144,41 @@ def main():
                 i = j
             return "".join(out)
         design = strip_at_blocks(design)
-        # .slide{display:…} перебивает базовое display:none → все слайды показываются разом
+        # .slide{display:…} overrides the base display:none → all slides show at once
         for rule in re.findall(r"([^{}]*\.slide\b[^{},]*)\{([^{}]*)\}", design):
             sel, body = rule[0].strip(), rule[1]
             if ".active" in sel or ":" in sel.replace(".slide", "").replace(".active", ""):
                 continue
             if re.search(r"(?<![\w-])display\s*:", body):
                 errors.append(
-                    f"design-слой: правило «{sel}{{…display…}}» перекрывает базовое .slide{{display:none}} — "
-                    "все слайды покажутся разом; задавай display только через .slide.active"
+                    f"design layer: the rule \"{sel}{{…display…}}\" overrides the base .slide{{display:none}} — "
+                    "all slides show at once; set display only through .slide.active"
                 )
             if re.search(r"(?<![\w-])position\s*:", body):
                 warns.append(
-                    f"design-слой: «{sel}{{…position…}}» перекрывает базовое .slide{{position:absolute}} — "
-                    "слайды могут разъехаться потоком"
+                    f"design layer: \"{sel}{{…position…}}\" overrides the base .slide{{position:absolute}} — "
+                    "slides can fall into normal flow"
                 )
 
-    # ── 3c. Интерактив на слайдах ───────────────────────────────────────────
-    # Виджеты в слайдах спорят с навигацией, если движок их не пропускает: guard'ы появились в v6.
+    # ── 3c. Interactivity on slides ─────────────────────────────────────────
+    # Widgets on slides conflict with navigation if the kernel does not skip them: the guards appeared in v6.
     deck_start = html.find('<div id="deck">')
     deck_end = html.find('<div id="counter"')
-    if deck_end < deck_start:                      # chrome переименован/переставлен — режем до конца файла
+    if deck_end < deck_start:                      # chrome renamed or moved — cut to the end of the file
         deck_end = len(html)
     deck_html = html[deck_start:deck_end] if deck_start >= 0 else ""
+    # The kernel UI follows the root lang: a Cyrillic deck left on the kernel's lang="en" gets an English UI.
+    if deck_html and m_root:
+        m_lang = re.search(r"\blang\s*=\s*[\"']([^\"']*)[\"']", m_root.group(0))
+        lang = (m_lang.group(1) if m_lang else "").lower()
+        text = re.sub(r"<[^>]+>", " ", re.sub(r"<(script|style)\b.*?</\1>", " ", deck_html, flags=re.S | re.I))
+        cyr = len(re.findall(r"[а-яё]", text, re.I))
+        lat = len(re.findall(r"[a-z]", text, re.I))
+        if not lang:
+            warns.append("the root html tag has no lang — set it to the deck language (the kernel UI follows it)")
+        elif cyr > lat and not re.match(r"ru(-|$)", lang):
+            warns.append(f'the slides are mostly Cyrillic, but the root tag has lang="{lang}" — set the deck language '
+                         '(for Russian lang="ru"), otherwise the kernel UI stays English')
     if deck_html:
         found = [
             what for pat, what in [
@@ -173,10 +189,10 @@ def main():
         ]
         if found and (kernel_ver is None or kernel_ver < 6):
             warns.append(
-                "в слайдах есть интерактив (" + ", ".join(found) + "), а движок ниже v6 — в нём нет guard'ов: "
-                "клик по label пролистает слайд, буквы в поле ввода нажмут хоткеи. Перенеси деку на свежий kernel.html"
+                "the slides have interactive elements (" + ", ".join(found) + "), but the kernel is older than v6 — it has no guards: "
+                "a click on a label turns the slide, letters in an input field trigger hotkeys. Move the deck to a fresh kernel.html"
             )
-        # клик, повешенный атрибутом на не-интерактивный тег: kernel примет его за клик по слайду
+        # a click handler attribute on a non-interactive tag: the kernel takes it as a click on the slide
         bad_click = [
             t.group(0)[:60] for t in re.finditer(
                 r"<(?:div|span|section|p|li|td|h[1-6])\b[^>]*\son(?:click|mousedown|pointerdown)\s*=[^>]*>", deck_html
@@ -184,15 +200,15 @@ def main():
         ]
         if bad_click:
             warns.append(
-                "клик на не-интерактивном теге без [data-interactive] — kernel пролистает слайд поверх обработчика: "
+                "click on a non-interactive tag without [data-interactive] — the kernel turns the slide over the handler: "
                 + "; ".join(bad_click[:3])
             )
 
-    # ── 3d. Локальные ссылки на отсутствующие файлы ─────────────────────────
-    # Зеркало к разделу 3: там ловятся ссылки НАРУЖУ, тут — ссылки внутрь, ведущие в никуда
-    # (переименовали картинку в deck-assets/, забыли положить файл рядом с декой).
-    # Скрипты и код-примеры вырезаются: `img.src='frames/'+i+'.png'` и <code>&lt;img src="x.png"&gt;</code>
-    # ссылками не являются, а падение валидатора на живой деке дороже пропущенной картинки.
+    # ── 3d. Local links to missing files ────────────────────────────────────
+    # Mirror of section 3: that one catches links OUT, this one catches local links to nowhere
+    # (an image in deck-assets/ was renamed, a file was not put next to the deck).
+    # Scripts and code samples are cut out: `img.src='frames/'+i+'.png'` and <code>&lt;img src="x.png"&gt;</code>
+    # are not links, and a false failure on a working deck costs more than a missed image.
     scan = re.sub(r"(<(script|pre|code)\b[^>]*>).*?(</\2>)", r"\1\3", html, flags=re.S | re.I)
     missing_refs = []
     for m_ref in re.finditer(
@@ -200,58 +216,58 @@ def main():
         scan, re.I | re.M,
     ):
         raw = (m_ref.group(1) or m_ref.group(2) or "").strip()
-        # srcset — список "файл дескриптор, файл дескриптор"; у обычной ссылки список из одного элемента
+        # srcset is a list "file descriptor, file descriptor"; a plain link is a list of one item
         for part in raw.split(","):
             ref = part.strip().split()[0] if part.strip() else ""
             if not ref:
                 continue
             rel = unquote(ref).split("?")[0].split("#")[0]
-            # схему проверяем после unquote: внутри data-URI со встроенным SVG попадается url(%23id) —
-            # это ссылка на фрагмент, а не на файл, и до декодирования она на "#" не похожа
+            # check the scheme after unquote: a data URI with inline SVG can contain url(%23id) —
+            # a fragment link, not a file, and before decoding it does not start with "#"
             if not rel or rel.startswith(("/", "#")) or re.match(r"[a-z][a-z0-9+.\-]*:", rel, re.I):
-                continue                          # любая схема и абсолютный путь — не наше дело
+                continue                          # any scheme or absolute path — not ours to check
             if not re.search(r"\.[A-Za-z0-9]{1,6}$", rel):
-                continue                          # без расширения это не путь к файлу
+                continue                          # without an extension it is not a file path
             if not (deck.parent / rel).exists():
                 missing_refs.append(ref[:60])
     if missing_refs:
-        errors.append("ссылки на отсутствующие файлы: " + ", ".join(sorted(set(missing_refs))[:6]))
+        errors.append("links to missing files: " + ", ".join(sorted(set(missing_refs))[:6]))
 
-    # ── 4. Слайды и заметки ─────────────────────────────────────────────────
+    # ── 4. Slides and speaker notes ─────────────────────────────────────────
     slide_count = len(re.findall(r'<section[^>]*class="[^"]*\bslide\b', html))
     if slide_count == 0:
-        errors.append("не найдено ни одной секции .slide")
+        errors.append("no .slide section found")
     else:
         without_notes = slide_count - len(re.findall(r"<section[^>]*data-notes", html))
         if without_notes > 0 and not presenter_off:
-            warns.append(f"{without_notes} слайд(ов) без data-notes (fallback-заметок)")
+            warns.append(f"{without_notes} slide(s) without data-notes (fallback speaker notes)")
         if not re.search(r'<section[^>]*class="[^"]*\bactive\b', html):
-            warns.append("нет слайда с классом active — пометь первый")
+            warns.append("no slide with the class active — mark the first one")
 
     if notes.exists() and presenter_off:
-        warns.append(f'{notes.name} лежит рядом, но окно докладчика выключено — файл не читается; '
-                     "лишний — удали его, нужен — сними data-presenter=\"off\"")
+        warns.append(f'{notes.name} is next to the deck, but the presenter window is off — the file is not read; '
+                     "if you do not need it, delete it; if you need it, remove data-presenter=\"off\"")
     elif notes.exists():
         ntxt = notes.read_text(encoding="utf-8")
         if "DECK_NOTES" not in ntxt:
-            errors.append(f"{notes.name}: нет window.DECK_NOTES — kernel его не увидит")
+            errors.append(f"{notes.name}: no window.DECK_NOTES — the kernel does not see it")
         secs = [int(m) for m in re.findall(r"^##\s*(\d+)", ntxt, re.M)]
         out_of_range = [n for n in secs if n < 1 or n > slide_count]
         if out_of_range:
-            errors.append(f"{notes.name}: секции вне диапазона слайдов {out_of_range} (слайдов: {slide_count})")
+            errors.append(f"{notes.name}: sections out of the slide range {out_of_range} (slides: {slide_count})")
         dup = sorted(n for n in set(secs) if secs.count(n) > 1)
         if dup:
-            warns.append(f"{notes.name}: дублирующиеся секции {dup}")
+            warns.append(f"{notes.name}: duplicate sections {dup}")
         missing = [n for n in range(1, slide_count + 1) if n not in secs]
         if missing:
-            warns.append(f"{notes.name}: нет секций для слайдов {missing}")
+            warns.append(f"{notes.name}: no sections for slides {missing}")
     elif not standalone and not presenter_off:
-        warns.append(f"нет файла живых заметок {notes.name} — presenter будет читать только вшитые data-notes")
+        warns.append(f"no live notes file {notes.name} — the presenter window reads only the embedded data-notes")
 
-    # ── 5. Скрипты деки и синтаксис JS (node --check) ───────────────────────
-    # Скриптов в деке максимум два: kernel (плумбинг) и interactive (авторские виджеты).
-    # Каждый проверяется отдельно и по своему id — иначе при появлении второго блока
-    # kernel молча выпадал бы из проверки.
+    # ── 5. Deck scripts and JS syntax (node --check) ────────────────────────
+    # A deck has at most two scripts: kernel (plumbing) and interactive (author widgets).
+    # Each one is checked separately by its id — otherwise, with a second block present,
+    # the kernel would silently drop out of the check.
     blocks, pos, stray = [], {}, []
     for m in re.finditer(r"<script([^>]*)>(.*?)</script>", html, re.S):
         sid = re.search(r"""id\s*=\s*["\']([^"\']+)""", m.group(1))
@@ -259,11 +275,11 @@ def main():
         blocks.append((sid, m.group(2)))
         pos.setdefault(sid, m.start())
         if sid not in ("kernel", "interactive"):
-            stray.append(sid or "без id")
+            stray.append(sid or "no id")
     if "interactive" in pos and "kernel" in pos and pos["interactive"] < pos["kernel"]:
-        warns.append('блок скрипта id="interactive" стоит ДО kernel — он должен идти после, иначе виджеты не найдут функции движка')
+        warns.append('the script block id="interactive" is BEFORE the kernel — it must come after, or the widgets do not find the kernel functions')
     if stray:
-        warns.append("посторонние script-блоки (в деке ожидаются только kernel и interactive): " + ", ".join(stray[:5]))
+        warns.append("unexpected script blocks (a deck has only kernel and interactive): " + ", ".join(stray[:5]))
 
     node = shutil.which("node")
     if node:
@@ -276,30 +292,30 @@ def main():
             finally:
                 Path(js_path).unlink(missing_ok=True)
             if r.returncode:
-                errors.append(f'node --check (блок скрипта id="{sid or "без id"}"): {node_error(r.stderr)}')
+                errors.append(f'node --check (script block id="{sid or "no id"}"): {node_error(r.stderr)}')
         if notes.exists():
             r = subprocess.run([node, "--check", str(notes)], capture_output=True, text=True)
             if r.returncode:
                 errors.append(
-                    f"node --check ({notes.name}): {node_error(r.stderr)} — presenter покажет последнюю удачную версию"
+                    f"node --check ({notes.name}): {node_error(r.stderr)} — the presenter window shows the last valid version"
                 )
     else:
-        warns.append("node не найден — синтаксис JS не проверен")
+        warns.append("node not found — JS syntax not checked")
 
-    # ── 6. Сопутствующие файлы (рабочая папка — рядом или уровнем выше) ─────
-    # Раскладка скилла: дека лежит в <рабочая папка>/deck/, а slides.md/design.md/DECK.md — в самой
-    # рабочей папке. Старые деки лежат прямо в рабочей папке, поэтому ищем в обоих местах.
+    # ── 6. Companion files (working folder — next to the deck or one level up) ─
+    # Skill layout: the deck is in <working folder>/deck/, and slides.md/design.md/DECK.md are in the
+    # working folder itself. Old decks are directly in the working folder, so look in both places.
     if not standalone and not (presenter_off and not full_kit):
-        for name, why in [("slides.md", "текст слайдов"), ("design.md", "дизайн-бриф"), ("DECK.md", "манифест деки")]:
+        for name, why in [("slides.md", "slide text"), ("design.md", "design brief"), ("DECK.md", "deck manifest")]:
             if not any((d / name).exists() for d in kit_dirs):
-                warns.append(f"ни в папке деки, ни в рабочей папке нет {name} ({why})")
+                warns.append(f"no {name} ({why}) in the deck folder or in the working folder")
         manifest = next((d / "DECK.md" for d in kit_dirs if (d / "DECK.md").exists()), None)
-        if manifest and "## Конвейер" not in manifest.read_text(encoding="utf-8"):
-            warns.append("в DECK.md нет раздела «Конвейер» — новая сессия не узнает, где остановились "
-                         "(шаблон — assets/deck-template.md)")
+        if manifest and not PIPELINE_RE.search(manifest.read_text(encoding="utf-8")):
+            warns.append("DECK.md has no Pipeline section (## Pipeline / ## Конвейер or <!-- present:pipeline -->) — "
+                         "a new session does not know where the work stopped (template: assets/deck-template.md)")
 
-    # ── 7. Чистота папки показа ─────────────────────────────────────────────
-    # В deck/ должно лежать только нужное для показа: html, его notes.js, sidecar deck-assets/.
+    # ── 7. Clean show folder ────────────────────────────────────────────────
+    # deck/ holds only what the show needs: the html, its notes.js, the sidecar deck-assets/.
     if deck.parent.name == "deck":
         extra = [
             p.name for p in sorted(deck.parent.iterdir())
@@ -310,22 +326,22 @@ def main():
         ]
         if extra:
             warns.append(
-                "в папке показа лежит лишнее (её должно хватать для показа и ничего больше): "
+                "the show folder has extra files (it must hold what the show needs and nothing more): "
                 + ", ".join(extra[:8])
             )
 
-    # ── Отчёт ────────────────────────────────────────────────────────────────
+    # ── Report ───────────────────────────────────────────────────────────────
     for w in warns:
         print("⚠ " + w)
     for e in errors:
         print("✗ " + e)
     if errors:
-        print(f"\nFAIL: ошибок {len(errors)}, предупреждений {len(warns)}")
+        print(f"\nFAIL: errors {len(errors)}, warnings {len(warns)}")
         return 1
-    mode = "одиночная дека" if standalone or (presenter_off and not full_kit) else "дека с комплектом"
+    mode = "single deck" if standalone or (presenter_off and not full_kit) else "deck with kit"
     if presenter_off:
-        mode += ", без окна докладчика"
-    print(f"✓ OK — {slide_count} слайдов, {mode}, ошибок нет, предупреждений {len(warns)}")
+        mode += ", no presenter window"
+    print(f"✓ OK — {slide_count} slides, {mode}, no errors, warnings {len(warns)}")
     return 0
 
 if __name__ == "__main__":

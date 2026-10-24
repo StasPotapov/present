@@ -1,52 +1,56 @@
-# Этап «Дизайн» — design.md
+# Stage Design — design.md
 
-Этот файл читается из `SKILL.md`, когда в рабочей папке полного пути нет `design.md`. На выходе —
-`design.md`: бриф, как всё должно выглядеть (палитра, шрифты, формы, отступы, правила Do/Don't).
-Верстать на этом этапе не нужно: нужно выбрать стиль. Один и тот же `slides.md` под тремя разными
-брифами даёт три разные деки, поэтому `design.md` — главный файл, а не украшение.
+`SKILL.md` sends you to this file when the working folder of the full path has no `design.md`. The
+output is `design.md`: a brief that says how everything must look (palette, fonts, shapes, spacing,
+Do/Don't rules). Do not lay out slides at this stage: choose the style. The same `slides.md` under
+three different briefs gives three different decks, so `design.md` is the main file, not a
+decoration.
 
-Пришёл бриф под другим именем (`DESIGN.md`, `decision.md`, `brief.md`) — сохрани его как `design.md`
-и иди к воротам.
+If a brief came under a different name (`DESIGN.md`, `decision.md`, `brief.md`), save it as
+`design.md` and go to the gate.
 
-## Три дороги
+## Three roads
 
-Предложи одним AskUserQuestion, варианты сформулируй под этот доклад:
+Offer them with one AskUserQuestion. Write the options for this talk:
 
-- **Готовый стиль со styles.refero.design** — основной путь. Это ручной шаг: человек смотрит, как стиль
-  выглядит вживую, скачивает его `DESIGN.md` и кладёт в рабочую папку. Скажи, куда положить и как
-  продолжить, и остановись. Другие бесплатные источники — `assets/art-direction.md`, «Источники
-  референсов».
-- **Свой бриф по интервью** — 3-4 вопроса: настроение и вид, светлая или тёмная, бренд-цвета, шрифт
-  или «на твой вкус». Собери ответы в `design.md` по образцу ниже.
-- **С референса** — человек дал URL сайта или картинку: извлеки дизайн-ДНК (`defuddle` → `WebFetch`,
-  см. `art-direction.md`) и запиши её как `design.md`.
+- **A ready style from styles.refero.design** — the main road. This is a manual step: the person
+  sees how the style looks live, downloads its `DESIGN.md` and puts it into the working folder. Say
+  where to put it and how to continue, and stop. Other free sources — `assets/art-direction.md`,
+  "Sources of references".
+- **Own brief from an interview** — 3-4 questions: mood and look, light or dark, brand colors, a
+  font or "your choice". Collect the answers into `design.md` by the sample below.
+- **From a reference** — the person gave a site URL or an image: extract the design DNA (`defuddle`
+  → `WebFetch`, see `art-direction.md`) and write it as `design.md`.
 
-**«Сделай сам»:** дорогу не спрашивай. Пройди оси из `assets/design-axes.md` под этот `slides.md`
-(ответы свои, не «как обычно»), выбери арт-дирекшн и запиши его как `design.md`. Покажи одной-двумя
-фразами, что выбрал и почему именно под этот доклад.
+**"Do it yourself":** do not ask about the road. Go through the axes from `assets/design-axes.md` for
+this `slides.md` (your own answers, not "as usual"), choose the art direction and write it as
+`design.md`. In one or two sentences, show what you chose and why it fits this talk.
 
-## Что должно быть в design.md
+## What design.md must contain
 
-Образец формата — `${CLAUDE_SKILL_DIR}/example/design.md` (экспорт стиля Playful с refero). Минимум:
-- **Тема:** светлая или тёмная, одна фраза настроения.
-- **Палитра:** таблица токенов `имя · hex · роль`, один-два акцента.
-- **Типографика:** гарнитура (и системный или OSS-заменитель), веса, шкала кеглей.
-- **Формы и ритм:** радиусы, тени, отступы, плотность.
-- **Do / Don't:** что делать и чего не делать.
+The format sample is `${CLAUDE_SKILL_DIR}/example/design.md` (an export of the Playful style from
+refero). The sample is in Russian; the format is the same in any language. Minimum:
+- **Theme:** light or dark, one sentence of mood.
+- **Palette:** a table of tokens `name · hex · role`, one or two accents.
+- **Typography:** typeface (and a system or OSS substitute), weights, size scale.
+- **Shapes and rhythm:** radii, shadows, spacing, density.
+- **Do / Don't:** what to do and what not to do.
 
-## Ворота этапа
+## Stage gate
 
-- `design.md` лежит в рабочей папке;
-- в нём есть палитра с hex-значениями, гарнитура и правила Do/Don't. Чего-то нет — допиши вместе с
-  человеком или сам («сделай сам») и скажи, что дописал;
-- бриф держится на конкретном шрифте → спроси один раз: вшить OSS-аналог base64 (дека останется
-  офлайн) или взять системный заменитель (по умолчанию системный). Рецепт — `cookbook.md`.
+- `design.md` is in the working folder;
+- it has a palette with hex values, a typeface and Do/Don't rules. If something is missing, add it
+  together with the person or yourself ("do it yourself") and say what you added;
+- if the brief depends on a specific font → ask one time: embed an OSS analogue as base64 (the
+  deck stays offline) or take a system substitute (the default is the system one). The recipe is
+  in `cookbook.md`.
 
-Затем обнови «Конвейер» в `DECK.md`: «Дизайн — готово», итог «источник: refero «<стиль>» /
-интервью / референс / сам». Следующий этап — «Сборка».
+Then update the Pipeline section of `DECK.md`: "Design — done", summary "source: refero "<style>" /
+interview / reference / self". The next stage is Build.
 
-## Claude Design — опция
+## Claude Design — an option
 
-Claude Design на этом этапе не нужен, и ворота от него не зависят. После первой сборки (этап «Сборка»,
-Шаг 7) скилл один раз предлагает прогнать деку вместе с `design.md` через Claude Design: он
-предлагает своё решение, а правки потом переносятся в исходники деки и пересобираются.
+Claude Design is not necessary at this stage, and the gate does not depend on it. After the first
+build (stage Build, Step 7), the skill offers one time to run the deck together with `design.md`
+through Claude Design: it suggests its own solution, and then the edits are moved into the deck
+sources and rebuilt.

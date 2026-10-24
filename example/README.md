@@ -1,41 +1,43 @@
-# Пример: дека, собранная этим скиллом
+# Example: a deck built by this skill
 
-Реальный доклад «Контекст. Дизайн. Голос. — как я делаю доклады с /present» (16 слайдов, ~13:35 речи). Он прошёл весь конвейер ещё руками, до того как скилл научился вести его сам: наговорён на диктофон → расшифрован → разложен по слайдам в BMAD → `design.md` взят со styles.refero.design (стиль Playful) → собран этим скиллом → доведён через Claude Design.
+The deck is in Russian: it is a real talk given in Russian. The folder layout, the file formats and the pipeline are the same in any language.
 
-Теперь тот же путь проходит один вызов. Положи материал в папку и скажи `/present <папка>`: скилл спросит путь и режим работы, проведёт по этапам «Контекст → Дизайн → Сборка → Голос» и остановится там, где нужен твой шаг, например записать прогон. Как выглядит статус такого пути, видно в разделе «Конвейер» в [`DECK.md`](DECK.md).
+A real talk «Контекст. Дизайн. Голос. — как я делаю доклады с /present» ("Context. Design. Voice. — how I make talks with /present"), 16 slides, ~13:35 of speech. It went through the whole pipeline by hand, before the skill learned to run the pipeline itself: dictated into a voice recorder → transcribed → laid out into slides in BMAD → `design.md` taken from styles.refero.design (the Playful style) → built by this skill → refined in Claude Design.
 
-Слайд 09 — интерактивный: превью трёх прежних дек кликаются, и дека переодевается в палитру выбранной прямо на экране. Это же и пример того, зачем нужен kernel `v6` и новее.
+Now one call does the same route. Put the material in a folder and say `/present <folder>`. The skill asks for the path and the work mode, leads you through the stages Context → Design → Build → Voice, and stops where it needs your step, for example to record a run-through. The Pipeline section in [`DECK.md`](DECK.md) shows what the status of such a route looks like (the heading there is the Russian `## Конвейер`).
 
-Пример короткого пути — одна страница без окна докладчика — лежит рядом, в [`../example-quick/`](../example-quick/).
+Slide 09 is interactive: you can click the previews of three earlier decks, and the deck changes to the palette of the selected one right on screen. It is also an example of why the deck needs kernel `v6` or newer.
 
-Заодно это образец правильной раскладки папки: `deck/` — самодостаточная папка показа, всё остальное — рабочие материалы.
+An example of the short path, one page without the presenter window, is next to this folder, in [`../example-quick/`](../example-quick/).
 
-## Посмотреть
+This folder is also a sample of the correct folder layout: `deck/` is the self-contained show folder, everything else is working material.
+
+## View
 
 ```bash
 open deck/kontekst-dizayn-golos-2026-07-28.html
 ```
 
-Файл открывается офлайн, сети не требует. Листать — `←` `→`, колесо, свайп. `P` — окно докладчика с заметками (откроется отдельным окном), `S` — экспорт в PDF, `B` — чёрный экран, `F` — fullscreen. Добавь `?check` к адресу — kernel подсветит слайды с переполнением.
+The file opens offline and does not need the network. To turn slides, use `←` `→`, the mouse wheel or a swipe. `P` opens the presenter window with speaker notes (in a separate window), `S` exports to PDF, `B` shows a black screen, `F` turns on fullscreen. Add `?check` to the address, and the kernel highlights slides with overflow.
 
-Чтобы унести доклад — берётся папка `deck/` целиком: HTML и его `notes.js` должны лежать рядом, иначе живые заметки не подхватятся (в самом HTML остаётся вшитая копия-fallback).
+To take the talk with you, take the whole `deck/` folder. The HTML and its `notes.js` must be in the same folder, or the live notes do not load (the HTML keeps an embedded fallback copy).
 
-## Что здесь лежит
+## What is here
 
-| Файл | Роль |
+| File | Role |
 |---|---|
-| `deck/kontekst-dizayn-golos-2026-07-28.html` | дека, 856 КБ: четыре картинки и шрифт Inter вшиты base64 |
-| `deck/kontekst-dizayn-golos-2026-07-28-notes.js` | живые заметки спикера — источник правды, правятся прямо в presenter-окне |
-| `slides.md` | **вход 1:** текст по слайдам + заметки, версия 2.2 — собрана с прогона на диктофон, речь прорежена |
-| `design.md` | **вход 2:** дизайн-бриф, экспорт стиля Playful со styles.refero.design |
-| `DECK.md` | манифест: статус конвейера, карта слайдов, арт-дирекшн, принятые решения с их «почему» |
-| `build.py`, `src/` | режим «скрипт»: правятся исходники, дека пересобирается `python3 build.py` |
-| `deck-0*.jpg` | скриншоты трёх прежних дек — вшиваются в слайд 09 при сборке |
-| `refero-scroll.jpg` | лента каталога styles.refero.design — вшивается в окно браузера на слайде 08 |
-| `src/interactive.js` | виджет слайда 09: палитры трёх дек и переодевание деки на лету |
-| `slides-cut-15-two-circles.html` | архив снятого слайда «два круга» с процедурой возврата — пример того, как убирать слайд, не теряя его |
-| `src/kernel-v7.html` | копия движка — фолбэк для сборки без установленного скилла |
+| `deck/kontekst-dizayn-golos-2026-07-28.html` | the deck, 862 KB: four images and the Inter font are embedded as base64 |
+| `deck/kontekst-dizayn-golos-2026-07-28-notes.js` | live speaker notes — the source of truth, you edit them directly in the presenter window |
+| `slides.md` | **input 1:** slide text + speaker notes, version 2.2 — made from a run-through on a voice recorder, the speech is trimmed |
+| `design.md` | **input 2:** the design brief, an export of the Playful style from styles.refero.design |
+| `DECK.md` | the manifest: pipeline status, slide map, art direction, decisions with their "why" |
+| `build.py`, `src/` | deck mode "script": you edit the sources, and `python3 build.py` rebuilds the deck |
+| `deck-0*.jpg` | screenshots of three earlier decks — the build embeds them into slide 09 |
+| `refero-scroll.jpg` | the scrolling catalog of styles.refero.design — the build embeds it into the browser window on slide 08 |
+| `src/interactive.js` | the slide 09 widget: the palettes of three decks and the live change of the deck palette |
+| `slides-cut-15-two-circles.html` | an archive of the removed slide "two circles" with the steps to bring it back — an example of how to remove a slide without losing it |
+| `src/kernel-v8.html` | a copy of the kernel — the fallback for a build without the installed skill |
 
-`build.py` берёт движок из ассетов установленного скилла (`~/.claude/skills/present/assets/kernel.html`), а если скилла нет — из `src/kernel-v7.html`, который лежит здесь же копией: значит `python3 build.py` соберёт деку и у того, кто просто склонировал репозиторий. Не копировались только `transcript.md` и аудиозапись прогона: комплект от этого не ломается, но в манифесте они упомянуты как часть рабочей папки.
+`build.py` takes the kernel from the assets of the installed skill (`~/.claude/skills/present/assets/kernel.html`). If the skill is not installed, it takes `src/kernel-v8.html`, a copy in this folder. So `python3 build.py` builds the deck also for a person who only cloned the repository. Only `transcript.md` and the audio recording of the run-through were not copied. The kit still works without them, but the manifest names them as part of the working folder.
 
-Содержимое слайдов — личный доклад автора; бери как образец формата и раскладки, а не как текст для переиспользования. Что именно покрыто лицензией MIT, а что нет — в [`NOTICE.md`](NOTICE.md).
+The slide content is the author's personal talk. Use it as a sample of the format and the layout, not as text to reuse. What the MIT license covers and what it does not cover is in [`NOTICE.md`](NOTICE.md).

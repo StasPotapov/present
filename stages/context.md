@@ -1,84 +1,96 @@
-# Этап «Контекст» — материал → slides.md
+# Stage Context — material → slides.md
 
-Этот файл читается из `SKILL.md`, когда в рабочей папке полного пути нет `slides.md`. Неважно, откуда
-пришёл материал: на выходе этапа — `slides.md` в рабочей папке. Дизайна на этом этапе нет.
+`SKILL.md` sends you to this file when the working folder of the full path has no `slides.md`. The
+source of the material does not matter: the output of this stage is `slides.md` in the working
+folder. This stage has no design.
 
-## Вход: три дороги
+## Entry: three roads
 
-Выбери дорогу по тому, что уже увидел на ингесте. Неясно — спроси одним AskUserQuestion
-(варианты сформулируй под этот материал; «сделай сам» — выбери сам и скажи одной строкой).
+Choose the road from what you saw during intake. If it is not clear, ask with one AskUserQuestion
+(write the options for this material; in "do it yourself", choose yourself and say it in one line).
 
-- **Придумать вместе** — есть только идея или тема. Доклад придумывается вместе с моделью.
-- **Разложить готовое** — доклад уже есть целиком: диктовка в чат, расшифровка записи, текст,
-  статьи, документы (`.docx` — сниппет в `cookbook.md`), чужая презентация, репозиторий (реальные
-  цифры из `git log` — `cookbook.md`, «Цифры из репозитория»). Модель раскладывает, а не придумывает.
-- **Расшифровать запись** — в папке лежит аудио или видео (`*.m4a`, `*.mp3`, `*.wav`, `*.mp4`, `*.mov`)
-  или человек хочет надиктовать доклад на запись. Сначала расшифровка (`stages/transcribe.md`), затем дорога «Разложить готовое».
+- **Invent together** — there is only an idea or a topic. The talk is invented together with the model.
+- **Lay out what exists** — the full talk already exists: dictation in the chat, a transcript of a
+  recording, a text, articles, documents (`.docx` — snippet in `cookbook.md`), a presentation by
+  someone else, a repository (real numbers from `git log` — `cookbook.md`, "Numbers from a
+  repository"). The model lays out the material. It does not invent it.
+- **Transcribe a recording** — the folder has audio or video (`*.m4a`, `*.mp3`, `*.wav`, `*.mp4`, `*.mov`),
+  or the person wants to dictate the talk to a recording. First transcribe (`stages/transcribe.md`), then take the road "Lay out what exists".
 
-Человек хочет надиктовать, но записи ещё нет, — это ручной шаг: скажи, чем записать (Handy или
-встроенная диктовка macOS прямо в чат, диктофон, OpenSuperWhisper), куда положить файл и как продолжить. Затем остановись.
+If the person wants to dictate but there is no recording yet, this is a manual step: say what to
+record with (Handy or the built-in macOS dictation directly into the chat, a dictaphone,
+OpenSuperWhisper), where to put the file and how to continue. Then stop.
 
-## Сначала — бюджет и аудитория
+## First — budget and audience
 
-Один AskUserQuestion, только о том, что не выводится из материала:
-- **бюджет времени** (10 / 20 / 30 минут или свой);
-- **аудитория** и **цель** доклада — одной фразой каждое.
-Ответ запиши в «Конвейер» `DECK.md` и в шапку `slides.md`. «Сделай сам»: бюджет не задан → возьми
-20 минут и запиши в оба места, что это допущение.
+One AskUserQuestion, only about what you cannot get from the material:
+- **time budget** (10 / 20 / 30 minutes or a custom value);
+- **audience** and **goal** of the talk — one sentence each.
+Write the answer into the Pipeline section of `DECK.md` and into the header of `slides.md`. In "do it
+yourself": if the budget is not given, take 20 minutes and write in both places that this is an
+assumption.
 
-## Дорога «Придумать вместе»
+## Road "Invent together"
 
-Интервью через AskUserQuestion, 2-4 варианта + «Другое», по одному блоку вопросов за раз:
-1. Главная мысль: что зритель должен унести (одна-две вещи).
-2. Арка: с чего начать (боль, история, вопрос), к чему прийти, где поворот.
-3. Опоры: какие факты, цифры, примеры, демо есть у человека. Нет цифр — слайд без цифр, не выдумывай.
-4. Черновик раскадровки: покажи список слайдов «№ · заголовок · тезис», спроси «так / правки».
-5. Речь по слайдам: предложи человеку надиктовать её в чат по раскадровке. Он диктует — раскладываешь.
-   Он просит написать за него — пиши черновик речи из его же ответов и пометь в `slides.md`, что речь —
-   черновик модели и её надо прогнать вслух (этап «Голос»).
+Interview with AskUserQuestion, 2-4 options + "Other", one block of questions at a time:
+1. Main idea: what the audience must take away (one or two things).
+2. Arc: how to start (a pain, a story, a question), where to arrive, where the turn is.
+3. Supports: which facts, numbers, examples, demos the person has. No numbers — the slide has no numbers. Do not invent them.
+4. Storyboard draft: show the list of slides "No. · title · thesis" and ask "OK / edits".
+5. Speech per slide: offer the person to dictate it into the chat along the storyboard. If the
+   person dictates, you lay it out. If the person asks you to write it, write a speech draft from
+   the person's own answers. Mark in `slides.md` that the speech is a model draft and must get a
+   run-through aloud (stage Voice).
 
-**«Сделай сам» на этой дороге:** интервью нет, ответов человека нет. Придумай арку и раскадровку
-по идее, напиши черновик речи и пометь в шапке `slides.md`: «речь — черновик модели, прогнать вслух».
-Факты, цифры, имена и истории из жизни человека не придумывай: на их месте — `[нужно: …]`. Такие
-пометки ворота этапа не держат, их список идёт в итог этапа. Иллюстрации понятия (пример кода,
-пример диалога) писать можно.
+**"Do it yourself" on this road:** there is no interview and no answers from the person. Invent the
+arc and the storyboard from the idea, write a speech draft and mark in the header of `slides.md`:
+"speech is a model draft, do a run-through aloud". Do not invent facts, numbers, names or stories
+from the person's life: put `[needed: …]` in their place. These marks do not block the stage gate;
+their list goes into the stage summary. You can write illustrations of a concept (a code example,
+a dialogue example).
 
-Говорить голосом удобнее, чем печатать: человек не правит себя на полуслове. Предложи это один раз.
+Speaking is easier than typing: the person does not correct themselves in the middle of a word.
+Offer this one time.
 
-## Дорога «Разложить готовое»
+## Road "Lay out what exists"
 
-1. Разбей материал на слайды: одна мысль — один слайд, у каждого тезис и речь.
-2. Речь — **слова человека**, только причёсанные: убери повторы и слова-паразиты, сохрани байки,
-   интонацию, оговорки по делу. Своего текста не добавляй. Чего-то не хватает для связки — пометь
-   `[нужно: …]` и спроси.
-3. Покажи раскадровку «№ · заголовок · тезис · ~время» и спроси «так / правки».
-   «Сделай сам»: не спрашивай, сохрани и покажи итог.
+1. Divide the material into slides: one idea — one slide, each with a thesis and speech.
+2. The speech is **the person's words**, only cleaned: remove repetitions and filler words, keep
+   the stories, the intonation and the asides that matter. Do not add your own text. If something
+   is missing to connect the parts, mark it `[needed: …]` and ask.
+3. Show the storyboard "No. · title · thesis · ~time" and ask "OK / edits".
+   "Do it yourself": do not ask, save and show the result.
 
-## Формат slides.md
+## slides.md format
 
-Шапка: тема, бюджет, аудитория, цель, темп, итог хронометража. Дальше слайды через `---`:
+Header: topic, budget, audience, goal, pace, timing total. Then the slides, separated by `---`:
 ```
-## 01 · Заголовок слайда · ~0:40
+## 01 · Slide title · ~0:40
 
-**На экране:** что видит зритель — коротко, без вёрстки.
+**On screen:** what the audience sees — short, no layout.
 
-> Речь спикера дословно, как он скажет вслух.
-> `[ремарка: пауза, демо, действие]`
+> The speaker's speech word for word, as the speaker will say it aloud.
+> `[note: pause, demo, action]`
 ```
-Образец — `${CLAUDE_SKILL_DIR}/example/slides.md`.
+Write the headings and markers in the person's language (Russian: `**На экране:**`). The format
+sample is `${CLAUDE_SKILL_DIR}/example/slides.md`. The sample is in Russian; the format is the same
+in any language.
 
-## Ворота этапа
+## Stage gate
 
-Этап закончен, когда всё верно:
-- `slides.md` сохранён в рабочей папке;
-- у каждого слайда есть заголовок, «На экране» и речь;
-- нет пометок `[нужно: …]` без ответа (или человек сказал «так и оставь»; в «сделай сам» — пометки
-  перечислены в итоге этапа);
-- **хронометраж** посчитан: слова речи / темп + паузы и демо. Темп до первого прогона — допущение
-  ~125 слов/мин (так посчитан пример скилла), напиши это в шапке прямо. После прогона темп берётся из
-  реальной записи (этап «Голос»).
-- оценка укладывается в бюджет. Не укладывается — скажи, сколько лишнего, и предложи, какие слайды
-  ужать или снять. Решает человек; «сделай сам» — ужми сам и покажи, что убрал.
+The stage is finished when all of these are true:
+- `slides.md` is saved in the working folder;
+- each slide has a title, "On screen" and speech;
+- there are no `[needed: …]` marks without an answer (or the person said "leave it as is"; in "do it
+  yourself", the marks are listed in the stage summary);
+- the **timing** is calculated: speech words / pace + pauses and demos. Before the first
+  run-through, the pace is an assumption of ~125 words/min (the skill example is calculated with
+  it). Write this in the header directly. The example is a Russian talk; for any language the value
+  stays an assumption until the first run-through. After a run-through, the pace comes
+  from the real recording (stage Voice).
+- the estimate fits the budget. If it does not fit, say how much is extra and suggest which slides
+  to shorten or remove. The person decides; in "do it yourself", shorten them yourself and show
+  what you removed.
 
-Затем обнови «Конвейер» в `DECK.md`: «Контекст — готово», итог «N слайдов, оценка ~M мин».
-Следующий этап — «Дизайн» (`design.md` уже есть → сразу «Сборка»).
+Then update the Pipeline section of `DECK.md`: "Context — done", summary "N slides, estimate ~M min".
+The next stage is Design (if `design.md` already exists → go directly to Build).

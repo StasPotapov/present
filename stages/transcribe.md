@@ -1,13 +1,13 @@
-# Транскрипция — запись → текст
+# Transcription — recording → text
 
-Общий блок для этапов «Контекст» и «Голос». Читается, когда на этапе есть запись, а текста нет.
+A shared block for the stages Context and Voice. Read it when the stage has a recording but no text.
 
-1. Есть скилл транскрипции (например, `whisper`) — вызови его через `Skill`.
-   Скилл только описывает команды — выполни их сам по правилам ниже.
-2. Нет скилла, но есть `whisper-cli` и файл модели (`ggml-*.bin`; проверь `$WHISPER_MODEL`,
-   `~/.whisper/models`, `~/.cache/whisper`, `~/models`) — расшифруй сам, с тайм-кодами (`-osrt`):
-   по ним считается время по слайдам. Временные файлы — в scratchpad. Модель не нашлась — не
-   скачивай её молча, спроси.
-3. Нет ни того, ни другого — попроси вставить текст расшифровки. Подскажи инструменты:
-   Handy, OpenSuperWhisper (локально, модель `large-v3`) или встроенная диктовка macOS.
-Расшифровку сохрани рядом с записью (`<имя записи>.md`). Сырую расшифровку не правь — правится `slides.md`.
+1. If there is a transcription skill (for example, `whisper`), call it with `Skill`.
+   If the skill only describes the commands, run them yourself by the rules below.
+2. If there is no skill, but there is `whisper-cli` and a model file (`ggml-*.bin`; check `$WHISPER_MODEL`,
+   `~/.whisper/models`, `~/.cache/whisper`, `~/models`), transcribe it yourself, with timecodes (`-osrt`):
+   the time per slide is calculated from them. Put temporary files into the scratchpad. If you do
+   not find a model, do not download it silently: ask.
+3. If there is neither, ask the person to paste the text of the transcript. Suggest tools:
+   Handy, OpenSuperWhisper (local, model `large-v3`) or the built-in macOS dictation.
+Save the transcript next to the recording (`<recording name>.md`). Do not edit the raw transcript — edit `slides.md`.

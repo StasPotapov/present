@@ -1,78 +1,91 @@
-# Этап «Голос» — прогон вслух → slides.md точнее
+# Stage Voice — run-through aloud → a sharper slides.md
 
-Этот файл читается из `SKILL.md`, когда дека собрана и человек готов прогнать доклад, или когда в
-рабочей папке появилась новая запись прогона. Дека готова — тут обычно останавливаются, хотя самое
-ценное впереди: прогон показывает, **сколько доклад идёт на самом деле** и **где человек плывёт**.
-Где он начал мямлить, плох слайд, а не человек.
+`SKILL.md` sends you to this file when the deck is built and the person is ready for a run-through
+of the talk, or when a new run-through recording appears in the working folder. When the deck is
+ready, people usually stop here, but the most valuable part is still ahead: a run-through shows
+**how long the talk really takes** and **where the person loses the thread**. Where the person
+starts to mumble, the slide is bad, not the person.
 
-Каждый круг этого этапа — один прогон. Кругов сколько угодно: с каждым доклад короче и точнее,
-и ничего не пересобирается с нуля.
+Each lap of this stage is one run-through. The number of laps is not limited: with each lap the
+talk becomes shorter and sharper, and nothing is rebuilt from zero.
 
-## Шаг 1 — Прогон (ручной шаг)
+## Step 1 — Run-through (manual step)
 
-Нового прогона в папке нет → это ручной шаг по правилу из `SKILL.md`. Суть одной строкой: открыть
-деку (`open deck/<файл>.html`) и пройти слайды вслух своими словами, как будто зал уже сидит;
-ошибся — сказать это вслух сразу. Затем коротко, списком, предложи способы — человек выбирает сам:
-- **голосом прямо сюда** — диктовка печатает речь в поле ввода чата: Handy, встроенная диктовка
-  macOS или любая другая. Время прогона покажет таймер окна докладчика;
-- **диктофон → расшифрую я** — запись на компьютере или телефоне, файл в папку как
-  `rehearsal-<N>.m4a` (или другое расширение). Предлагай всегда. Расшифровки по
-  `stages/transcribe.md`, пункты 1-2, на машине нет — допиши к способу: «для этого нужен whisper
-  (`whisper-cli` с моделью) или другой локальный распознаватель — поставь, если хочешь этот способ».
-  Сам не ставь;
-- **диктофон → расшифруй сам** — Handy, whisper или OpenSuperWhisper. Текст вставь сюда или положи
-  файлом `rehearsal-<N>.md`, и назови длительность прогона.
-Строка «Положи …» блока ручного шага: «Положи запись или текст в <папка> — или вставь текст сюда».
-Обнови «Конвейер»: «Голос — ждёт человека: прогон <N>». Остановись.
+If the folder has no new run-through → this is a manual step by the rule from `SKILL.md`. The
+essence in one line: open the deck (`open deck/<file>.html`) and go through the slides aloud in
+your own words, as if the audience is already in the room; if you make a mistake, say it aloud
+immediately. Then, briefly, as a list, offer the ways — the person chooses:
+- **by voice directly here** — dictation types the speech into the chat input field: Handy, the
+  built-in macOS dictation or any other. The timer of the presenter window shows the run-through
+  time;
+- **dictaphone → I transcribe** — a recording on the computer or the phone, the file goes into the
+  folder as `rehearsal-<N>.m4a` (or another extension). Always offer this way. If the machine has
+  no transcription by `stages/transcribe.md`, items 1-2, add to this way: "for this you need
+  whisper (`whisper-cli` with a model) or another local speech recognizer — install it if you
+  want this way". Do not install it yourself;
+- **dictaphone → you transcribe** — Handy, whisper or OpenSuperWhisper. Paste the text here or put
+  it as the file `rehearsal-<N>.md`, and tell the run-through duration.
+The "Put …" line of the manual step block: "Put the recording or the text into <folder> — or paste the text here".
+Say these templates in the person's language.
+Update the Pipeline section: "Voice — waiting for the person: run-through <N>". Stop.
 
-Пришёл текст прогона (в чат или файлом `.md`) — расшифровка не нужна. Текст из чата сохрани как
-`rehearsal-<N>.md`. Длительность не названа — спроси. Её нет и у человека — темп остаётся
-допущением, в таблице кругов пиши «длительность неизвестна», а сравнение с бюджетом идёт по оценке
-из слов. Затем Шаг 3; темп из Шага 2 считай по этой длительности.
+If the run-through text came (in the chat or as an `.md` file), no transcription is necessary. Save
+text from the chat as `rehearsal-<N>.md`. If the duration is not given, ask. If the person does not
+know it either, the pace stays an assumption, write "duration unknown" in the laps table, and
+compare with the budget by the estimate from the words. Then go to Step 3; calculate the pace from
+Step 2 with this duration.
 
-## Шаг 2 — Расшифровка
+## Step 2 — Transcript
 
-- Расшифруй запись по `stages/transcribe.md`. Текст ляжет рядом как `<имя записи>.md`.
-- Длительность записи: `afinfo <файл> | grep duration` (macOS) или `ffprobe` если он есть. Не вышло —
-  спроси у человека.
-- Темп = все слова расшифровки, с паразитами и повторами, / минуты записи: это реальный темп
-  человека. Запиши его в шапку `slides.md` и в «Конвейер» вместо допущения.
+- Transcribe the recording by `stages/transcribe.md`. The text goes next to it as `<recording name>.md`.
+- Recording duration: `afinfo <file> | grep duration` (macOS) or `ffprobe` if it is available. If
+  this fails, ask the person.
+- Pace = all words of the transcript, with fillers and repetitions, / minutes of the recording:
+  this is the real pace of the person. Write it into the header of `slides.md` and into the
+  Pipeline section instead of the assumption.
 
-## Шаг 3 — Редактура под бюджет
+## Step 3 — Edit to the budget
 
-1. Сопоставь расшифровку со слайдами: какая часть речи к какому слайду относится. Где граница неясна —
-   опирайся на заголовки и «На экране».
-2. Посчитай время по слайдам: по тайм-кодам расшифровки, а без них — по доле слов слайда в записи.
-   Сравни итог с бюджетом из «Конвейера» (человек мог поменять бюджет в этом же вызове — см. `SKILL.md`).
-3. Отредактируй речь в `slides.md`:
-   - **слова человека**, только причёсанные: убери слова-паразиты, повторы, разжёванное и то, что и так
-     написано на экране. Своих формулировок не добавляй;
-   - то, что человек сказал на прогоне, а в `slides.md` этого нет, — добавь его словами;
-   - то, что он сказал вслух как ошибку («тут слайд не тот», «это убрать») — исполни;
-   - не укладывается в бюджет — ужми то, чего зритель не хватится; укажи, сколько снял по каждому слайду;
-   - места, где человек плыл (паузы, «эээ», повторные заходы), перечисли в итоге круга и в строке
-     круга в `DECK.md`: там слайд или его речь требуют правки. Предложи правку, не решай за человека.
-4. Покажи дифф `slides.md` и итог: «было M:SS, стало ~M:SS при бюджете B». Спроси «применяю / правки».
-   **«Сделай сам»:** примени и покажи итог.
-   Человек сказал «надо поменять структуру» (слайды местами, новый слайд) — это правка структуры:
-   исполни её в `slides.md`, она уйдёт в деку при пересборке.
+1. Match the transcript to the slides: which part of the speech belongs to which slide. Where the
+   border is not clear, use the titles and "On screen".
+2. Calculate the time per slide: from the timecodes of the transcript, and without them — from the
+   share of the slide's words in the recording. Compare the total with the budget from the Pipeline
+   section (the person can change the budget in the same call — see `SKILL.md`).
+3. Edit the speech in `slides.md`:
+   - **the person's words**, only cleaned: remove filler words, repetitions, over-explanations and
+     what the screen already shows. Do not add your own wording;
+   - what the person said in the run-through but `slides.md` does not have — add it in the person's words;
+   - what the person said aloud as a mistake ("wrong slide here", "remove this") — do it;
+   - if it does not fit the budget, shorten what the audience will not miss; tell how much you
+     removed on each slide;
+   - list the places where the person lost the thread (pauses, "uhm", restarts) in the lap summary
+     and in the lap row in `DECK.md`: the slide or its speech needs an edit there. Suggest an edit;
+     do not decide for the person.
+4. Show the diff of `slides.md` and the summary: "was M:SS, now ~M:SS with budget B". Ask "apply / edits".
+   **"Do it yourself":** apply and show the summary.
+   If the person said "the structure must change" (slides in a different order, a new slide), this
+   is a structure edit: do it in `slides.md`, it goes into the deck at the rebuild.
 
-## Шаг 4 — Пересборка
+## Step 4 — Rebuild
 
-`stages/build.md`, Шаг 6 (доводка), без предложений «покрутить палитру»: меняется речь.
-**Сначала найди правки человека:** сравни секции `<slug>-notes.js` с `data-notes` текущей деки —
-различия и есть его правки в окне докладчика. Новая речь из `slides.md` уходит в `notes.js` и
-`data-notes`; правки человека не затирай — перенеси их или спроси, если они спорят с новой речью.
-Проверка — как после любой доводки: валидатор, аудитор в Chrome (длина текста меняет вёрстку
-только там, где речь видна на слайде, но аудитор стоит один вызов) и PDF, если менялся текст на слайдах.
+`stages/build.md`, Step 6 (refinement), without offers to "tweak the palette": the speech changes.
+**First find the person's edits:** compare the sections of `<slug>-notes.js` with `data-notes` of
+the current deck — the differences are the person's edits in the presenter window. The new speech
+from `slides.md` goes into `notes.js` and `data-notes`; do not overwrite the person's edits — move
+them, or ask if they conflict with the new speech.
+The check is the same as after any refinement: the validator, the auditor in Chrome (text length
+changes the layout only where the speech is visible on the slide, but the auditor costs one call)
+and the PDF, if the text on the slides changed.
 
-## Шаг 5 — Конец круга
+## Step 5 — End of lap
 
-- Допиши строку в таблицу кругов «Голоса» в `DECK.md`: номер, дата, запись, длительность, бюджет,
-  что сделали, где человек плыл. Обнови оценку в строке «Контекст» и темп в шапке «Конвейера».
-- Предложи: следующий круг (новый прогон) или финиш. Финиш → «Голос — готово» и финал из `SKILL.md`.
-  Человек молчит или режим «сделай сам» — следующий шаг «Голос — ждёт человека: прогон <N+1>»,
-  в блоке ручного шага добавь строку «или скажи „хватит“ — закончим».
-- Подскажи малый круг: формулировку можно править прямо в окне докладчика во время репетиции
-  (двойной клик по тексту → применить → «⤓ notes.js» → положить файл рядом с декой). Без редактора
-  и без пересборки. Большой круг — это этот этап: что говорю, порядок, структура.
+- Add a row to the Voice laps table in `DECK.md`: number, date, recording, duration, budget, what
+  was done, where the person lost the thread. Update the estimate in the Context row and the pace
+  in the header of the Pipeline section.
+- Offer: the next lap (a new run-through) or the finish. Finish → "Voice — done" and the finish from
+  `SKILL.md`. If the person is silent or the mode is "do it yourself", the next step is "Voice —
+  waiting for the person: run-through <N+1>"; in the manual step block, add the line "or say
+  "enough" — we will finish". Match the person's answer by meaning, in any language.
+- Suggest the small lap: the person can edit the wording directly in the presenter window during
+  the rehearsal (double-click on the text → apply → "⤓ notes.js" → put the file next to the deck).
+  No editor and no rebuild. The big lap is this stage: what I say, the order, the structure.

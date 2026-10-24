@@ -1,104 +1,118 @@
-# Шаблон DECK.md — манифест деки
+# DECK.md template — the deck manifest
 
-Этот файл — шаблон для скилла `/present`. Агент создаёт по нему `DECK.md` в начале полного пути
-в рабочей папке (рядом с исходниками, не внутри `deck/`). Сначала в нём только шапка и раздел
-«Конвейер»; остальные разделы появляются после первой сборки (`stages/build.md`, Шаг 5). Принцип: фиксировать **отступления и решения (что и ПОЧЕМУ)**,
-а не пересказывать HTML; карта слайдов — навигация, чтобы в следующей сессии не
-вычитывать монолитный файл целиком. Плейсхолдеры `{{…}}` заменить, комментарии-подсказки
-`<!-- -->` удалить. При любой доводке деки (Шаг 6) и в конце каждого этапа манифест обновляется.
+This file is a template for the skill `/present`. At the start of the full path, the agent creates
+`DECK.md` from it in the working folder (next to the sources, not inside `deck/`). At first it has
+only the header and the Pipeline section; the other sections appear after the first build
+(`stages/build.md`, Step 5). Principle: record **deviations and decisions (what and WHY)**,
+do not retell the HTML; the slide map is navigation, so that the next session does not have to
+read the whole monolithic file. Replace the `{{…}}` placeholders, delete the hint comments
+`<!-- -->`, except the `<!-- present:pipeline -->` marker. Update the manifest at each refinement of the deck (Step 6) and at the end of each stage.
+
+**Language.** The agent writes `DECK.md` in the person's language, headings too. The template
+below is in English. The skill reads both the English and the Russian names:
+- sections: `## Pipeline` = `## Конвейер`, "Next step" = «Следующий шаг»;
+- stages: Context / Design / Build / Voice = Контекст / Дизайн / Сборка / Голос;
+- statuses: done / in progress / waiting for the person / not started / skipped = готово / идёт /
+  ждёт человека / не начат / пропущен;
+- work mode: together / do it yourself = вместе / сделай сам; deck mode: "script" / "by hand" =
+  «скрипт» / «руками».
+For other languages, the agent maps the names by meaning. Keep the marker line
+`<!-- present:pipeline -->` right under the Pipeline heading in any language: the validator finds
+the section by the heading (English or Russian) or by this marker, so other languages work too.
 
 ---
 
-# {{Название деки}} — манифест
+# {{Deck title}} — manifest
 
-`{{deck/slug-дата}}.html` · {{N}} слайдов · собрана {{дата}} · kernel `{{v7}}` из скилла `/present`
+`{{deck/slug-date}}.html` · {{N}} slides · built {{date}} · kernel `{{v8}}` from the skill `/present`
 
-## Конвейер
+## Pipeline
+<!-- present:pipeline -->
 
-<!-- Статус пути. Новая сессия читает этот раздел ПЕРВЫМ и продолжает с «Следующий шаг».
-     Статусы этапов: готово · идёт · ждёт человека: <что> · не начат · пропущен (<почему>).
-     Обновляется в конце каждого этапа и перед каждой остановкой на ручном шаге. -->
+<!-- Status of the path. A new session reads this section FIRST and continues from "Next step".
+     Stage statuses: done · in progress · waiting for the person: <what> · not started · skipped (<why>).
+     Update it at the end of each stage and before each stop at a manual step. -->
 
-- **Режим работы:** {{вместе | сделай сам}}
-- **Бюджет времени:** {{20 мин}} · темп {{~125 слов/мин — допущение до первого прогона | N слов/мин по прогону K}}
-- **Следующий шаг:** {{Голос — ждёт человека: прогон доклада на запись → положить аудио в папку и вызвать /present <папка>}}
+- **Work mode:** {{together | do it yourself}}
+- **Time budget:** {{20 min}} · pace {{~125 words/min — assumption until the first run-through | N words/min from run-through K}}
+- **Next step:** {{Voice — waiting for the person: run-through of the talk to a recording → put the audio into the folder and call /present <folder>}}
 
-| Этап | Статус | Итог |
+| Stage | Status | Summary |
 |---|---|---|
-| Контекст | {{готово}} | `slides.md`: {{N}} слайдов, оценка {{~18 мин}} |
-| Дизайн | {{готово}} | `design.md`: {{источник — refero «Playful» / интервью / сам}} |
-| Сборка | {{готово}} | `deck/{{slug-дата}}.html`, валидатор и Chrome чисто |
-| Голос | {{ждёт человека: прогон}} | {{—}} |
+| Context | {{done}} | `slides.md`: {{N}} slides, estimate {{~18 min}} |
+| Design | {{done}} | `design.md`: {{source — refero "Playful" / interview / self}} |
+| Build | {{done}} | `deck/{{slug-date}}.html`, validator and Chrome clean |
+| Voice | {{waiting for the person: run-through}} | {{—}} |
 
-Круги «Голоса» (каждый прогон — строка):
+Voice laps (each run-through is a row):
 
-| Круг | Дата | Запись | Длительность | Бюджет | Что сделали |
+| Lap | Date | Recording | Duration | Budget | What was done |
 |---|---|---|---|---|---|
-| {{1}} | {{дата}} | `{{rehearsal-1.m4a}}` | {{24:10}} | {{20:00}} | {{сжали 04, 07, 11; −18 %}} |
+| {{1}} | {{date}} | `{{rehearsal-1.m4a}}` | {{24:10}} | {{20:00}} | {{shortened 04, 07, 11; −18 %}} |
 
-## Где что лежит
+## Where things are
 
-<!-- Папка показа самодостаточна: чтобы унести доклад, берётся она целиком. -->
+<!-- The show folder is self-contained: to take the talk away, take the whole folder. -->
 
-- **Папка показа:** `{{deck/}}` — `{{slug-дата}}.html`, `{{slug-дата}}-notes.js`{{, deck-assets/}}.
-- **Рабочая папка:** `slides.md`, `design.md`, `DECK.md`{{, src/, build.py}}, материалы и сырьё.
+- **Show folder:** `{{deck/}}` — `{{slug-date}}.html`, `{{slug-date}}-notes.js`{{, deck-assets/}}.
+- **Working folder:** `slides.md`, `design.md`, `DECK.md`{{, src/, build.py}}, materials and raw input.
 
-## Режим деки: {{«скрипт» | «руками»}}
+## Deck mode: {{"script" | "by hand"}}
 
-<!-- «скрипт»: в рабочей папке лежат build-скрипт и исходники → правь ИСХОДНИКИ и пересобирай
-     ({{команда, напр. python3 build.py}}); скрипт и исходники держи актуальными —
-     пересборка не должна откатывать правки. Готовый HTML руками не править.
-     «руками»: скрипта нет → точечный Edit прямо в HTML (якоря — см. «Как править»). -->
+<!-- "script": the working folder has a build script and sources → edit the SOURCES and rebuild
+     ({{command, for example python3 build.py}}); keep the script and the sources up to date —
+     a rebuild must not roll back edits. Do not edit the finished HTML by hand.
+     "by hand": there is no script → a targeted Edit directly in the HTML (anchors — see "How to edit"). -->
 
-## Карта слайдов
+## Slide map
 
-| № | Заголовок | Компоненты/классы | Заметки |
-|---|-----------|-------------------|---------|
-| 01 | {{Титул}} | {{схема композиции; какие классы контракта, если есть}} | {{шрифт вшит base64}} |
-| 02 | {{…}} | {{…}} | {{data-dur подкручены: 1100→1600}} |
-| 07 | {{…}} | {{**интерактив:** что нажимается и что происходит}} | {{в PDF уедет дефолтное состояние}} |
+| No. | Title | Components/classes | Notes |
+|---|-------|-------------------|---------|
+| 01 | {{Title slide}} | {{composition scheme; which contract classes, if any}} | {{font embedded as base64}} |
+| 02 | {{…}} | {{…}} | {{data-dur tuned: 1100→1600}} |
+| 07 | {{…}} | {{**interactive:** what is clicked and what happens}} | {{the PDF gets the default state}} |
 
-## Арт-дирекшн — ответы по осям
+## Art direction — answers per axis
 
-<!-- по одной строке на ось из assets/design-axes.md; это решение под ЭТОТ доклад,
-     а не описание шаблона. Пункт «как обычно» = ось не продумана. -->
+<!-- one line per axis from assets/design-axes.md; this is a decision for THIS talk,
+     not a description of a template. An "as usual" item = the axis is not thought through. -->
 
-- **Композиция (ось 1):** {{доминирующая схема + чем от неё отличаются акцентные слайды}}
-- **Поля и выключка (2):** {{сколько воздуха, куда прижат текст}}
-- **Типографика (3):** {{система; что несёт характер — веса/кегли/трекинг/ширина колонки}}
-- **Цвет (4):** {{логика палитры; ключевые --токены из :root}}
-- **Фон `#bg` (5):** {{что это и почему именно так; статичный или движется и зачем}}
-- **Движение (6):** {{переход слайдов — переопределён ли slidefade; один «фирменный» приём внутри}}
-- **Детали (7):** {{что проведено через всю деку как система}}
-- **Хром (8):** {{как оформлены #bar / #counter / #hint}}
-- **Интерактивность (9):** {{какие слайды интерактивны и зачем; кто нажимает — докладчик или читатель; либо «дека статична»}}
-- **Почему так под этот доклад:** {{связь решений с содержанием, одной-двумя фразами}}
+- **Composition (axis 1):** {{dominant scheme + how the accent slides differ from it}}
+- **Margins and alignment (2):** {{how much air, to which side the text is pressed}}
+- **Typography (3):** {{system; what carries the character — weights/sizes/tracking/column width}}
+- **Color (4):** {{palette logic; key --tokens from :root}}
+- **Background `#bg` (5):** {{what it is and why exactly so; static or moving, and why}}
+- **Motion (6):** {{slide transition — is slidefade overridden; one "signature" technique inside}}
+- **Details (7):** {{what runs through the whole deck as a system}}
+- **Chrome (8):** {{how #bar / #counter / #hint are styled}}
+- **Interactivity (9):** {{which slides are interactive and why; who clicks — the speaker or the reader; or "the deck is static"}}
+- **Why so for this talk:** {{how the decisions connect to the content, in one or two sentences}}
 
-## Принятые решения и отступления
+## Decisions and deviations
 
-<!-- что и ПОЧЕМУ сделано нестандартно — чтобы следующий агент не «починил» обратно -->
-- {{изменённые анимации/тайминги, отключённые эффекты, кастомные компоненты вне cookbook}}
-- {{правки WHEEL_TH/WHEEL_COOLDOWN, если были — единственное разрешённое исключение в kernel}}
-- Интерактив: {{что интерактивно, ПОЧЕМУ именно здесь, что при этом теряет PDF-версия}}
-- Известные ловушки: {{напр. «backdrop-filter убран — конфликтует со slidefade»}}
+<!-- what was done in a non-standard way and WHY — so that the next agent does not "fix" it back -->
+- {{changed animations/timings, turned-off effects, custom components outside the cookbook}}
+- {{edits of WHEEL_TH/WHEEL_COOLDOWN, if any — the only allowed change inside `<script id="kernel">`}}
+- Interactivity: {{what is interactive, WHY exactly here, what the PDF version loses}}
+- Known traps: {{for example, "backdrop-filter removed — conflicts with slidefade"}}
 
-## Как править
+## How to edit
 
-- РЕЖИМ выше определяет способ: «скрипт» → исходники + пересборка; «руками» → точечный Edit.
-- Текст/структура слайдов → секции `<section class="slide">` в `#deck` (искать по заголовку или № слайда).
-- Стили → только `<style id="design">`; `<script id="kernel">`, `<style id="print">` и chrome-DOM (`#bar/#counter/#hint`) не трогать.
-- Интерактив (если есть) → `<script id="interactive">` после kernel-скрипта, перед закрывающим `</body>`
-  (в kernel есть ещё одно `</body>` внутри строки presenter-HTML — матчь последнее); кликабельные зоны помечены
-  `[data-interactive]`, прокручиваемые — `[data-scroll]`. Контракт — `cookbook.md`, раздел «Интерактивность».
-  После правок виджеты перещёлкать руками: валидатор их не проверяет.
-- Заметки спикера → `{{slug}}-notes.js` (источник правды, presenter подхватывает на лету);
-  `data-notes` в HTML — fallback-копия: при правке структуры синхронизируй оба.
-  Второй путь — прямо в presenter-окне, кнопками: «✎ править» (или двойной клик) — заметка текущего
-  слайда, «☰ все заметки» — все разом, «⤓ notes.js» — выгрузить `{{slug}}-notes.js` в загрузки
-  и положить сюда поверх старого.
-  Перед пересборкой ЧИТАЙ актуальный `{{slug}}-notes.js` — в нём могут быть правки с репетиции.
-- Медиа: {{что вшито base64; что лежит в deck/deck-assets/}}; оригиналы — в рабочей папке.
-- Проверка после правок: `python3 <каталог скилла>/assets/validate.py {{файл}}.html`
-  плюс визуальная самопроверка в Chrome (процедура — в `cookbook.md`, раздел «Визуальная самопроверка
-  в Chrome»): локальный `python3 -m http.server` в папке показа, `?check`, покадровый обход в режиме
-  съёмки. Без Chrome — открыть деку с `?check` руками и пролистать глазами.
+- The MODE above sets the way: "script" → sources + rebuild; "by hand" → a targeted Edit.
+- Slide text/structure → the sections `<section class="slide">` in `#deck` (search by the title or the slide number).
+- Styles → only `<style id="design">`; do not touch `<script id="kernel">`, `<style id="print">` and the chrome DOM (`#bar/#counter/#hint`).
+- Interactivity (if any) → `<script id="interactive">` after the kernel script, before the closing `</body>`
+  (the kernel has one more `</body>` inside the presenter HTML string — match the last one); clickable zones are marked
+  `[data-interactive]`, scrollable ones — `[data-scroll]`. The contract is in `cookbook.md`, the section "Interactivity".
+  After edits, click through the widgets by hand: the validator does not check them.
+- Speaker notes → `{{slug}}-notes.js` (the source of truth, the presenter window picks it up live);
+  `data-notes` in the HTML is a fallback copy: when you edit the structure, sync both.
+  The second way is directly in the presenter window, with buttons: "✎" edit (or a double-click) — the note of the current
+  slide, "☰" all notes — all at once, "⤓ notes.js" — download `{{slug}}-notes.js` to Downloads
+  and put it here over the old one.
+  Before a rebuild, READ the current `{{slug}}-notes.js` — it can have edits from a rehearsal.
+- Media: {{what is embedded as base64; what is in deck/deck-assets/}}; the originals are in the working folder.
+- Check after edits: `python3 <skill folder>/assets/validate.py {{file}}.html`
+  plus the visual self-check in Chrome (the procedure is in `cookbook.md`, the section "Visual self-check
+  in Chrome"): a local `python3 -m http.server` in the show folder, `?check`, a frame-by-frame pass in capture
+  mode. Without Chrome — open the deck with `?check` by hand and scroll through it by eye.

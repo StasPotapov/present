@@ -1,94 +1,94 @@
-# Art Direction — как спроектировать визуал деки под контент
+# Art Direction — how to design the deck visuals for the content
 
-Цель скилла — деки, **визуально разные под свой контент**, а не вариации одного шаблона. Ты —
-дизайнер: читаешь материал и `design.md`, выбираешь визуальный язык, проектируешь с нуля.
-Всё офлайн: только системные шрифты и встроенные ассеты (см. `cookbook.md`).
+The goal of the skill is decks that are **visually different for their content**, not variations
+of one template. You are the designer: you read the material and `design.md`, choose a visual
+language and design from zero. Everything is offline: only system fonts and embedded assets (see `cookbook.md`).
 
-## Откуда берётся арт-дирекшн
+## Where art direction comes from
 
-1. **Из контента и тона.** Читаешь материал и спрашиваешь себя: чем этот доклад отличается от
-   соседнего по теме? Что в нём главное — доказательство, чувство, процесс, спор, признание ошибки?
-   Каким он должен остаться в памяти через неделю? Ответ переводится в визуальные решения по
-   `design-axes.md`. **Готовых соответствий «жанр → вид» здесь намеренно нет**: как только
-   появляется таблица «технический доклад = моно и сетка», все технические доклады становятся
-   одинаковыми. Два доклада про инфраструктуру могут и должны выглядеть по-разному.
-2. **Из `design.md` / референс-документа.** Это главный источник «характера». Вытащи из него:
-   упомянутые цвета/бренд, тон (сдержанный/дерзкий), структуру аргумента, ключевые слова-настроение.
-   `design.md` может задавать что угодно — следуй ему, а не привычке.
-3. **Из опционального референса (URL/HTML).** Только если пользователь дал ссылку/файл. Заимствуй
-   **дизайн-ДНК**, НЕ пиксель-клон:
-   - **URL** → сначала Skill `defuddle` (чистый текст/структура), при нужде `WebFetch` (сырой HTML:
-     вытащи `:root`-переменные, `color`/`background`, `font-family`, радиусы, характер раскладки).
-     ⚠️ Это сетевое действие — только когда URL дан пользователем; офлайн — попроси локальный HTML/скриншот.
-   - **HTML-файл** → Read → палитра, шрифт-стек, радиусы, фон, заметная раскладка.
-   - **Скриншот** (если приложен) → оцени настроение, палитру, плотность визуально.
+1. **From the content and tone.** Read the material and ask yourself: how is this talk different
+   from the next one on the same topic? What is the main thing in it — a proof, a feeling, a
+   process, an argument, an admission of a mistake? How must it stay in memory after a week? The
+   answer becomes visual decisions by `design-axes.md`. **There are intentionally no ready
+   mappings "genre → look" here**: as soon as a table "technical talk = mono and grid" appears, all
+   technical talks become the same. Two talks about infrastructure can and must look different.
+2. **From `design.md` / a reference document.** This is the main source of "character". Take from it:
+   the mentioned colors/brand, the tone (restrained/bold), the structure of the argument, the
+   mood keywords. `design.md` can set anything — follow it, not habit.
+3. **From an optional reference (URL/HTML).** Only if the person gave a link/file. Borrow the
+   **design DNA**, NOT a pixel clone:
+   - **URL** → first the Skill `defuddle` (clean text/structure), if necessary `WebFetch` (raw HTML:
+     take the `:root` variables, `color`/`background`, `font-family`, radii, the character of the layout).
+     ⚠️ This is a network action — only when the person gave the URL; offline — ask for a local HTML/screenshot.
+   - **HTML file** → Read → palette, font stack, radii, background, visible layout.
+   - **Screenshot** (if attached) → assess the mood, palette, density visually.
 
-## Если в папке есть design.md (структурированный бриф) — это ЗАКОН
+## If the folder has design.md (a structured brief), it is the LAW
 
-`design.md` (если пришёл как `decision.md`/`DESIGN.md`/`brief.md` — сохрани как `design.md`) — авторитетный арт-дирекшн, не выдумывай
-свой. Частый источник — экспорт со **styles.refero.design**: палитра-токены (name/hex/роль), типо-шкала
-(шрифты + substitute, веса, размеры, leading, tracking, OpenType), радиусы/отступы/density, компоненты
-со спеками, Do/Don't, surfaces, imagery, layout, иногда готовый `:root` с CSS-переменными.
+`design.md` (if it came as `decision.md`/`DESIGN.md`/`brief.md`, save it as `design.md`) is the authoritative art direction. Do not invent
+your own. A frequent source is an export from **styles.refero.design**: palette tokens (name/hex/role), type scale
+(fonts + substitute, weights, sizes, leading, tracking, OpenType), radii/spacing/density, components
+with specs, Do/Don't, surfaces, imagery, layout, sometimes a ready `:root` with CSS variables.
 
-Применяй ТОЧНО, но адаптируй под формат слайда:
-- **Палитра / surfaces / радиусы / отступы** — бери как есть (готовый `:root` можно скопировать почти дословно).
-- **Тип-шкала** — брифы дают ВЕБ-размеры (напр. display 341px для лендинга). **НЕ копируй px буквально**:
-  переведи в слайдовый масштаб через `clamp()/vw`, СОХРАНив пропорции, вес, `line-height` (leading) и
-  `letter-spacing` (tracking) — именно они несут характер. Напр. display → `clamp(3rem,12vw,12rem)` с тем же leading 0.8.
-- **Шрифты — сначала open-source + вшить, иначе системный.** Кастомный фейс из брифа (ObviouslyVariable,
-  Druk, Söhne…) не скачиваем как есть, но подбери его **OSS-версию или близкий OSS-аналог** и **спроси
-  пользователя, вшить ли его base64** (`@font-face` в design layer — качаем ОДИН РАЗ на сборке через `curl`,
-  готовая дека остаётся офлайн; рецепт в `cookbook.md`). Примеры аналогов: Druk/Knockout → **Anton**/**Archivo Black**;
-  Founders Grotesk → **Space Grotesk**; Söhne/Inter-подобные → **Inter**; моно → **JetBrains Mono**/**IBM Plex Mono**.
-  ⚠️ Для русской деки аналог обязан иметь **кириллицу** (у Anton/Archivo Black её нет; плакатные с кириллицей —
-  Oswald, Unbounded, Russo One) — и вшивай оба сабсета, `cyrillic` и `latin` (рецепт в `cookbook.md`).
-  - Согласен → вшили base64, характер сохранён, дека автономна.
-  - Не согласен / нет OSS-аналога / нет сети → **системный substitute** (начни substitute-цепочку из брифа
-    с близкого системного фейса):
-    - широкий/тяжёлый плакатный display → `Impact,Haettenschweiler,'Arial Narrow',sans-serif`
-    - гротеск/нейтральный → `'Helvetica Neue',Arial,sans-serif` · гуманист-sans → `system-ui,'Segoe UI',sans-serif`
-    - serif → `Georgia,'Palatino Linotype',serif` · моно → `ui-monospace,Menlo,monospace`
-  В готовой деке в любом случае — никаких CDN/`@import` из сети, только системные фейсы или вшитый base64.
-- **Do/Don't, imagery, elevation, layout** — соблюдай буквально (плоско/тени/borders/«один тезис на экран» и т.п.).
-- **Similar Brands / vibe** — держи настроение в голове, не копируй чужой контент.
+Apply it EXACTLY, but adapt it to the slide format:
+- **Palette / surfaces / radii / spacing** — take them as is (you can copy a ready `:root` almost word for word).
+- **Type scale** — briefs give WEB sizes (for example, display 341px for a landing page). **Do NOT copy px literally**:
+  convert to the slide scale with `clamp()/vw`, KEEP the proportions, weight, `line-height` (leading) and
+  `letter-spacing` (tracking) — they carry the character. For example, display → `clamp(3rem,12vw,12rem)` with the same leading 0.8.
+- **Fonts — first open-source + embed, otherwise system.** Do not download a custom face from the brief (ObviouslyVariable,
+  Druk, Söhne…) as is, but find its **OSS version or a close OSS analogue** and **ask
+  the person whether to embed it as base64** (`@font-face` in the design layer — downloaded ONE TIME at the build with `curl`,
+  the finished deck stays offline; the recipe is in `cookbook.md`). Examples of analogues: Druk/Knockout → **Anton**/**Archivo Black**;
+  Founders Grotesk → **Space Grotesk**; Söhne/Inter-like → **Inter**; mono → **JetBrains Mono**/**IBM Plex Mono**.
+  ⚠️ For a deck in Russian (or another language in Cyrillic script), the analogue must have **Cyrillic** (Anton/Archivo Black do not have it; poster faces with Cyrillic are
+  Oswald, Unbounded, Russo One) — and embed both subsets, `cyrillic` and `latin` (the recipe is in `cookbook.md`).
+  - The person agrees → embed as base64, the character is kept, the deck is self-contained.
+  - The person does not agree / no OSS analogue / no network → **system substitute** (start the substitute chain from the brief
+    with a close system face):
+    - wide/heavy poster display → `Impact,Haettenschweiler,'Arial Narrow',sans-serif`
+    - grotesque/neutral → `'Helvetica Neue',Arial,sans-serif` · humanist sans → `system-ui,'Segoe UI',sans-serif`
+    - serif → `Georgia,'Palatino Linotype',serif` · mono → `ui-monospace,Menlo,monospace`
+  In the finished deck, in any case — no CDN/`@import` from the network, only system faces or embedded base64.
+- **Do/Don't, imagery, elevation, layout** — follow them literally (flat/shadows/borders/"one thesis per screen" and so on).
+- **Similar Brands / vibe** — keep the mood in mind, do not copy someone else's content.
 
-Итог: дека должна выглядеть как «этот бренд сделал презентацию», а не как наш дефолт.
+Result: the deck must look like "this brand made a presentation", not like our default.
 
-## Что именно решить
+## What to decide
 
-Полный список решений — в `design-axes.md` (9 осей: композиция, поля, типографика, цвет, фон,
-движение, детали, хром, интерактивность). Пройди их до сборки и выпиши ответы одной строкой на ось — это и есть
-арт-дирекшн деки, он же уходит в `DECK.md`.
+The full list of decisions is in `design-axes.md` (9 axes: composition, margins, typography, color, background,
+motion, details, chrome, interactivity). Go through them before the build and write down a one-line answer per axis — this is the
+art direction of the deck, and it also goes into `DECK.md`.
 
-Единственное, что здесь стоит держать жёстко, независимо от выбранного языка:
-- контраст текста к фону — не ниже AA, проверяется на реальном кадре, а не в голове;
-- движение гасится в `@media (prefers-reduced-motion:reduce)`;
-- решения объясняются контентом: за каждым «почему так» стоит мысль доклада, а не привычка.
+The only things to keep strict here, no matter which visual language you chose:
+- text-to-background contrast — not lower than AA, check it on a real frame, not in your head;
+- motion is turned off in `@media (prefers-reduced-motion:reduce)`;
+- the content explains the decisions: behind each "why like this" there is an idea of the talk, not a habit.
 
-## Как это ложится в файл
+## How it goes into the file
 
-Всё оформление — в `<style id="design">` (палитра как `:root`-переменные, `body`/`#bg`, типографика,
-компоненты, раскладки). Слайды — в `#deck`. `<script id="kernel">` и chrome-DOM не трогай. Компоненты,
-которые оживляет kernel, обязаны получить свой CSS/keyframes — сверься с контрактом классов в `cookbook.md`
-(особенно `@keyframes gitin` для `.clist`, `.chain.seq .node`, `.pstage.on` и т.п.).
+All styling goes into `<style id="design">` (palette as `:root` variables, `body`/`#bg`, typography,
+components, layouts). Slides go into `#deck`. Do not touch `<script id="kernel">` and the chrome DOM. Components
+that the kernel animates must get their own CSS/keyframes — check the class contract in `cookbook.md`
+(especially `@keyframes gitin` for `.clist`, `.chain.seq .node`, `.pstage.on` and so on).
 
-## Источники референсов и design.md (всё бесплатно, без подписок)
+## Sources of references and design.md (all free, no subscriptions)
 
-Только открытые/free-источники — без платных подписок, ничего платить не надо.
+Only open/free sources — no paid subscriptions, nothing to pay for.
 
-Готовый **design.md** (структурированный бриф, drop-in):
-- **styles.refero.design** — поиск по бренду / настроению / цвету / URL → скачать DESIGN.md (free beta). Основной источник.
-- **designmd.app** — библиотека готовых design-систем под пермиссивной лицензией.
+A ready **design.md** (a structured brief, drop-in):
+- **styles.refero.design** — search by brand / mood / color / URL → download DESIGN.md (free beta). The main source.
+- **designmd.app** — a library of ready design systems under a permissive license.
 
-Галереи «выбрать вид» → потом дать URL как референс (вытянем дизайн-ДНК) или собрать бриф вместе:
-- **Awwwards**, **Godly** (godly.website), **SiteInspire**, **Land-book**, **Lapa Ninja**, **Httpster** — витрины веб-дизайна.
-- **Dribbble**, **Behance** — концепты и слайд-дизайн.
+Galleries to "choose a look" → then give the URL as a reference (we extract the design DNA) or collect a brief together:
+- **Awwwards**, **Godly** (godly.website), **SiteInspire**, **Land-book**, **Lapa Ninja**, **Httpster** — web design showcases.
+- **Dribbble**, **Behance** — concepts and slide design.
 
-⚠️ Не предлагай платные/подписочные каталоги (напр. **Mobbin**) — только открытые источники.
+⚠️ Do not offer paid/subscription catalogs (for example, **Mobbin**) — only open sources.
 
-Флоу: пользователь выбирает вид → кладёт `design.md` в папку ИЛИ даёт URL → скилл строит деку в этом стиле.
+Flow: the person chooses a look → puts `design.md` into the folder OR gives a URL → the skill builds the deck in this style.
 
-## Принцип
-Разные доклады → ощутимо разные деки (структура, палитра, типографика, фон, движение). Если две
-разные по смыслу презентации вышли похожими — арт-дирекшн не сделан. Опирайся на контент и design.md,
-а не на «как в прошлый раз».
+## Principle
+Different talks → noticeably different decks (structure, palette, typography, background, motion). If two
+presentations with different meaning came out similar, the art direction is not done. Rely on the content and design.md,
+not on "like last time".
