@@ -73,7 +73,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill, AskUserQues
 
 | Что есть | Этап | Файл |
 |---|---|---|
-| запись прогона, которой нет в таблице кругов `DECK.md`, рядом с собранной декой | Голос | `stages/rehearse.md` |
+| запись или текст прогона (`rehearsal-*`), которых нет в таблице кругов `DECK.md`, рядом с собранной декой | Голос | `stages/rehearse.md` |
 | `DECK.md` с «Конвейером» | этап из строки «Следующий шаг» | по этапу |
 | готовая дека, просят доделать | Сборка → доводка | `stages/build.md` |
 | `slides.md` и `design.md` | Сборка | `stages/build.md` |

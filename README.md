@@ -61,7 +61,7 @@ The deck is ready — and this is where most people stop, while the most valuabl
 
 That arrow back is the whole reason for splitting into three files: every lap the talk gets shorter and sharper, and nothing has to be rebuilt from scratch.
 
-**In the skill** this is the "Voice" stage. After the build the skill asks you to record a run-through and drop the file into the folder. From there it works on its own: transcribes the recording, compares the length with the budget, trims the speech in your own words, shows a diff of `slides.md` and rebuilds the deck. Every lap is logged in `DECK.md`: date, length, what changed.
+**In the skill** this is the "Voice" stage. After the build the skill briefly offers three ways to do the run-through: dictate straight into the chat (Handy, macOS dictation), record it and drop the file into the folder — the skill transcribes it itself, it only needs whisper or a similar tool on the machine (if there is none, the skill tells you what to install) — or transcribe the recording yourself and send the text in the chat or as a file. From there it works on its own: transcribes the recording (if needed), compares the length with the budget, trims the speech in your own words, shows a diff of `slides.md` and rebuilds the deck. Every lap is logged in `DECK.md`: date, length, what changed.
 
 ### Together or "do it yourself"
 
