@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Сборщик деки «Контекст. Дизайн. Голос.» (скилл /present, KERNEL v8).
+Build script for the deck "Контекст. Дизайн. Голос." (skill /present, KERNEL v8). The deck is in Russian.
 
-    python3 build.py            # пересобрать деку в deck/ (notes.js НЕ трогается, если он уже есть)
-    python3 build.py --notes    # пересобрать И перезаписать notes.js из data-notes
+    python3 build.py            # rebuild the deck into deck/ (notes.js is NOT touched if it exists)
+    python3 build.py --notes    # rebuild AND overwrite notes.js from data-notes
 
-Что делает:
-  1. берёт движок kernel.html ДОСЛОВНО (из ассетов скилла /present; фолбэк — src/kernel-v8.html);
-  2. вставляет src/design.css в <style id="design">, подставив в него @font-face Inter
-     (src/inter-faces.css — base64, cyrillic+latin, roman+italic; сеть не нужна);
-  3. вставляет src/slides.html в #deck, заменив маркеры __IMG:файл__ на inline data-URI;
-  4. дописывает <script id="interactive"> (src/interactive.js — виджет слайда 09) ПОСЛЕ
-     блока kernel, перед ПОСЛЕДНИМ </body>: первое вхождение лежит внутри самого движка,
-     в строке, которая собирает presenter-окно, и вставка туда его ломает;
-  5. пишет готовую деку и (опционально) файл живых заметок в папку показа deck/.
+What it does:
+  1. takes the kernel kernel.html VERBATIM (from the /present skill assets; fallback: src/kernel-v8.html)
+     and sets the root lang to "ru";
+  2. puts src/design.css into <style id="design"> with the Inter @font-face inserted
+     (src/inter-faces.css: base64, cyrillic+latin, roman+italic; no network needed);
+  3. puts src/slides.html into #deck and replaces the __IMG:file__ markers with inline data URIs;
+  4. appends <script id="interactive"> (src/interactive.js, the widget of slide 09) AFTER
+     the kernel block, before the LAST </body>: the first one is inside the kernel itself,
+     in the string that builds the presenter window, and an insert there breaks it;
+  5. writes the finished deck and (optionally) the live notes file into the show folder deck/.
 
-ВАЖНО про заметки: после первого прогона источник правды — <дека>-notes.js
-(его правят прямо в окне докладчика и выгружают кнопкой ⤓). Поэтому по умолчанию
-скрипт его НЕ перезаписывает. Если правил заметки в presenter — сначала перенеси
-их текст в data-notes внутри src/slides.html, и только потом запускай с --notes.
+IMPORTANT about notes: after the first run-through the source of truth is <deck>-notes.js
+(it is edited in the presenter window and exported with the ⤓ button). So by default
+the script does NOT overwrite it. If you edited notes in the presenter window, first move
+their text into data-notes in src/slides.html, and only then run with --notes.
 """
 
 import base64
@@ -31,7 +32,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
-DECK_DIR = HERE / "deck"   # папка показа: html + notes.js, уносится целиком (медиа вшито base64)
+DECK_DIR = HERE / "deck"   # show folder: html + notes.js, taken away as a whole (media embedded as base64)
 SKILL_KERNEL = Path.home() / ".claude/skills/present/assets/kernel.html"
 
 DECK_NAME = "kontekst-dizayn-golos-2026-07-28"
@@ -44,26 +45,26 @@ def read(p: Path) -> str:
     return p.read_text(encoding="utf-8")
 
 
-# ── 1. движок ────────────────────────────────────────────────────────────────
+# ── 1. kernel ────────────────────────────────────────────────────────────────
 def kernel_version(p: Path) -> int:
     m = re.search(r"KERNEL v(\d+)", read(p)) if p.exists() else None
     return int(m.group(1)) if m else 0
 
-# берём движок посвежее: старая установка скилла не должна молча откатить деку на прошлую версию
+# take the newest kernel: an old skill install must not silently roll the deck back
 kernel_path = max([SKILL_KERNEL, SRC / "kernel-v8.html"], key=kernel_version)
-# v8 обязателен: плейсхолдер {{TITLE}} и UI по lang; интерактиву слайда 09 нужны guard'ы v6+
+# v8 is required: the {{TITLE}} placeholder and the UI by lang; the slide 09 widget needs the v6+ guards
 if kernel_version(kernel_path) < 8:
-    sys.exit(f"!! {kernel_path} — не похоже на KERNEL v8+, сборку остановил")
+    sys.exit(f"!! {kernel_path}: does not look like KERNEL v8+, build stopped")
 kernel = read(kernel_path)
-print(f"движок: {kernel_path}")
+print(f"kernel: {kernel_path}")
 
 # ── 2. design layer ──────────────────────────────────────────────────────────
 design = read(SRC / "design.css")
 if "/*__INTER_FACES__*/" not in design:
-    sys.exit("!! в design.css нет маркера /*__INTER_FACES__*/ — дека уехала бы без вшитых шрифтов")
+    sys.exit("!! design.css has no /*__INTER_FACES__*/ marker: the deck would ship without embedded fonts")
 design = design.replace("/*__INTER_FACES__*/", read(SRC / "inter-faces.css"))
 
-# ── 3. слайды + картинки ─────────────────────────────────────────────────────
+# ── 3. slides + images ─────────────────────────────────────────────────────
 slides = read(SRC / "slides.html")
 
 
@@ -71,17 +72,17 @@ def inline_img(m: re.Match) -> str:
     f = HERE / m.group(1)
     mime = mimetypes.guess_type(f.name)[0] or "image/jpeg"
     data = base64.b64encode(f.read_bytes()).decode()
-    print(f"  вшил {f.name}: {len(data) // 1024} КБ base64")
+    print(f"  embedded {f.name}: {len(data) // 1024} KB base64")
     return f"data:{mime};base64,{data}"
 
 
 slides = re.sub(r"__IMG:([^_]+?)__", inline_img, slides)
 
-# ── 4. сборка ────────────────────────────────────────────────────────────────
+# ── 4. build ────────────────────────────────────────────────────────────────
 if "<title>{{TITLE}}</title>" not in kernel or '<html lang="en">' not in kernel:
-    sys.exit("!! в движке нет плейсхолдера <title>{{TITLE}}</title> или корня <html lang=\"en\">")
+    sys.exit("!! the kernel has no <title>{{TITLE}}</title> placeholder or no <html lang=\"en\"> root")
 out = kernel.replace("<title>{{TITLE}}</title>", f"<title>{TITLE}</title>")
-out = out.replace('<html lang="en">', '<html lang="ru">', 1)   # язык деки: от него зависят и надписи kernel
+out = out.replace('<html lang="en">', '<html lang="ru">', 1)   # deck language: the kernel UI follows it
 
 out, n = re.subn(
     r'(<style id="design">)\s*/\*.*?\*/\s*(</style>)',
@@ -91,7 +92,7 @@ out, n = re.subn(
     flags=re.S,
 )
 if n != 1:
-    sys.exit("!! не нашёл плейсхолдер <style id=\"design\">")
+    sys.exit("!! placeholder <style id=\"design\"> not found")
 
 out, n = re.subn(
     r'(<div id="deck">)\s*<!--.*?-->\s*(</div>)',
@@ -101,40 +102,40 @@ out, n = re.subn(
     flags=re.S,
 )
 if n != 1:
-    sys.exit("!! не нашёл плейсхолдер #deck")
+    sys.exit("!! placeholder #deck not found")
 
-# ── 4б. интерактив: свой блок скрипта ПОСЛЕ kernel ───────────────────────────
+# ── 4b. interactivity: own script block AFTER the kernel ───────────────────────────
 interactive = read(SRC / "interactive.js")
-head, sep, tail = out.rpartition("</body>")   # именно последнее </body>, см. шапку файла
+head, sep, tail = out.rpartition("</body>")   # the last </body>, see the file header
 if not sep:
-    sys.exit("!! не нашёл закрывающий </body>")
+    sys.exit("!! closing </body> not found")
 out = head + '<script id="interactive">\n' + interactive + '</script>\n' + sep + tail
-print(f"интерактив: interactive.js ({len(interactive.encode()) // 1024} КБ)")
+print(f"interactive: interactive.js ({len(interactive.encode()) // 1024} KB)")
 
 DECK_DIR.mkdir(exist_ok=True)
 deck_file = DECK_DIR / f"{DECK_NAME}.html"
 deck_file.write_text(out, encoding="utf-8")
-print(f"дека: {deck_file.name} ({len(out.encode()) // 1024} КБ)")
+print(f"deck: {deck_file.name} ({len(out.encode()) // 1024} KB)")
 
-# ── 5. живые заметки ─────────────────────────────────────────────────────────
+# ── 5. live notes ─────────────────────────────────────────────────────────
 notes_file = DECK_DIR / f"{DECK_NAME}-notes.js"
 if notes_file.exists() and not FORCE_NOTES:
-    print(f"заметки: {notes_file.name} на месте — не трогаю (перезапись: --notes)")
+    print(f"notes: {notes_file.name} exists, not touched (overwrite: --notes)")
 else:
-    # Номера заметок раздаются ПО ПОРЯДКУ СЛАЙДОВ, поэтому потерять хоть одну секцию нельзя:
-    # пропуск сдвинет речь всех последующих слайдов, и спикер прочитает чужой текст. Отсюда
-    # разбор настоящим парсером (порядок атрибутов и лишние data-* его не волнуют) и sys.exit,
-    # а не print, на любое расхождение — как у двух других плейсхолдеров выше.
+    # Note numbers follow the SLIDE ORDER, so not one section may be lost: a gap shifts
+    # the speech of all following slides, and the speaker reads the wrong text. Hence a real
+    # parser (attribute order and extra data-* do not matter to it) and sys.exit, not print,
+    # on any mismatch, as for the two placeholders above.
     raw_titles = re.findall(r"<!--\s*(\d{2})\s+─\s+(.+?)\s+─+\s*-->", slides)
     titles = dict(raw_titles)
     if len(titles) != len(raw_titles):
-        sys.exit("!! в комментариях-заголовках повторяется номер слайда — перенумеруй секции")
+        sys.exit("!! a slide number repeats in the title comments: renumber the sections")
 
     class SlideNotes(HTMLParser):
-        """Собирает data-notes всех <section class="slide …"> по порядку их появления."""
+        """Collects data-notes of all <section class="slide …"> in the order they appear."""
 
         def __init__(self):
-            super().__init__(convert_charrefs=True)   # &lt; в заметке доедет до presenter как <
+            super().__init__(convert_charrefs=True)   # &lt; in a note reaches the presenter window as <
             self.notes = []
 
         def handle_starttag(self, tag, attrs):
@@ -149,9 +150,9 @@ else:
     notes = parser.notes
     empty = [i for i, n in enumerate(notes, 1) if not n]
     if empty:
-        sys.exit(f"!! слайды без data-notes: {empty} — заметки собрались бы со сдвигом")
+        sys.exit(f"!! slides without data-notes: {empty}: the notes would be shifted")
     if len(notes) != len(titles):
-        sys.exit(f"!! слайдов {len(notes)}, комментариев-заголовков {len(titles)} — заметки уехали бы не к тем слайдам")
+        sys.exit(f"!! {len(notes)} slides, {len(titles)} title comments: the notes would go to the wrong slides")
     body = ""
     for i, text in enumerate(notes, 1):
         ttl = titles.get(f"{i:02d}", "")
@@ -160,4 +161,4 @@ else:
     notes_file.write_text(
         "window.DECK_NOTES = String.raw`\n" + body.strip() + "\n`;\n", encoding="utf-8"
     )
-    print(f"заметки: {notes_file.name} ({len(notes)} секций)")
+    print(f"notes: {notes_file.name} ({len(notes)} sections)")
