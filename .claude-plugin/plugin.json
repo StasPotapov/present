@@ -1,5 +1,6 @@
 {
   "name": "present",
+  "version": "1.0.0",
   "description": "A Claude Code skill that walks you from an idea to a bespoke offline HTML slide deck: slide text, design brief, build with a presenter window and live notes, spoken run-through and trimming to time. Plus a short path: one page in one go.",
   "author": { "name": "Stas Potapov" },
   "license": "MIT",
