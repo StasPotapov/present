@@ -114,12 +114,12 @@ The deck runs as a local file, and a browser cannot write to disk from one — s
 **As a Claude Code plugin.** Run in Claude Code:
 
 ```
-/plugin marketplace add StasPotapov/present
-/plugin install present@present
+/plugin marketplace add StasPotapov/sp-tools
+/plugin install present@sp-tools
 ```
 
-The skill is then called `/present:present`. To get a new version: `/plugin marketplace update present`,
-then `/plugin update present@present`.
+The skill is then called `/present:present`. To get a new version: `/plugin marketplace update sp-tools`,
+then `/plugin update present@sp-tools`.
 
 **From a clone.** Pick one way: with both, the skill loads twice.
 The skill is installed by copying it into a skills directory — globally (available in every project) or locally in one project.

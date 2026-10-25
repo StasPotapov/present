@@ -114,12 +114,12 @@
 **Плагином Claude Code.** Выполни в Claude Code:
 
 ```
-/plugin marketplace add StasPotapov/present
-/plugin install present@present
+/plugin marketplace add StasPotapov/sp-tools
+/plugin install present@sp-tools
 ```
 
-Скилл тогда называется `/present:present`. Новая версия: `/plugin marketplace update present`,
-затем `/plugin update present@present`.
+Скилл тогда называется `/present:present`. Новая версия: `/plugin marketplace update sp-tools`,
+затем `/plugin update present@sp-tools`.
 
 **Из клона.** Выбери один способ: с обоими скилл загрузится дважды.
 Скилл ставится копированием в каталог skills — глобально (доступен во всех проектах) или локально в проект.
