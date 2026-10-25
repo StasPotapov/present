@@ -119,7 +119,7 @@
 ```
 
 Скилл тогда называется `/present:present`. Новая версия: `/plugin marketplace update sp-tools`,
-затем `/plugin update present@sp-tools`.
+затем `claude plugin update present@sp-tools` (в терминале).
 
 **Из клона.** Выбери один способ: с обоими скилл загрузится дважды.
 Скилл ставится копированием в каталог skills — глобально (доступен во всех проектах) или локально в проект.

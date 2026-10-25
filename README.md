@@ -119,7 +119,7 @@ The deck runs as a local file, and a browser cannot write to disk from one — s
 ```
 
 The skill is then called `/present:present`. To get a new version: `/plugin marketplace update sp-tools`,
-then `/plugin update present@sp-tools`.
+then `claude plugin update present@sp-tools` (in the shell).
 
 **From a clone.** Pick one way: with both, the skill loads twice.
 The skill is installed by copying it into a skills directory — globally (available in every project) or locally in one project.
