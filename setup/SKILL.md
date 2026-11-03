@@ -1,6 +1,6 @@
 ---
 name: present-setup
-description: "Install or update present for Codex or Claude Code, verify local resources and choose available design and preview surfaces."
+description: "Set up the portable present pipeline: install Codex or Claude Code adapters, guide other compatible agents, and verify local resources and preview capabilities."
 ---
 
 # Set up present
@@ -9,6 +9,9 @@ Resolve this directory's real path; the shared root is its parent. Read `../HOST
 and the adapter for the actual session. Use `python3 -B ../scripts/present.py doctor`
 with the resolved absolute script path. Python 3.9+ is sufficient. Do not infer the
 active client from installed executables or run an AI CLI to discover capabilities.
+For another agent, keep the complete repository and read its `SKILL.md` and `HOST.md`
+in that session. Use its documented skill-loading procedure, if any; do not pass an
+unknown client to the bundled installer or invent a native installation path.
 
 1. Identify ownership before installing. For a standalone clone, preview
    `setup --client codex` or `setup --client claude-code`, then repeat with

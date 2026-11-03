@@ -1,7 +1,7 @@
 {
   "name": "present",
   "version": "1.1.0",
-  "description": "Portable presentation skill for Codex and Claude Code: offline HTML decks, client-native design and review, rehearsal and live notes.",
+  "description": "Agent skill and pipeline for creating offline HTML presentations: content, design, build and rehearsal. For Codex, Claude Code and other compatible agents.",
   "author": {
     "name": "Stas Potapov"
   },
@@ -12,7 +12,12 @@
     "deck",
     "html",
     "talk",
-    "rehearsal"
+    "rehearsal",
+    "agent-skills",
+    "ai-agent",
+    "workflow",
+    "codex",
+    "claude-code"
   ],
   "skills": [
     "./",

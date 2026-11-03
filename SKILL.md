@@ -1,10 +1,12 @@
 ---
 name: present
-description: "Guides the person from an idea to a finished HTML presentation (deck): slide text, design brief, an offline single-file deck with a presenter window, a run-through aloud and trimming to the time budget. Short path: a one-page presentation in one go. Talks and writes the deck in the person's language."
+description: "Portable agent skill and pipeline for HTML presentations, for Codex, Claude Code and other compatible agents. Guides the person from an idea to a finished HTML presentation (deck): slide text, design brief, an offline single-file deck with a presenter window, a run-through aloud and trimming to the time budget. Short path: a one-page presentation in one go. Talks and writes the deck in the person's language."
 when_to_use: "\"make a presentation\", \"build slides\", \"a deck for my talk\", \"help me come up with a talk\", \"a simple presentation\", \"go through my run-through / rehearsal\", \"cut the talk to 20 minutes\", \"continue the talk\" — in any language. Input: an idea, a topic, text, a recording, a folder with slides.md and design.md, a repo, a reference URL or an existing deck. If the person needs a .pptx file, this is not the skill."
 ---
 
 Read `HOST.md` in this skill directory before running tools; it defines portable paths and host capabilities.
+Use the shared workflow in any agent with the required file and shell capabilities.
+Codex and Claude Code have specific adapters; other agents follow the generic host contract.
 
 
 

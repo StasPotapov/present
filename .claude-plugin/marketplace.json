@@ -1,8 +1,14 @@
 {
   "name": "present",
-  "description": "present: bespoke HTML slide decks for Claude Code",
-  "owner": { "name": "Stas Potapov" },
+  "description": "present: an agent skill and pipeline for creating offline HTML presentations",
+  "owner": {
+    "name": "Stas Potapov"
+  },
   "plugins": [
-    { "name": "present", "source": "./", "description": "The present skill" }
+    {
+      "name": "present",
+      "source": "./",
+      "description": "Presentation pipeline for Codex, Claude Code and other compatible agents: content, design, build and rehearsal."
+    }
   ]
 }

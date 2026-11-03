@@ -2,11 +2,13 @@
 
 **English** · [Русский](README.ru.md)
 
-# present — a skill for Codex and Claude Code
+# present — an agent skill and pipeline for HTML presentations
 
 An agent skill that walks you from an idea to a finished **bespoke HTML presentation** (a deck): slide text, a design brief, the build, a spoken run-through and trimming to the time budget.
 
-It is not a template filler: The agent reads your material, picks the art direction itself and designs the deck around that specific content — different talks come out as visually different decks (structure, palette, typography, background, character of motion).
+Designed for Codex, Claude Code and other agents that can read instructions, work with files and run commands. The shared pipeline does not depend on a model provider. Codex and Claude Code have installation and UI adapters; preview and connector capabilities in other clients need separate verification.
+
+It is not a template filler: the agent reads your material, picks the art direction itself and designs the deck around that specific content — different talks come out as visually different decks (structure, palette, typography, background, character of motion).
 
 The output is a **self-contained HTML file**: it opens offline in a browser, with no CDN and no network references.
 
@@ -121,7 +123,7 @@ The deck runs as a local file, and a browser cannot write to disk from one — s
 The skill is then called `/present:present`. To get a new version: `/plugin marketplace update sp-tools`,
 then `claude plugin update present@sp-tools` (in the shell).
 
-**From a clone, for either client.** Keep the complete repository outside the skills directory, then run from it:
+**From a clone, with the Codex or Claude Code installer.** Keep the complete repository outside the skills directory, then run from it:
 
 ```sh
 python3 -B scripts/present.py doctor
@@ -133,10 +135,13 @@ Setup links `present` and `present-setup` into the selected client's skills dire
 
 No models or roles are configured: the current session performs the stages. Setup does not launch an AI CLI, install software or modify the other client's settings. After reload verify both skills are discovered; use `$present` in Codex or `/present` in Claude Code (`/present:present` for the plugin).
 
+**Other agents.** Keep the whole repository and give the agent the absolute path to `SKILL.md` with your task. The agent reads `HOST.md` and follows the shared pipeline using its available tools. If the client has a native skills directory, connect the complete tree using that client's documented procedure. The bundled installer accepts only `codex` and `claude-code`; installation commands for other clients are not assumed.
+
 ## Design and artifacts by client
 
 - **Codex:** the default is design options and the actual HTML deck in a browser panel. Feedback comes through chat with slide numbers. Optional routes use Presentations/Spaces, Pages with HTML and comments, or Sites hosting. Discover tools in the current session; an artifact editor alone does not guarantee saved presentation creation.
 - **Claude Code:** retain the original Claude Design canvas/review workflow when its connector is available. Local files and browser preview remain available without it.
+- **Other agents:** the shared local pipeline uses available file, shell and browser tools. Unverified integrations are reported separately.
 - **Boundaries:** native slides do not automatically carry the HTML kernel, animations or live notes. Page comments do not guarantee slide-element anchors. Ordinary `present` use does not publish; uploading/hosting requires the person's choice of that route.
 
 See the [host contract](HOST.md), [design router](stages/canvas.md) and [Codex route](stages/codex-design.md). Browser, image, PDF and connector checks are separate; skipped verification is not a pass. Live Claude and remote connector behavior require a separate check in that host session.
@@ -234,8 +239,8 @@ open present/example-quick/present-korotkiy-put.html
 |---|---|
 | `SKILL.md` | the router: ingest → path and working mode → which stage to start from → gates between stages → your manual steps → status in `DECK.md` |
 | `stages/context.md` | the "Context" stage: an idea, dictation, material or a recording → `slides.md` with a running-time estimate |
-| `stages/design.md` | the "Design" stage: Claude Design canvas, refero, interview or reference URL → `design.md` |
-| `stages/canvas.md` | Host design router; Claude Design: checking that it is available, the canvas, comments, moving the canvas into HTML, the review page |
+| `stages/design.md` | the Design stage: available preview, refero, interview or reference URL → `design.md` |
+| `stages/canvas.md` | host design/review routing and the local path without connectors |
 | `stages/build.md` | the "Build" stage: art direction → plan → build → check in Chrome and PDF → polish |
 | `stages/rehearse.md` | the "Voice" stage: recorded run-through → transcript → trimming to the budget → rebuild |
 | `stages/quick.md` | the short path: one page in one go, presenter window on request |
@@ -259,7 +264,7 @@ A short-path deck is recognised by the validator on its own — a single file wi
 
 ## Requirements
 
-- Codex or Claude Code with file and shell access; no AI CLI dependency.
+- An agent with instruction, file and shell access, such as Codex or Claude Code; no AI CLI dependency.
 - Python 3.9+ (stdlib), Node for JS syntax checks. Without Node that portion is reported as skipped.
 - The current host's browser tool and image viewing for visual checks. Claude in Chrome is adapter-specific, not required in Codex.
 - Chrome/Chromium for headless PDF; `qlmanage` on macOS for Quartz verification, optionally poppler. Missing checks are explicitly reported.

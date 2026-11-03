@@ -6,10 +6,14 @@ is not an installation. Outputs, temporary files and credentials belong outside 
 package. Use Python with `-B`; `scripts/present.py --help`, `--version`, `doctor`,
 `setup` and `validate` do not invoke Codex, Claude or any model.
 
-Read the adapter for the actual session: `adapters/codex.md` or
-`adapters/claude-code.md`. Unknown hosts can use the local files/validator, but their
-UI integration remains unsupported until verified. Never identify a session by
-presence of a CLI executable or translate model names across providers.
+Read the adapter for the actual session when available: `adapters/codex.md` or
+`adapters/claude-code.md`. Other agents follow this generic contract and the same
+`SKILL.md`/stage files using their documented file, shell, image and browser tools.
+If the host has no native skill discovery, read the full entry point from the complete
+repository. The bundled installer only knows Codex and Claude Code paths; other
+clients use their own documented installation mechanism. Their UI integrations remain
+unverified until tested. Never identify a session by presence of a CLI executable
+or translate model names across providers.
 
 The shared workflow is `SKILL.md` and `stages/`. Present has no independent model
 roles: the current session does the work. No role launcher, fixed model, private
@@ -30,7 +34,7 @@ Background shell sessions are optional: synchronous commands may use a suitable
 timeout. Do not promise work continues after the chat is closed.
 
 Design is routed through `stages/canvas.md`. Preserve the offline HTML kernel and
-notes contract on both clients. Design surfaces are optional, not interchangeable
+notes contract across clients. Design surfaces are optional, not interchangeable
 APIs: no invented Artifact call, automatic login, or implicit publishing. Connector
 availability is session evidence, never a saved preference or CLI dependency check.
 Keep a selected surface and returned IDs in the talk's `DECK.md`; short-path state
