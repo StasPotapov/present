@@ -17,7 +17,7 @@ language and design from zero. Everything is offline: only system fonts and embe
    mood keywords. `design.md` can set anything — follow it, not habit.
 3. **From an optional reference (URL/HTML).** Only if the person gave a link/file. Borrow the
    **design DNA**, NOT a pixel clone:
-   - **URL** → first the Skill `defuddle` (clean text/structure), if necessary `WebFetch` (raw HTML:
+   - **URL** → first an available `defuddle` skill (clean text/structure), then the host's permitted web/file tools (raw HTML:
      take the `:root` variables, `color`/`background`, `font-family`, radii, the character of the layout).
      ⚠️ This is a network action — only when the person gave the URL; offline — ask for a local HTML/screenshot.
    - **HTML file** → Read → palette, font stack, radii, background, visible layout.

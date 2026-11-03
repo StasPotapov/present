@@ -2,11 +2,11 @@
 
 **English** · [Русский](README.ru.md)
 
-# present — a skill for Claude Code
+# present — a skill for Codex and Claude Code
 
 An agent skill that walks you from an idea to a finished **bespoke HTML presentation** (a deck): slide text, a design brief, the build, a spoken run-through and trimming to the time budget.
 
-It is not a template filler: Claude reads your material, picks the art direction itself and designs the deck around that specific content — different talks come out as visually different decks (structure, palette, typography, background, character of motion).
+It is not a template filler: The agent reads your material, picks the art direction itself and designs the deck around that specific content — different talks come out as visually different decks (structure, palette, typography, background, character of motion).
 
 The output is a **self-contained HTML file**: it opens offline in a browser, with no CDN and no network references.
 
@@ -43,12 +43,12 @@ We are in the AI era — **you don't need PowerPoint, generate HTML**: models wr
 
 - **A reference.** You don't have to do the layout yourself — you have to find a style. For example [styles.refero.design](https://styles.refero.design): you look at how it actually appears, and every style **ships with a ready `design.md`** — copy it into your folder. Design done. `design.md` is by now practically a standard, like `README.md`: a file describing how everything should look (fonts, colours, shapes, spacing). You can go the other way too: write it by hand or put it together with BMAD.
 - **The build.** `/present <folder>` — the skill needs exactly two files, `slides.md` and `design.md`. It will ask a question or two if it has to, and build the deck. That is the **baseline**, and a baseline is usually not what you want — but it cost you little time and it is already in your hands.
-- **The revision loop.** You look at the deck and fix it **with words**: what you don't like, what to change where, where to add motion. You can keep polishing forever. The easiest way is comments right on the slides in Claude Design — see the next point.
-- **Claude Design — strongly recommended.** It is now built into Claude, and the skill works with it itself. The slides are drawn on a Claude Design canvas: you can edit them by hand there and leave comments right on a slide. The agent sees every comment and knows which slide and element it refers to. The skill also offers to publish the finished HTML deck as a private page in Claude — you leave edits to it the same way, as comments. Included in the Claude subscription (Pro / Max / Team / Enterprise). The pipeline works without it too, editing is just less convenient.
+- **The revision loop.** You look at the deck and fix it **with words**: what you don't like, what to change where, where to add motion. You can keep polishing forever. Use the current client's review surface, described next.
+- **Design and review in the current client.** Codex uses HTML preview and available artifacts; Claude Code can use Claude Design when its connector is available. The skill routes by actual session capabilities. The offline deck works independently of services.
 
 `design.md` here is the main file, not decoration: the same material under three different briefs gives three completely different decks.
 
-**In the skill** these are the "Design" and "Build" stages. If Claude Design is available, the design goes on a canvas by default: first 2–3 style options, you pick one and comment; then the whole deck on the canvas, you edit it by hand or with comments. The skill writes `design.md` from the canvas and moves the slides into an offline HTML deck on its own kernel: animations, presenter window, PDF. In the "do it yourself" mode the skill draws one option and goes on without stopping. Without Claude Design — three roads: a ready style from refero (your step: drop the file into the folder), a brief from 3–4 questions, or design taken from a reference URL. Then the build, the check in Chrome and the revision loop.
+**In the skill** these are the Design and Build stages. Codex opens style options and the finished HTML deck in a local preview; additional artifact routes are optional choices. Claude Code retains canvas options and HTML transfer when Claude Design is available. In together mode you choose the style; in do-it-yourself mode the agent chooses one. A ready refero brief, an interview and a URL reference remain shared ways to obtain `design.md`, followed by the build, available browser checks and revisions.
 
 ### 3. Voice → the loop back into `slides.md`
 
@@ -88,7 +88,7 @@ The small loop turns as many times as you run the talk out loud.
 | Context / Voice | [OpenSuperWhisper](https://github.com/Starmel/OpenSuperWhisper), model `large-v3` | local transcription of your recordings: a whisper.cpp wrapper for macOS — a global dictation hotkey, drag & drop for recordings, models downloaded from inside the app. Fast on an M-chip, punctuation and loanwords included, free and offline | no — the skill transcribes the recording itself if whisper is on the machine; otherwise anything that puts text into an input field works (macOS has built-in dictation too) |
 | Design | [styles.refero.design](https://styles.refero.design) | a gallery of clean references, each style shipping a ready `design.md` — copy it into your folder | no — the skill builds a brief from questions or from a reference URL |
 | All stages | **this skill** | leads from idea to deck: `slides.md` → `design.md` → one offline HTML with a presenter window and PDF export → run-through and trimming | — |
-| Design and edits | Claude Design | a canvas to design the deck and a page to edit the finished deck: edit by hand, comment right on the slides, the agent sees what each comment refers to | no, but strongly recommended — included in the Claude subscription; the pipeline works without it, editing is less convenient |
+| Design and edits | Current host preview / chosen service | style options and revisions | hosted services optional; verify capabilities in-session |
 
 ---
 
@@ -121,22 +121,25 @@ The deck runs as a local file, and a browser cannot write to disk from one — s
 The skill is then called `/present:present`. To get a new version: `/plugin marketplace update sp-tools`,
 then `claude plugin update present@sp-tools` (in the shell).
 
-**From a clone.** Pick one way: with both, the skill loads twice.
-The skill is installed by copying it into a skills directory — globally (available in every project) or locally in one project.
+**From a clone, for either client.** Keep the complete repository outside the skills directory, then run from it:
 
-Globally:
-
-```bash
-git clone https://github.com/StasPotapov/present.git ~/.claude/skills/present
+```sh
+python3 -B scripts/present.py doctor
+python3 -B scripts/present.py setup --client codex --install-skills
+# For Claude Code use claude-code instead of codex.
 ```
 
-Or into a specific project:
+Setup links `present` and `present-setup` into the selected client's skills directory. Repeat runs preserve those links; foreign files and links stop writes before any changes. If an environment manager owns delivery, update through that owner. AI Workspace is not a runtime dependency. Do not combine clone and plugin installation in one client.
 
-```bash
-git clone https://github.com/StasPotapov/present.git .claude/skills/present
-```
+No models or roles are configured: the current session performs the stages. Setup does not launch an AI CLI, install software or modify the other client's settings. After reload verify both skills are discovered; use `$present` in Codex or `/present` in Claude Code (`/present:present` for the plugin).
 
-To check that Claude Code sees the skill: `/present` in the command list.
+## Design and artifacts by client
+
+- **Codex:** the default is design options and the actual HTML deck in a browser panel. Feedback comes through chat with slide numbers. Optional routes use Presentations/Spaces, Pages with HTML and comments, or Sites hosting. Discover tools in the current session; an artifact editor alone does not guarantee saved presentation creation.
+- **Claude Code:** retain the original Claude Design canvas/review workflow when its connector is available. Local files and browser preview remain available without it.
+- **Boundaries:** native slides do not automatically carry the HTML kernel, animations or live notes. Page comments do not guarantee slide-element anchors. Ordinary `present` use does not publish; uploading/hosting requires the person's choice of that route.
+
+See the [host contract](HOST.md), [design router](stages/canvas.md) and [Codex route](stages/codex-design.md). Browser, image, PDF and connector checks are separate; skipped verification is not a pass. Live Claude and remote connector behavior require a separate check in that host session.
 
 ## Usage
 
@@ -158,7 +161,7 @@ The skill works out where to start on its own:
 | a finished deck (`*.html`) | polishing, or growing it into a talk |
 | the folder and "I left comments" | the skill reads the comments on the canvas or the review page, edits the deck and replies in the threads |
 
-The first thing Claude asks about is the path. **Short** — for when you just need to show an idea in
+The first thing the agent asks about is the path. **Short** — for when you just need to show an idea in
 pictures: no `slides.md`, no brief, no interview, no plan to approve; exactly one `<slug>.html` lands on
 disk, with no presenter window. At the end the skill offers to add one in a single line. Need it right
 away — say so: "with notes". **Full** — everything described above and below. A short deck is not wasted
@@ -232,7 +235,7 @@ open present/example-quick/present-korotkiy-put.html
 | `SKILL.md` | the router: ingest → path and working mode → which stage to start from → gates between stages → your manual steps → status in `DECK.md` |
 | `stages/context.md` | the "Context" stage: an idea, dictation, material or a recording → `slides.md` with a running-time estimate |
 | `stages/design.md` | the "Design" stage: Claude Design canvas, refero, interview or reference URL → `design.md` |
-| `stages/canvas.md` | Claude Design: checking that it is available, the canvas, comments, moving the canvas into HTML, the review page |
+| `stages/canvas.md` | Host design router; Claude Design: checking that it is available, the canvas, comments, moving the canvas into HTML, the review page |
 | `stages/build.md` | the "Build" stage: art direction → plan → build → check in Chrome and PDF → polish |
 | `stages/rehearse.md` | the "Voice" stage: recorded run-through → transcript → trimming to the budget → rebuild |
 | `stages/quick.md` | the short path: one page in one go, presenter window on request |
@@ -256,19 +259,13 @@ A short-path deck is recognised by the validator on its own — a single file wi
 
 ## Requirements
 
-- Claude Code.
-- Recommended: **Claude Design** — sign in to Claude Design with `/design-login` in Claude Code. The canvas and the review page go through it. The skill checks for Claude Design in every session. Without it, the skill suggests signing in, in one line, and works without it.
-- For the validator — `python3` (stdlib) and `node` (for `--check`; without it the syntax check is simply skipped).
-- PDF export is verified in Chrome; from Safari it is worth checking the result by eye.
-- Optional: **poppler** (`brew install poppler`) — Claude uses `pdfinfo`/`pdfimages`/`pdfseparate` to check the exported PDF. Without it that check degrades to file size plus a `qlmanage` render of the first page.
-- The **Claude in Chrome** extension — this is what Claude uses to check the deck before handing it over:
-  it runs the layout audit (overflow, broken images, tiny type, clipped and overlapping text) and looks at
-  the frames itself. The check is mandatory on both paths; without the extension Claude says so plainly and
-  asks you to page through the deck with `?check` yourself.
-- Optional: the **defuddle** skill — used to read a reference URL. Without it, `WebFetch` is used.
-- Optional: a transcription skill or **whisper-cli** with a model — used to transcribe recordings. Without it the skill asks you to paste the transcript.
+- Codex or Claude Code with file and shell access; no AI CLI dependency.
+- Python 3.9+ (stdlib), Node for JS syntax checks. Without Node that portion is reported as skipped.
+- The current host's browser tool and image viewing for visual checks. Claude in Chrome is adapter-specific, not required in Codex.
+- Chrome/Chromium for headless PDF; `qlmanage` on macOS for Quartz verification, optionally poppler. Missing checks are explicitly reported.
+- Optional design/artifact connectors, `defuddle` or a permitted web tool for references, local transcription or an existing transcript.
 
-No `npm install` / `pip install`: the skill uses preinstalled tools only. Fonts are system stacks, or one embedded base64 open-source font (with your consent — the only network action allowed during a build).
+Dependencies and service logins are never installed automatically. Network actions are limited to requested references, approved fonts and explicitly chosen hosting/artifacts. The finished HTML deck remains offline.
 
 ## License
 

@@ -78,7 +78,7 @@ Do not build HTML before approval. **Mode "do it yourself":** show the plan and 
 (one or two widgets at most, only if they add understanding) and name it in the final message.
 
 **Interactivity is a separate question, and only if there are candidates** (Step 1, axis 9). One
-AskUserQuestion, multiple choice, 2-4 options written for THIS talk — "slide 07: a load
+the available question tool (or chat), with concrete choices supported by its schema written for THIS talk — "slide 07: a load
 slider, the latency number recalculates", not "add interactivity". The last option is mandatory —
 "keep the deck static". Build what the person chose. If the person chose nothing, the deck is static.
 If there were no candidates, there is no question. Do not invent an extra step.
@@ -145,6 +145,11 @@ it builds from. Keep it up to date after every change (a rebuild must not roll t
    and copy its text into `data-notes` of the deck you build. Do not overwrite the file from old `data-notes`.
 
 ## Step 5 — Check and show
+
+Use the actual host browser adapter from `HOST.md`. Claude in Chrome is not required
+in Codex. Run the cookbook checks through documented APIs, and record checks that
+the available tools cannot perform. Route previews/review pages via `stages/canvas.md`.
+
 - **Run the validator:** `python3 <skill folder>/assets/validate.py <deck>.html`. It checks the integrity of
   the kernel (the marker `KERNEL v8`, base/print styles, chrome, presenter, note editing, PDF export), leftover `{{…}}`,
   network links and local links to missing files, JS syntax (`node --check` on each script block — kernel, interactive — and on notes.js),
@@ -154,7 +159,7 @@ it builds from. Keep it up to date after every change (a rebuild must not roll t
   The validator recognises a single deck of the short path by itself (it is not in `deck/`, and no file of the file set is next to it)
   and does not ask for the file set. It reports an error for a deck with `data-presenter="off"` next to a file set. What it does NOT catch: broken widget logic and clicks attached with
   `addEventListener` — you check these by hand, in the next item.
-- **Visual self-check in Chrome (mandatory step).** YOU look at the deck, not the person: start a
+- **Visual self-check in the available browser (mandatory step).** YOU look at the deck, not the person: start a
   local server in `deck/`, open a tab, get the `?check` verdict and the JS errors from the console, enter capture
   mode, run the layout auditor (ONE call for the whole deck) and look at the frames with your eyes. The check stands on two
   supports, both are mandatory: the **auditor** gives numbers (overflow against the 16:9 reference, content outside the frame, broken
@@ -177,7 +182,7 @@ it builds from. Keep it up to date after every change (a rebuild must not roll t
   part of the check, not a task for the person: `?check` and the auditor do not see the print layout at all.
   Look at the pages through `qlmanage` (the Quartz engine, as in Preview): `pdftoppm` draws clean
   even a PDF that Preview shows with grey rectangles.
-  If there is no claude-in-chrome extension / Chrome is not available, say so and ask the person to open
+  If no supported browser-control tool is available, say so and ask the person to open
   the deck with `?check` and scroll through it with their eyes. Do not skip the check silently. This is not a manual step: the path does not
   stop, the request goes into the stage result, and the Pipeline section gets "Chrome not checked" (in the person's language;
   Russian: «Chrome не проверен»). **This branch does not cancel
@@ -226,8 +231,8 @@ it builds from. Keep it up to date after every change (a rebuild must not roll t
   of the same color (on screen everything comes back). All print traps: `cookbook.md`, item 9.
 
 ## Step 6 — Refinement
-**Comments on the review page** (the person says "I left comments", or `DECK.md` names a review page): read and apply them
-by `stages/canvas.md`, "Read the canvas and its comments", then rebuild here and republish the page to the same URL.
+**Comments on the review surface** (the person says "I left comments", or `DECK.md` names a review page): read and apply them
+by `stages/canvas.md`, "Read the canvas and its comments", then rebuild here and update the same authorized surface.
 Offer to adjust: palette/density/motion, the treatment of the background, add/remove a slide, timings.
 **Before any change, read `<slug>-notes.js` again** — the person could edit the speaker notes in the presenter window
 and download the file. Copy these changes into `data-notes`. Do not overwrite them with old text from the HTML.
@@ -251,10 +256,9 @@ the file set until the person asks for promotion.
 - The order of the final message of the stage: result and path to the deck → controls (short, `? help` in the presenter
   window explains the rest) → the review page offer → the manual step block last.
   Do not run `open` in the mode "do it yourself": the person did not ask for a window on their screen.
-- Recommend editing through Claude Design: if it is available and the deck has no review page yet, offer the review page
-  in one line (`stages/canvas.md`, "The review page"). It is the recommended way to edit: comments right on the slides,
-  and you see what each one refers to. It is an option, not a gate; if the person refuses or says nothing, do not repeat.
-  Claude Design is not available → the one-line hint from `stages/canvas.md`, once per session.
+- Offer the current host's review surface once (`stages/canvas.md`): local preview in Codex,
+  optional native artifacts or hosted review when chosen, verified Claude Design in Claude Code.
+  Do not recommend another client's login or claim unavailable annotation features.
 - The default next step is the stage Voice (`stages/rehearse.md`). It starts with a manual step:
   a run-through of the talk aloud. The ways to do the run-through and the block format are in `stages/rehearse.md`, Step 1: read
   it, give the manual step from there, then stop.

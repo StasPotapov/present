@@ -33,9 +33,9 @@ the person asked for.
 
 ## Steps
 
-The short path builds HTML directly. A Claude Design canvas is used only if the person asks for it: then draw the
-slides on a canvas by `stages/canvas.md` (no style options round, unless asked) and transfer them into the one file
-(`stages/canvas.md`, "Transfer", the short path paragraph).
+The short path builds HTML directly. Use an optional design surface only when requested:
+follow the current host route in `stages/canvas.md` (no style options round unless asked),
+then transfer into the one HTML file. Keep all preview drafts outside the deliverable.
 
 1. **Concept** — `stages/build.md`, Step 1, but axes 1, 4, 5 are enough (+9, if the content clearly asks for it).
    The answers are still your own, not "as usual". Keep the art direction in your head: there is no `DECK.md` here, and
@@ -63,7 +63,7 @@ slides on a canvas by `stages/canvas.md` (no style options round, unless asked) 
    the whole deck. Only the frames are rationed: the title slide + all slides that the auditor flagged + the two or three
    densest slides. Do not skip the check silently. Start the server for Chrome in the folder where the file is,
    not in `deck/`. Skip the items of Step 5 about `DECK.md`, `deck/` and the layout: they do not exist here.
-   If there is no claude-in-chrome extension, take the same branch as in Step 5: say so in the final message and ask the person to
+   If no supported browser-control tool is available, take the same branch as in Step 5: say so in the final message and ask the person to
    open the deck with `?check` and scroll through it with their eyes. This branch does not cancel the headless PDF print.
 
 ## Finish
@@ -71,11 +71,10 @@ slides on a canvas by `stages/canvas.md` (no style options round, unless asked) 
 - Give the path to the file and say that this is the whole deck: to send it, send one file.
 - Remind the controls: `← →`/wheel/swipe — go through slides, `B` — black screen, `F` — fullscreen,
   `S` — PDF, `?check` in the address — highlight overflow. Mention `P` only if the window exists.
-- Recommend editing through Claude Design: if it is available, offer the review page in one line before the last line
-  (`stages/canvas.md`, "The review page"): the person comments right on the slides, and you see what each comment
-  refers to. Not available → the one-line hint from `stages/canvas.md`.
+- Offer the current host's review surface once (`stages/canvas.md`), before the last line.
+  In Codex this is local preview with optional artifacts; Claude Design belongs to its verified adapter.
 - **In the last line, offer the presenter window** (if there is none): "I can add a presenter window
-  with speaker notes — for giving a talk with this deck. Shall I?". This is one line, not an AskUserQuestion question.
+  with speaker notes — for giving a talk with this deck. Shall I?". This is one line, not a question-tool call.
 
 ## Add the presenter window later
 

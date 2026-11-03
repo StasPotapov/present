@@ -225,7 +225,15 @@ python3 <skill-dir>/assets/validate.py FILE.html
 The kernel itself checks layout overflow (content taller than the screen): open `file://…/FILE.html?check`
 (for the agent: only over http, see below). A plate with the list of problem slides appears.
 
-## Visual self-check in Chrome (claude-in-chrome)
+## Visual self-check in Chrome
+
+Use the current host's browser adapter (`HOST.md`), not a required extension. The
+snippets below are DOM algorithms; run them only through an API that permits page
+script evaluation. Follow its current schema and restrictions. Screenshots require
+an actual image viewer. Missing DOM evaluation, browser control or image access
+means that part is unverified, not passed. Claude extension errors below describe
+that adapter only; Codex can use its own browser tools.
+
 
 The validator checks the plumbing, but it does not see the layout: it misses overlapping slides, a cut
 heading, grey text on dark, a missing image. Because of this, before showing, the agent **looks at the
@@ -234,14 +242,15 @@ numbers — overflow against 16:9, elements out of the frame, broken images, sma
 overlapping text, empty slides; the **frames** (items 6–7) give what numbers cannot catch — contrast,
 rhythm, composition. The procedure below was tested on a live deck; deviations from it cost lost time.
 
-**1. Server.** The extension does not open `file://` (`Can't interact with browser-internal or unparseable
-URLs`), so serve the deck over http. Use a free port, and always stop the server at the end:
-```bash
-cd path/to/deck && nohup python3 -m http.server 8777 --bind 127.0.0.1 >/dev/null 2>&1 &
-sleep 1 && curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8777/FILE.html   # wait for 200
-# ...check...
-pkill -f "http.server 8777"
-```
+**1. Server.** Serve over loopback HTTP when the browser cannot open `file://`.
+Start `python3 -m http.server <free-port> --bind 127.0.0.1 --directory <deck-dir>`
+in a retained shell session. Check the deck URL returns 200. Stop only this owned
+session after QA, or keep it while the person reviews the preview. Do not kill a
+process by a generic port/name pattern.
+
+**Adapter note for items 2–3:** the concrete calls below are legacy Claude in Chrome
+examples. In Codex use the discovered browser API and its permitted operations;
+attach console tracking before navigation only if that API supports it.
 
 **2. Tab.** `tabs_context_mcp{createIfEmpty:true}` → `navigate` to
 `http://127.0.0.1:8777/FILE.html?check`. Close the tab at the end (`tabs_close_mcp`).

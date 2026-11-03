@@ -2,7 +2,7 @@
 
 A shared block for the stages Context and Voice. Read it when the stage has a recording but no text.
 
-1. If there is a transcription skill (for example, `whisper`), call it with `Skill`.
+1. If there is a transcription skill (for example, `whisper`), read it and use the current host's supported skill mechanism.
    If the skill only describes the commands, run them yourself by the rules below.
 2. If there is no skill, but there is `whisper-cli` and a model file (`ggml-*.bin`; check `$WHISPER_MODEL`,
    `~/.whisper/models`, `~/.cache/whisper`, `~/models`), transcribe it yourself, with timecodes (`-osrt`):

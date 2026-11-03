@@ -6,7 +6,7 @@ folder. This stage has no design.
 
 ## Entry: three roads
 
-Choose the road from what you saw during intake. If it is not clear, ask with one AskUserQuestion
+Choose the road from what you saw during intake. If it is not clear, ask with one available question-tool call (or ask in chat)
 (write the options for this material; in "do it yourself", choose yourself and say it in one line).
 
 - **Invent together** — there is only an idea or a topic. The talk is invented together with the model.
@@ -23,7 +23,7 @@ OpenSuperWhisper), where to put the file and how to continue. Then stop.
 
 ## First — budget and audience
 
-One AskUserQuestion, only about what you cannot get from the material:
+One question call supported by the current client (or ask in chat), only about what you cannot get from the material:
 - **time budget** (10 / 20 / 30 minutes or a custom value);
 - **audience** and **goal** of the talk — one sentence each.
 Write the answer into the Pipeline section of `DECK.md` and into the header of `slides.md`. In "do it
@@ -32,7 +32,7 @@ assumption.
 
 ## Road "Invent together"
 
-Interview with AskUserQuestion, 2-4 options + "Other", one block of questions at a time:
+Interview using the current client’s question tool and its actual schema, or ask in chat if unavailable. Offer concrete options and accept free text, one group at a time:
 1. Main idea: what the audience must take away (one or two things).
 2. Arc: how to start (a pain, a story, a question), where to arrive, where the turn is.
 3. Supports: which facts, numbers, examples, demos the person has. No numbers — the slide has no numbers. Do not invent them.
@@ -73,7 +73,7 @@ Header: topic, budget, audience, goal, pace, timing total. Then the slides, sepa
 > `[note: pause, demo, action]`
 ```
 Write the headings and markers in the person's language (Russian: `**На экране:**`). The format
-sample is `${CLAUDE_SKILL_DIR}/example/slides.md`. The sample is in Russian; the format is the same
+sample is `<real-skill-root>/example/slides.md`. The sample is in Russian; the format is the same
 in any language.
 
 ## Stage gate

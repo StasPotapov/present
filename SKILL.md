@@ -2,9 +2,11 @@
 name: present
 description: "Guides the person from an idea to a finished HTML presentation (deck): slide text, design brief, an offline single-file deck with a presenter window, a run-through aloud and trimming to the time budget. Short path: a one-page presentation in one go. Talks and writes the deck in the person's language."
 when_to_use: "\"make a presentation\", \"build slides\", \"a deck for my talk\", \"help me come up with a talk\", \"a simple presentation\", \"go through my run-through / rehearsal\", \"cut the talk to 20 minutes\", \"continue the talk\" — in any language. Input: an idea, a topic, text, a recording, a folder with slides.md and design.md, a repo, a reference URL or an existing deck. If the person needs a .pptx file, this is not the skill."
-argument-hint: "[idea / folder / file / recording / deck / reference URL]"
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill, AskUserQuestion, Artifact, ArtifactComments, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__tabs_close_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__javascript_tool, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__browser_batch
 ---
+
+Read `HOST.md` in this skill directory before running tools; it defines portable paths and host capabilities.
+
+
 
 # present — from an idea to a bespoke HTML presentation
 
@@ -14,14 +16,15 @@ pages with arrows and the wheel. Speaker notes live in the presenter window and 
 file `<slug>-notes.js`. The short path gives a one-page presentation without a presenter window,
 in one go.
 
-**Edit slides through Claude Design** — recommend it everywhere. On a Claude Design canvas and on a
-review page the person comments right on a slide, and the agent sees which slide and element each
-comment refers to. How it works and how to check that it is available: `stages/canvas.md`.
+**Design and review in the current client.** Read `stages/canvas.md`: Codex uses a local HTML
+preview and optional native artifacts; Claude Code can use Claude Design. Recommend only verified
+capabilities of that host. The shared output remains an offline HTML deck unless the person
+explicitly chooses another destination.
 
 This file is the router: it decides the path and the stage to start from, and it holds the gates
-between stages. The stages are in `${CLAUDE_SKILL_DIR}/stages/`, transcription of recordings is in
+between stages. The stages are in `<real-skill-root>/stages/`, transcription of recordings is in
 `stages/transcribe.md`. **Read a stage file only when you enter that stage.**
-Paths `assets/…` and `stages/…` below are relative to `${CLAUDE_SKILL_DIR}`.
+Paths `assets/…` and `stages/…` below are relative to `<real-skill-root>`.
 
 ## Language
 
@@ -65,12 +68,12 @@ decks (structure, palette, typography, background, motion), not one look in new 
 | Stages | one go: `stages/quick.md` | Context → Design → Build → Voice |
 | Output | exactly one `<slug>.html` | working folder: `slides.md`, `design.md`, `DECK.md`, show folder `deck/` |
 | Presenter window | none unless asked; the finish offers to add it | yes, with live notes |
-| Claude Design | canvas only if asked; the review page is offered once after the build | canvas by default (style options → whole deck → HTML); the review page is offered once after the first build |
+| Design surface | optional sketch; host-supported review offered once | host-native style preview → whole deck → HTML; hosted surfaces are opt-in |
 | Status | not kept | the Pipeline section in `DECK.md` |
 
 ## Intake (silent), then questions
 
-First read `$ARGUMENTS` and the attachments — silently. If the arguments hold a path and a phrase,
+First read the user request (or `$ARGUMENTS` when the host supplies it) and the attachments — silently. If the arguments hold a path and a phrase,
 separate the path; the phrase is the person's instruction (a new budget, "go on yourself", "enough"),
 take it into account. For a folder, scan it (`Glob`/`Read`) and note:
 - **`DECK.md`** → read it FIRST: the Pipeline section says where the work stopped, the rest are deck decisions;
@@ -81,14 +84,15 @@ take it into account. For a folder, scan it (`Glob`/`Read`) and note:
 - **existing deck** — `*.html` with the `KERNEL v` marker in the head; **reference** — `reference.html`, a URL in the arguments;
 - everything else is material: `.docx`, articles, a repo path (real numbers from `git log`), a topic, raw text.
 
-Then questions — in one AskUserQuestion, only those without an answer:
+Then ask questions using the available question tool, only those without an answer:
 1. **Path** — short or full. Phrase the options from what you saw ("a paragraph came in chat — this
    looks like one page"); the person decides. No question if there is a `DECK.md` (the path is full)
    or an existing deck (the path is known: refinement or promotion, `stages/build.md`).
-2. **How we work** — "together" (the stages go through questions) or "do it yourself" (Claude passes
-   the stage without questions and shows the result). Only for the full path. If Claude Design is
+2. **How we work** — "together" (the stages go through questions) or "do it yourself" (the agent passes
+   the stage without questions and shows the result). Only for the full path. If a design preview is
    available (`stages/canvas.md`) and the folder has no `design.md` yet, add a second question in
-   the same AskUserQuestion: "Design on a Claude Design canvas (recommended)" / "Straight to HTML".
+   the same question call using that host's actual surface (Codex local preview / Claude Design)
+   and "Straight to HTML". Hosted alternatives require an explicit choice.
    Write the answer into the Pipeline section. The person can switch the mode at any stage with words like "go on yourself" / "let's do it together". "Do it yourself"
    stops only at manual steps and at the finish.
 3. **Place** — only if not given. Full path: a folder is given → work in it; not given → offer 2-3
@@ -151,8 +155,10 @@ against the budget, a reminder: to take the talk with you, take the whole `deck/
 
 ## How to talk
 - Language: the person's (see "Language"). Short between questions. All clarifications go through
-  AskUserQuestion (2-4 options + "Other").
+  the available question tool with options supported by its current schema; if unavailable, ask in chat.
 - Do not ask what is already in the materials or in the Pipeline section.
 - Do not invent facts and numbers — take them from the materials or ask. From the network — only a
-  reference URL and an OSS font with consent.
+  reference URL and an OSS font with consent; hosted design/review only when explicitly chosen.
 - Do not install packages yourself; if a tool is missing, say so and offer a workaround.
+
+Before a design/diagram connector call, discover the available tool and read its current schema. If unavailable, use the documented local-file/CLI route. An unavailable Artifact/Design connector is not a successful live check.
