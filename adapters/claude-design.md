@@ -103,11 +103,15 @@ instructions.
 4. Add kernel life on purpose: `.reveal` with delays on titles and key blocks, kernel animators
    (`cookbook.md`, "Kernel class contract") where the canvas sticky notes ask for motion, widgets in
    `<script id="interactive">`. The canvas is static; the deck is not.
-5. `data-notes` from `slides.md` as always. Then the usual checks (`stages/build.md`, Step 5).
+5. Follow `assets/speaker-notes.md`: speech in `data-notes`, cue bullets in `data-cues`, optional
+   audience questions/topics in `data-discussion`. Preserve all fields from existing notes.js.
+   Generate the three-field live notes file by `stages/build.md`, Step 4 item 5, then run Step 5 checks.
 6. Write into the Pipeline section: "Build — done (transferred from the canvas)".
 
 **Short path:** transfer into the one `<slug>.html` (`stages/quick.md`): no `deck/`, no `slides.md`, the
-text is what the canvas shows, `data-notes` only if the person asked for the presenter window. There
+text is what the canvas shows. If the person asked for the presenter window, prepare `data-notes`,
+`data-cues` and optional `data-discussion` by `assets/speaker-notes.md`; keep them embedded without
+a notes.js sidecar. There
 is no `DECK.md`: give the canvas URL in the final message; in a new session ask the person for it.
 
 After the transfer the HTML is the main version. The canvas stays a sketch: do not update it after

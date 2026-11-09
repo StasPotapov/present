@@ -27,7 +27,8 @@ the person asked for.
   (kernel v7+, `cookbook.md` → "Without the presenter window"), and the slides get no `data-notes`.
 - Make the window at once only when the person asked for it directly: "with speaker notes", "with the presenter
   window", "I will give a talk with it". Then the attribute is not there, each slide has `data-notes`
-  with speech from the material (do not invent your own speech), and there is no `notes.js` file: the speaker notes are embedded.
+  with speech from the material (do not invent your own speech), `data-cues` and optional
+  `data-discussion` following `assets/speaker-notes.md`, and there is no `notes.js` file: the speaker notes are embedded.
 - If the material shows that this is a talk, but the person did not ask directly, still build without the window. In the final message
   the offer to add the window comes anyway (see "Finish").
 
@@ -79,8 +80,12 @@ then transfer into the one HTML file. Keep all preview drafts outside the delive
 ## Add the presenter window later
 
 The person agreed or asked later:
+First check the kernel version. For a deck below v9, move its design and slides into the current
+`assets/kernel.html`, preserving language, interactive script, media and all existing notes.
+The new tabs and shared discussion need v9; merely removing the off switch on v7/v8 is not enough.
 1. Remove the attribute: `<html lang="<deck language>" data-presenter="off">` → `<html lang="<deck language>">` (this line appears once in the file).
-2. Add `data-notes` to each slide: speech from the material and from the slide text, stage directions in `[brackets]`.
+2. Follow `assets/speaker-notes.md`: add `data-cues` and optional `data-discussion` as well as
+   `data-notes` to each slide: speech from the material and from the slide text, stage directions in `[brackets]`.
    If the material is not enough for the speech, ask. Do not invent.
 3. Run the check from step 4 in full. The deck stays one file, `notes.js` is not needed.
 4. Remind about `P`: it opens as a separate window. Do not share that window, share the deck.

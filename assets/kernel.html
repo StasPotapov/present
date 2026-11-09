@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  KERNEL v8 — reliable presentation plumbing for the /present skill.
+  KERNEL v9 — reliable presentation plumbing for the /present skill.
   This is the ONLY part that is copied verbatim. Do NOT edit the chrome DOM, the print layer or the kernel script.
   Write all deck visuals in the design layer of styles (the second style block in head) and in the slides
   inside the deck container. Block names in this comment are intentionally NOT written as tags,
@@ -35,6 +35,11 @@
   also weighs an order of magnitude more. On screen everything comes back (unfreezeAfterPrint).
   The position is kept in the URL hash (#N): F5 / reopening returns to the current slide.
   Self-check: open the deck with ?check in the address. It highlights slides with overflow.
+  PRESENTER TABS (v9): Cues opens by default; Full text keeps the complete speech.
+  data-cues is a bullet list of headings with short explanations. data-discussion holds
+  optional audience questions/topics, shown in a separate shared block on BOTH tabs.
+  Live notes use ### Cues / ### Full text / ### Discussion (Russian equivalents supported).
+  Legacy sections without these headings remain full text; no cues are invented.
   Speaker notes are the data-notes attribute of the slide section; they show ONLY in the
   presenter window. The deck itself does not show them.
   LIVE NOTES: if <deck-name>-notes.js lies next to the deck (window.DECK_NOTES =
@@ -52,7 +57,8 @@
   WITHOUT THE PRESENTER WINDOW (v7): the data-presenter="off" attribute on the root html tag turns
   the presenter off completely: P opens nothing, notes.js does not load, "P — notes" disappears
   from the hint at the bottom. The root tag takes only two edits: this attribute and lang
-  (the deck language). To bring the window back, remove the attribute and add data-notes to the slides.
+  (the deck language). To bring the window back, use kernel v9, remove the attribute and add
+  data-notes, data-cues and optional data-discussion to the slides.
 
   UI LANGUAGE (v8): UI strings follow the lang attribute of the root html tag (ru or ru-* → Russian, any other → English); the build sets lang to the deck language.
 -->
@@ -165,6 +171,11 @@
       pPrev:'‹ back',
       pFwd:'forward ›',
       pNotes:'speaker notes',
+      pCues:'Cues', pFull:'Full text', pDiscussion:'Discuss with the audience',
+      noCues:'No cues yet. The speech is on the Full text tab.',
+      noDiscussion:'No audience questions for this slide.',
+      cuesHelp:'Use a bullet per thought: a short heading, then 1–2 sentences on the next line.',
+      discussionHelp:'Use a bullet per question or topic, then a short facilitation prompt.',
       bEd:'✎ edit', bEdTip:'edit the note of this slide (or double-click the text)',
       bOk:'✓ apply', bOkTip:'save the edit',
       bNo:'✕ cancel', bNoTip:'cancel the edit',
@@ -177,6 +188,7 @@
       helpTitle:'how it works',
       helpClose:'✕ close',
       help:[
+        ['Cues / Full text','Cues opens first. Each bullet has a heading and a short reminder. Audience questions appear below on both tabs. Edit each block separately; all notes, drafts and exports keep all three blocks.'],
         ['this window','For you only: notes, timer, what is on screen now and what comes next. '
           +'<i>Share the deck window on screen, not this one.</i> You do everything with mouse buttons. The only keys here '
           +'are <kbd>←</kbd><kbd>→</kbd> (navigate), <kbd>Esc</kbd> (close/cancel) and '
@@ -232,6 +244,11 @@
       pPrev:'‹ назад',
       pFwd:'вперёд ›',
       pNotes:'заметки спикера',
+      pCues:'Тезисы', pFull:'Полный текст', pDiscussion:'Обсудить с залом',
+      noCues:'Тезисы ещё не добавлены. Речь — на вкладке «Полный текст».',
+      noDiscussion:'Для этого слайда вопросов пока нет.',
+      cuesHelp:'На каждый пункт — короткий заголовок, затем 1–2 предложения с новой строки.',
+      discussionHelp:'На каждый пункт — вопрос или тема, затем короткая подсказка для обсуждения.',
       bEd:'✎ править', bEdTip:'править заметку этого слайда (или двойной клик по тексту)',
       bOk:'✓ применить', bOkTip:'сохранить правку',
       bNo:'✕ отмена', bNoTip:'отменить правку',
@@ -244,6 +261,7 @@
       helpTitle:'как это работает',
       helpClose:'✕ закрыть',
       help:[
+        ['два режима','Сначала открываются «Тезисы»: заголовки мыслей и короткие пояснения. «Полный текст» — речь целиком. Вопросы залу видны снизу на обеих вкладках. Каждый блок правится отдельно; черновик и экспорт сохраняют все три блока.'],
         ['это окно','Только для тебя: заметки, таймер, что сейчас и что дальше. '
           +'<i>Шарить на экран надо окно деки, а не это.</i> Всё делается кнопками мышью; из клавиш здесь '
           +'работают только <kbd>←</kbd><kbd>→</kbd> (листать), <kbd>Esc</kbd> (закрыть/отменить) и '
@@ -571,7 +589,7 @@
   // The main window (the one being shared) draws and updates the content of the child window itself.
   // A mini preview is an iframe with a copy of the deck (srcdoc), scaled: exact rendering without libraries, offline.
   // Sync in both directions; works from a local file (file://), without BroadcastChannel.
-  let presenter=null, startedAt=0, deckHTML='';
+  let presenter=null, startedAt=0, deckHTML='', noteMode='cues', editField='cues';
   function presenterHTML(){
     const T=__kT;
     return '<!doctype html><'+'html lang="'+__kLangAttr+'"><head><meta charset="utf-8"><title>'+T.pTitle+'</title>'
@@ -592,14 +610,23 @@
     +'.nav button{flex:1;background:#1c2029;border:1px solid #2f3444;color:#e7e9ef;border-radius:10px;padding:14px;font-size:20px;cursor:pointer;transition:.15s}'
     +'.nav button:hover{background:#252b37;border-color:#f5b942;color:#f5b942}'
     +'#count{font:600 13px/1 ui-monospace,monospace;color:#8b909c;text-align:center;margin-top:6px}'
-    +'main{display:flex;flex-direction:column;min-height:0}'
-    +'#note{flex:1;background:#161922;border:1px solid #262a36;border-radius:14px;padding:22px 26px;font-size:22px;line-height:1.55;overflow:auto}'
+    +'main{display:flex;flex-direction:column;min-height:0;min-width:0}'
+    +'.tabs{display:flex;gap:8px;margin-bottom:10px}.tabs button{font:600 15px/1.3 system-ui;padding:9px 16px}'
+    +'.tabs [aria-selected=true]{background:#f5b942;color:#10131a;border-color:#f5b942}'
+    +'.pbtn:focus-visible,#note:focus-visible{outline:2px solid #f5b942;outline-offset:2px}'
+    +'.cue-list{padding-left:24px}.cue-list li+li{margin-top:18px}.cue-title{display:block;font-weight:700;line-height:1.3}'
+    +'.cue-detail{display:block;margin-top:5px;color:#b7bdca;font-size:.82em;line-height:1.45;white-space:pre-line}'
+    +'.empty{color:#8b909c;font-size:16px}.nlbl{flex-wrap:wrap}'
+    +'#discussionwrap{flex:0 1 auto;min-height:90px;max-height:38%;overflow:auto;margin-top:12px;background:#1b1b20;border:1px solid #54432a;border-radius:12px;padding:14px 18px}'
+    +'#discussion{font-size:18px;line-height:1.4;overflow-wrap:anywhere}#discussion .cue-list li+li{margin-top:12px}'
+    +'#note{flex:1;background:#161922;border:1px solid #262a36;border-radius:14px;padding:22px 26px;font-size:22px;line-height:1.55;overflow:auto;min-height:0;overflow-wrap:anywhere}'
     +'#note .pause{color:#7b818e;font-style:italic}'
     // ── editing notes right here: the button bar, the field for the current note, the editor of all notes ──
     +'.nlbl{display:flex;align-items:center;gap:7px}.nlbl>span:first-child{margin-right:auto}'
     +'.pbtn{background:#1c2029;border:1px solid #2f3444;color:#aab0bd;border-radius:8px;padding:5px 9px;font:600 11px/1 ui-monospace,monospace;letter-spacing:.04em;text-transform:none;cursor:pointer;transition:.15s}'
     +'.pbtn:hover{background:#252b37;border-color:#f5b942;color:#f5b942}'
-    +'#noteedit{flex:1;display:none;background:#12151d;border:1px solid #f5b94266;border-radius:14px;padding:22px 26px;color:#e7e9ef;font:22px/1.55 system-ui,-apple-system,sans-serif;resize:none;outline:none}'
+    +'#discussionedit{display:none;width:100%;min-height:120px;background:#12151d;border:1px solid #f5b94266;border-radius:8px;padding:12px;color:#e7e9ef;font:17px/1.5 system-ui;resize:vertical}'
+    +'#noteedit{flex:1;min-height:0;display:none;background:#12151d;border:1px solid #f5b94266;border-radius:14px;padding:22px 26px;color:#e7e9ef;font:22px/1.55 system-ui,-apple-system,sans-serif;resize:none;outline:none}'
     +'#allwrap{display:none;position:fixed;inset:0;z-index:9;background:#0d0f14;padding:16px;flex-direction:column;gap:8px}'
     +'#alledit{flex:1;background:#12151d;border:1px solid #2f3444;border-radius:12px;padding:16px 18px;color:#e7e9ef;font:14px/1.65 ui-monospace,"SF Mono",monospace;resize:none;outline:none;white-space:pre-wrap}'
     +'#pplate{display:none;position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:20;max-width:88%;background:#1c2029;border:1px solid #3a4051;border-radius:10px;padding:8px 12px;font:12px/1.4 ui-monospace,monospace;color:#e7e9ef;align-items:center;gap:9px}'
@@ -625,7 +652,14 @@
     +'<button class="pbtn" id="b-dl" title="'+T.bDlTip+'">⤓ notes.js</button>'
     +'<button class="pbtn" id="b-cp" title="'+T.bCpTip+'">'+T.bCp+'</button>'
     +'<button class="pbtn" id="b-help" title="'+T.bHelpTip+'">'+T.bHelp+'</button></div>'
-    +'<div id="note">—</div><textarea id="noteedit" spellcheck="false"></textarea>'
+    +'<div class="tabs" role="tablist" aria-label="'+T.pNotes+'">'
+    +'<button class="pbtn" id="tab-cues" role="tab" aria-selected="true" aria-controls="note">'+T.pCues+'</button>'
+    +'<button class="pbtn" id="tab-notes" role="tab" aria-selected="false" aria-controls="note" tabindex="-1">'+T.pFull+'</button></div>'
+    +'<div id="note" role="tabpanel" tabindex="0" aria-labelledby="tab-cues">—</div><textarea id="noteedit" spellcheck="false"></textarea>'
+    +'<section id="discussionwrap" aria-labelledby="discussion-title"><div class="lbl nlbl"><span id="discussion-title">'+T.pDiscussion+'</span>'
+    +'<button class="pbtn" id="d-ed">'+T.bEd+'</button><button class="pbtn" id="d-ok" style="display:none">'+T.bOk+'</button>'
+    +'<button class="pbtn" id="d-no" style="display:none">'+T.bNo+'</button></div>'
+    +'<div id="discussion"></div><textarea id="discussionedit" spellcheck="false" aria-label="'+T.pDiscussion+'"></textarea></section>'
     +'</main></div>'
     +'<div id="allwrap"><div class="lbl nlbl"><span>'+T.allTitle+'</span>'
     +'<button class="pbtn" id="all-save">'+T.bOk+'</button>'
@@ -660,6 +694,7 @@
       return;                                // the notes are still available in the file next to the deck
     }
     try{ presenter.resizeTo(W,H); presenter.moveTo(L,T) }catch(e){}   // safety net if the features are ignored
+    noteMode='cues';
     deckHTML='<!DOCTYPE html>\n'+document.documentElement.outerHTML;   // copy of the deck for the mini previews
     presenter.document.open(); presenter.document.write(presenterHTML()); presenter.document.close();
     if(!startedAt)startedAt=performance.now();
@@ -672,6 +707,19 @@
     // Through a helper: a missing element must not break openPresenter (previews and timers come next).
     const hook=(id,ev,fn)=>{const el=pd.getElementById(id); if(el)el['on'+ev]=fn};
     hook('b-ed','click',()=>startEdit());
+    hook('d-ed','click',()=>startEdit('discussion'));
+    hook('d-ok','click',()=>commitEdit());
+    hook('d-no','click',()=>cancelEdit());
+    hook('discussion','dblclick',()=>startEdit('discussion'));
+    ['cues','notes'].forEach(mode=>{
+      hook('tab-'+mode,'click',()=>selectNoteMode(mode));
+      hook('tab-'+mode,'keydown',e=>{
+        if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+        e.preventDefault(); e.stopPropagation();
+        const next=e.key==='Home'?'cues':e.key==='End'?'notes':mode==='cues'?'notes':'cues';
+        selectNoteMode(next); pd.getElementById('tab-'+next).focus();
+      });
+    });
     hook('b-ok','click',()=>commitEdit());
     hook('b-no','click',()=>cancelEdit());
     hook('b-all','click',()=>openAllEditor());
@@ -734,13 +782,46 @@
     if(!presenter||presenter.closed)return;
     const pd=presenter.document;
     const note=pd.getElementById('note');
-    if(note&&!editing)note.innerHTML=(slides[i].dataset.notes||'—').replace(/\[(.*?)\]/g,'<span class="pause">[$1]</span>');
+    if(note&&(!editing||editField==='discussion')){
+      const html=noteMode==='cues'?renderBullets(slides[i].dataset.cues,__kT.noCues):
+        (slides[i].dataset.notes||'—').replace(/\[(.*?)\]/g,'<span class="pause">[$1]</span>');
+      if(note.innerHTML!==html)note.innerHTML=html;
+      note.setAttribute('aria-labelledby','tab-'+noteMode);
+    }
+    ['cues','notes'].forEach(mode=>{
+      const tab=pd.getElementById('tab-'+mode);
+      tab.setAttribute('aria-selected',String(noteMode===mode)); tab.tabIndex=noteMode===mode?0:-1;
+    });
+    const discussion=pd.getElementById('discussion');
+    if(discussion&&(!editing||editField!=='discussion')){
+      const html=renderBullets(slides[i].dataset.discussion,__kT.noDiscussion);
+      if(discussion.innerHTML!==html)discussion.innerHTML=html;
+    }
     const cnt=pd.getElementById('count'); if(cnt)cnt.textContent=fmt(i)+' / '+fmt(slides.length-1);
     const nowF=pd.getElementById('now');
     if(nowF&&nowF.contentWindow){try{nowF.contentWindow.go(i)}catch(e){}}
     const nxtF=pd.getElementById('nxt'), end=pd.getElementById('nxt-end'), has=i+1<slides.length;
     if(nxtF&&nxtF.contentWindow){try{nxtF.contentWindow.go(has?i+1:slides.length-1)}catch(e){}}
     if(end)end.style.display=has?'none':'flex';
+  }
+
+  function selectNoteMode(mode){
+    if(editing)commitEdit();
+    noteMode=mode; updatePresenter();
+    presenter.document.getElementById('note').scrollTop=0;
+  }
+  function escapeNote(text){return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+  function renderBullets(text,empty){
+    if(!text||!text.trim())return '<p class="empty">'+escapeNote(empty)+'</p>';
+    const items=[];
+    for(const line of text.trim().split(/\r?\n/)){
+      const bullet=line.match(/^\s*[-*]\s+(.+)$/);
+      if(bullet)items.push({title:bullet[1].replace(/^\*\*(.*?)\*\*$/, '$1'),detail:[]});
+      else if(items.length)items[items.length-1].detail.push(line.trim());
+      else if(line.trim())items.push({title:line.trim(),detail:[]});
+    }
+    return '<ul class="cue-list">'+items.map(item=>'<li><span class="cue-title">'+escapeNote(item.title)+
+      '</span>'+(item.detail.join('\n').trim()?'<span class="cue-detail">'+escapeNote(item.detail.join('\n').trim())+'</span>':'')+'</li>').join('')+'</ul>';
   }
 
   // ── live notes: sidecar <deck-name>-notes.js (window.DECK_NOTES) ─────────
@@ -763,23 +844,34 @@
   const notesName=decodeURIComponent((notesSrc||'deck-notes.js').split('/').pop());
   const draftKey='present:notes:'+decodeURIComponent(location.href.split(/[?#]/)[0].split('/').pop()||'deck');
   const SEC=/^##[ \t]*(\d+)([^\n]*)$/m;                       // "## NN · Title" — the section key = the slide number
-  const bakedNotes=slides.map(s=>s.dataset.notes||'');        // snapshot of the built-in data-notes — where to revert if there is no notes file
+  const bakedNotes=slides.map(s=>({notes:s.dataset.notes||'',cues:s.dataset.cues||'',discussion:s.dataset.discussion||''}));        // snapshot of the built-in data-notes — where to revert if there is no notes file
 
   // ── model: file ⇄ data-notes ───────────────────────────────────────────────
   function splitNotes(md){ return String(md).split(SEC) }     // [prologue, NN, tail, text, NN, tail, text…]
+  function parseNoteBody(body){
+    body=body.trim();
+    const start=/^### (?:Cues|Тезисы)[ \t]*\r?\n/i.exec(body);
+    const full=/^### (?:Full text|Полный текст)[ \t]*$/im.exec(body);
+    if(!start||!full)return {notes:body,cues:'',discussion:''};
+    const rest=body.slice(full.index+full[0].length).trim();
+    const discussion=/^### (?:Discussion|Обсудить с залом)[ \t]*$/im.exec(rest);
+    return {notes:(discussion?rest.slice(0,discussion.index):rest).trim(),
+      cues:body.slice(start[0].length,full.index).trim(),
+      discussion:discussion?rest.slice(discussion.index+discussion[0].length).trim():''};
+  }
   function parseNotesMD(md){
     const parts=splitNotes(md);
     if(parts.length<4)return false;                           // no sections at all — leave the notes alone
     notesPrologue=parts[0].trim();
     for(let k=1;k+2<parts.length;k+=3){
       const idx=+parts[k]-1, sl=slides[idx]; if(!sl)continue;
-      noteTitles[idx]=parts[k+1].trim(); sl.dataset.notes=parts[k+2].trim();
+      noteTitles[idx]=parts[k+1].trim(); Object.assign(sl.dataset,parseNoteBody(parts[k+2]));
     }
     return true;
   }
   function notesMap(md){                                      // compare "by meaning", ignoring titles/indents
     const parts=splitNotes(md), m={};
-    for(let k=1;k+2<parts.length;k+=3)m[+parts[k]]=parts[k+2].trim();
+    for(let k=1;k+2<parts.length;k+=3)m[+parts[k]]=parseNoteBody(parts[k+2]);
     return JSON.stringify(m);
   }
   function slideTitle(s){
@@ -790,7 +882,9 @@
     let out=notesPrologue?notesPrologue+'\n\n':'';
     slides.forEach((s,k)=>{
       let ttl=noteTitles[k]; if(!ttl){const t=slideTitle(s); ttl=t?'· '+t:''}
-      out+='## '+fmt(k)+(ttl?' '+ttl:'')+'\n'+((s.dataset.notes||'').trim()||'—')+'\n\n';
+      out+='## '+fmt(k)+(ttl?' '+ttl:'')+'\n### '+__kT.pCues+'\n'+(s.dataset.cues||'').trim()
+        +'\n\n### '+__kT.pFull+'\n'+(s.dataset.notes||'').trim()
+        +'\n\n### '+(__kLangAttr.toLowerCase().match(/^ru(?:-|$)/)?'Обсудить с залом':'Discussion')+'\n'+(s.dataset.discussion||'').trim()+'\n\n';
     });
     return out.trim()+'\n';
   }
@@ -901,14 +995,19 @@
   function editButtons(on){                                   // "✎ edit" ⇄ "✓ apply / ✕ cancel"
     if(!presenter||presenter.closed)return;
     const pd=presenter.document, sw=(id,vis)=>{const el=pd.getElementById(id); if(el)el.style.display=vis?'':'none'};
-    sw('b-ed',!on); sw('b-ok',on); sw('b-no',on);
+    const prefix=editField==='discussion'?'d-':'b-';
+    sw(prefix+'ed',!on); sw(prefix+'ok',on); sw(prefix+'no',on);
   }
-  function startEdit(){
-    if(!presenter||presenter.closed||allOpen||editing)return;
-    const pd=presenter.document, note=pd.getElementById('note'), ta=pd.getElementById('noteedit');
+  function startEdit(field=noteMode){
+    if(!presenter||presenter.closed||allOpen)return;
+    if(editing)commitEdit();
+    editField=field;
+    const pd=presenter.document, id=field==='discussion'?'discussion':'note', note=pd.getElementById(id), ta=pd.getElementById(id+'edit');
     if(!note||!ta)return;
     editing=true;
-    ta.value=slides[i].dataset.notes||'';
+    ta.value=slides[i].dataset[editField]||'';
+    ta.placeholder=editField==='cues'?__kT.cuesHelp:editField==='discussion'?__kT.discussionHelp:'';
+    ta.setAttribute('aria-label',editField==='discussion'?__kT.pDiscussion:noteMode==='cues'?__kT.pCues:__kT.pFull);
     note.style.display='none'; ta.style.display='block'; editButtons(true);
     ta.focus(); try{ta.setSelectionRange(ta.value.length,ta.value.length)}catch(e){}
   }
@@ -916,8 +1015,8 @@
     if(!editing)return;
     editing=false;
     try{
-      const pd=presenter.document, note=pd.getElementById('note'), ta=pd.getElementById('noteedit');
-      if(save&&ta&&ta.value.trim()!==(slides[i].dataset.notes||'').trim()){slides[i].dataset.notes=ta.value.trim();saveDraft()}
+      const pd=presenter.document, id=editField==='discussion'?'discussion':'note', note=pd.getElementById(id), ta=pd.getElementById(id+'edit');
+      if(save&&ta&&ta.value.trim()!==(slides[i].dataset[editField]||'').trim()){slides[i].dataset[editField]=ta.value.trim();saveDraft()}
       if(ta)ta.style.display='none';
       if(note)note.style.display='';
       editButtons(false);
@@ -958,7 +1057,7 @@
     if(!draftMD){notePlate(__kT.plNothing);return}
     stashDraft(draftMD); clearDraft();
     if(lastNotesMD!==null)parseNotesMD(lastNotesMD);
-    else slides.forEach((s,k)=>s.dataset.notes=bakedNotes[k]);   // no notes file — return the notes built into the deck
+    else slides.forEach((s,k)=>Object.assign(s.dataset,bakedNotes[k]));   // no notes file — return the notes built into the deck
     updatePresenter();
     notePlate(notesEverOk?__kT.plRevFile(notesName):__kT.plRevBaked,__kT.plRevBtn,restoreStale);
   }

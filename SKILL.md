@@ -15,7 +15,10 @@ Codex and Claude Code have specific adapters; other agents follow the generic ho
 The skill guides the person through the pipeline "Context · Design · Build · Voice". The output is a
 self-contained HTML deck, **designed for this content**. The deck opens offline in a browser and
 pages with arrows and the wheel. Speaker notes live in the presenter window and in the live notes
-file `<slug>-notes.js`. The short path gives a one-page presentation without a presenter window,
+file `<slug>-notes.js`. The presenter has **Cues** (default) and **Full text** tabs, plus a
+shared **Discuss with the audience** block on both. Read `assets/speaker-notes.md` when preparing
+or editing speaker notes: headings with 1–2 sentence reminders, complete speech, and optional
+questions/topics considered for every slide. The short path gives a one-page presentation without a presenter window,
 in one go.
 
 **Design and review in the current client.** Read `stages/canvas.md`: Codex uses a local HTML

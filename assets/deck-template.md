@@ -24,7 +24,7 @@ the section by the heading (English or Russian) or by this marker, so other lang
 
 # {{Deck title}} — manifest
 
-`{{deck/slug-date}}.html` · {{N}} slides · built {{date}} · kernel `{{v8}}` from the skill `/present`
+`{{deck/slug-date}}.html` · {{N}} slides · built {{date}} · kernel `{{v9}}` from the skill `/present`
 
 ## Pipeline
 <!-- present:pipeline -->
@@ -108,7 +108,8 @@ Voice laps (each run-through is a row):
   `[data-interactive]`, scrollable ones — `[data-scroll]`. The contract is in `cookbook.md`, the section "Interactivity".
   After edits, click through the widgets by hand: the validator does not check them.
 - Speaker notes → `{{slug}}-notes.js` (the source of truth, the presenter window picks it up live);
-  `data-notes` in the HTML is a fallback copy: when you edit the structure, sync both.
+  `data-notes`, `data-cues` and `data-discussion` in the HTML are fallback copies: sync all three.
+  Cues opens by default; Full text is the other tab. Audience discussion is shared by both.
   The second way is directly in the presenter window, with buttons: "✎" edit (or a double-click) — the note of the current
   slide, "☰" all notes — all at once, "⤓ notes.js" — download `{{slug}}-notes.js` to Downloads
   and put it here over the old one.

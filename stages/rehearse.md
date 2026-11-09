@@ -61,7 +61,10 @@ Step 2 with this duration.
    - list the places where the person lost the thread (pauses, "uhm", restarts) in the lap summary
      and in the lap row in `DECK.md`: the slide or its speech needs an edit there. Suggest an edit;
      do not decide for the person.
-4. Show the diff of `slides.md` and the summary: "was M:SS, now ~M:SS with budget B". Ask "apply / edits".
+4. Reconcile cues with the revised speech: every main thought gets a heading and 1–2 reminder
+   sentences. Revisit audience questions/topics and their timing; preserve useful personal edits
+   in the common discussion block. Follow `assets/speaker-notes.md`.
+5. Show the diff of `slides.md` and the summary: "was M:SS, now ~M:SS with budget B". Ask "apply / edits".
    **"Do it yourself":** apply and show the summary.
    If the person said "the structure must change" (slides in a different order, a new slide), this
    is a structure edit: do it in `slides.md`, it goes into the deck at the rebuild.
@@ -70,9 +73,10 @@ Step 2 with this duration.
 
 `stages/build.md`, Step 6 (refinement), without offers to "tweak the palette": the speech changes.
 **First find the person's edits:** compare the sections of `<slug>-notes.js` with `data-notes` of
-the current deck — the differences are the person's edits in the presenter window. The new speech
+the current deck, and compare the cue and discussion fields with `data-cues` / `data-discussion` — the differences are the person's edits in the presenter window. The new speech
 from `slides.md` goes into `notes.js` and `data-notes`; do not overwrite the person's edits — move
-them, or ask if they conflict with the new speech.
+them, or ask if they conflict with the new speech. Update cues and discussion in notes.js and
+their HTML fallback attributes together; check both tabs and the shared discussion block.
 The check is the same as after any refinement: the validator, the auditor in Chrome (text length
 changes the layout only where the speech is visible on the slide, but the auditor costs one call)
 and the PDF, if the text on the slides changed.

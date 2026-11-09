@@ -21,6 +21,14 @@ Where to write what: all deck CSS goes into `<style id="design">`; slides go int
 
 ---
 
+## Speaker notes
+
+Read `speaker-notes.md` for the full contract. Kernel v9 opens **Cues** by default, with a
+**Full text** tab and a common audience-discussion block. Each cue has a heading and 1–2 short
+reminder sentences. `data-notes` stores speech, `data-cues` the bullet list, `data-discussion`
+optional questions/topics. The live notes file, drafts, editors and export keep all three fields.
+Legacy notes remain full text with empty cues/discussion; old decks need a rebuild for the tabs.
+
 ## Kernel class contract (what the kernel animates)
 
 The animators fire on classes of the active slide. Some of them require that **you define their
@@ -45,14 +53,16 @@ short path (`stages/quick.md`). The kernel ships with `<html lang="en">`. The bu
 `<html lang="<deck language>">`, and on the short path it adds ` data-presenter="off"`:
 `<html lang="<deck language>" data-presenter="off">`. Replace the root tag as one string: since kernel
 v7 this string occurs once (the presenter window string builds its own tag in parts). To bring the
-window back, remove the attribute, add `data-notes` to all slides and run the validator again. On a
+window back, first rebuild decks below v9 with the current kernel while preserving their design,
+slides and interactive script. Remove the attribute; add `data-notes`, `data-cues` and optional
+`data-discussion` by `speaker-notes.md`, then run the validator again. On a
 kernel below v7 the attribute has no effect, and the validator reports it as an error.
 
 **Kernel UI language (kernel v8).** Kernel UI strings (presenter window, hints, toasts) follow
 `<html lang>`: `ru` or `ru-*` → Russian, any other value → English. The build sets `lang` on the root tag to
 the deck language. Edits of the kernel copy outside the design layer and `#deck`: on the root tag —
 only `lang` and `data-presenter="off"`; inside `<script id="kernel">` — only `WHEEL_TH`/`WHEEL_COOLDOWN`
-(see "Wheel navigation"). Nothing else. The current kernel marker is `KERNEL v8`.
+(see "Wheel navigation"). Nothing else. The current kernel marker is `KERNEL v9`.
 
 Pipeline attributes on `.pipeline` (ALL optional): `data-total` (how many times to run the stages; default
 **1**), `data-loop` (set → loop; by default it plays once and stops), `data-item` (the counter word; default from the kernel UI language: Item / Пункт),

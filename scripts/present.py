@@ -16,7 +16,7 @@ RESOURCES = (
     "stages/context.md", "stages/design.md", "stages/build.md", "stages/quick.md",
     "stages/rehearse.md", "stages/transcribe.md", "stages/canvas.md", "stages/codex-design.md",
     "adapters/codex.md", "adapters/claude-code.md", "adapters/claude-design.md",
-    "assets/kernel.html", "assets/validate.py", "assets/cookbook.md",
+    "assets/kernel.html", "assets/validate.py", "assets/cookbook.md", "assets/speaker-notes.md",
     "assets/design-axes.md", "assets/art-direction.md", "assets/deck-template.md",
     "example/slides.md", "example/design.md",
 )

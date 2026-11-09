@@ -63,6 +63,10 @@ Offer this one time.
 
 ## slides.md format
 
+Read `assets/speaker-notes.md`. After writing the speech, derive cues covering its main thoughts.
+Consider a useful audience question or discussion topic for each slide; the discussion block
+may be empty. Separate suggested additions from source material. Count discussion time separately.
+
 Header: topic, budget, audience, goal, pace, timing total. Then the slides, separated by `---`:
 ```
 ## 01 · Slide title · ~0:40
@@ -71,16 +75,26 @@ Header: topic, budget, audience, goal, pace, timing total. Then the slides, sepa
 
 > The speaker's speech word for word, as the speaker will say it aloud.
 > `[note: pause, demo, action]`
+
+**Cues:**
+- **Short heading for the first thought**
+  One or two sentences that restore the thought, without repeating the full speech.
+
+**Discussion (optional):**
+- **A question or a related topic for the audience**
+  A short prompt for developing the discussion and returning to the slide.
 ```
 Write the headings and markers in the person's language (Russian: `**На экране:**`). The format
-sample is `<real-skill-root>/example/slides.md`. The sample is in Russian; the format is the same
-in any language.
+sample of speech and slide structure is `<real-skill-root>/example/slides.md`. That Russian
+example predates cues and discussion; use the format above and `assets/speaker-notes.md` for
+new talks, in the deck language (Russian markers: `**Тезисы:**`, `**Обсуждение (необязательно):**`).
 
 ## Stage gate
 
 The stage is finished when all of these are true:
 - `slides.md` is saved in the working folder;
-- each slide has a title, "On screen" and speech;
+- each slide has a title, "On screen", complete speech and cues (heading + 1–2 sentences per thought);
+- audience discussion was considered for each slide, useful questions are in a separate optional block;
 - there are no `[needed: …]` marks without an answer (or the person said "leave it as is"; in "do it
   yourself", the marks are listed in the stage summary);
 - the **timing** is calculated: speech words / pace + pauses and demos. Before the first

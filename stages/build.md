@@ -84,6 +84,9 @@ slider, the latency number recalculates", not "add interactivity". The last opti
 If there were no candidates, there is no question. Do not invent an extra step.
 
 ## Step 4 — Bespoke build
+Read `assets/speaker-notes.md` for the three-field content and storage contract. Prepare both
+Cues and Full text, and consider optional discussion on every slide. Preserve all existing
+fields from notes.js before deriving missing cues; do not overwrite rehearsal edits.
 From a canvas: the method is `stages/canvas.md`, "Transfer"; the rules below (folder, kernel, language, checks) still apply.
 Build **into the subfolder `deck/`** of the working folder (see "Folder layout"). Create it if it does not exist.
 **Deck language:** write the deck content (slide text, `data-notes`, `<title>`, the live notes file) in the person's language
@@ -95,7 +98,7 @@ it builds from. Keep it up to date after every change (a rebuild must not roll t
 1. Copy `assets/kernel.html` **of THIS skill** (from its `assets/` folder) **word for word** as the base — the whole
    `<script id="kernel">` and the chrome DOM stay unchanged. **The kernel source is ONLY the assets of the skill.** If the talk is about
    `present` itself and the input folder has a copy of the skill (`present/`, another `kernel.html`, a finished `*.html` deck), that is
-   CONTENT/reference, NOT the kernel: do NOT copy the kernel from there. If you are not sure, compare the marker `KERNEL v8` in the header
+   CONTENT/reference, NOT the kernel: do NOT copy the kernel from there. If you are not sure, compare the marker `KERNEL v9` in the header
    of the freshly copied file. If you insert CSS/slides with a script, match the real blocks by their placeholder content
    (`<style id="design">\s*/\*…\*/\s*</style>`, `<div id="deck">\s*<!--…-->\s*</div>`). `assets/validate.py` confirms
    the integrity later (Step 5). Put the real `<title>` in place of `{{TITLE}}`.
@@ -107,7 +110,9 @@ it builds from. Keep it up to date after every change (a rebuild must not roll t
    Compare with the class contract in `cookbook.md`: components that
    the kernel animates must get their CSS/keyframes (especially `@keyframes gitin` for `.clist`).
 3. Put the designed slides into `#deck`: one thought — one slide, short titles, numbers → `.count`,
-   EACH `<section>` has `data-notes` with the speech word for word (stage directions in `[brackets]`). The first slide has the class `active`.
+   EACH `<section>` has `data-notes` with the speech word for word (stage directions in `[brackets]`),
+   `data-cues` with the cue list, and optional `data-discussion` with audience questions/topics.
+   HTML-escape all three attribute values; cues and discussion use the bullet format in `assets/speaker-notes.md`. The first slide has the class `active`.
    Lay out each slide for ITS thought: the kernel requires no "standard" slide structure, and
    many slides are only large typography or their own layout without named components. Take classes
    from the contract (`cookbook.md`) only when the thought of the slide really needs a counter,
@@ -127,22 +132,32 @@ it builds from. Keep it up to date after every change (a rebuild must not roll t
    `cookbook.md`, section "Interactivity: the kernel contract". Use one widget per slide. The slide
    must be readable even if nobody clicks it.
 
-5. **Generate the live notes file** `<slug>-notes.js` next to the deck, in the same `deck/`, from data-notes
+5. **Generate the live notes file** `<slug>-notes.js` next to the deck, in the same `deck/`, from the three embedded fields
    (name = name of the deck html file + `-notes.js` — the kernel looks for exactly this name):
    ```js
    window.DECK_NOTES = String.raw`
    ## 01 · Slide title
+   ### Cues
+   - **Main thought**
+     One or two sentences to recall the point.
+
+   ### Full text
    Note text… [stage directions in brackets]
+
+   ### Discussion
+   - **A useful audience question**
+     Brief facilitation prompt; omit the bullet if no discussion is useful.
    `;
    ```
    It is both a prompter for reading (phone/paper) and a live source: the kernel reads the file again on the fly —
    changes appear in the presenter window without a rebuild. The section key is the number `NN` (the same as the slide number).
    The title after `·` is for the human. Do not use the backtick and `${` in the note text.
-   `data-notes` in the HTML stay as a fallback copy (the deck also works as one file).
+   Use Russian headings for Russian decks: `Тезисы`, `Полный текст`, `Обсудить с залом`.
+   `data-notes`, `data-cues` and `data-discussion` in the HTML stay as fallback copies (the deck also works as one file).
    **`<slug>-notes.js` is the source of truth after the first generation.** The person edits the speaker notes directly
    in the presenter window (button "✎ edit") and downloads the file with the button "⤓ notes.js". That file can have changes that are not
    in `data-notes`. So on every rebuild/refinement **first read the existing `notes.js`**
-   and copy its text into `data-notes` of the deck you build. Do not overwrite the file from old `data-notes`.
+   and copy all three fields into the matching HTML attributes of the deck you build. Do not overwrite the file from old `data-notes`.
 
 ## Step 5 — Check and show
 
@@ -151,7 +166,7 @@ in Codex. Run the cookbook checks through documented APIs, and record checks tha
 the available tools cannot perform. Route previews/review pages via `stages/canvas.md`.
 
 - **Run the validator:** `python3 <skill folder>/assets/validate.py <deck>.html`. It checks the integrity of
-  the kernel (the marker `KERNEL v8`, base/print styles, chrome, presenter, note editing, PDF export), leftover `{{…}}`,
+  the kernel (the numeric marker `KERNEL vN`, base/print styles, chrome, presenter, note editing, PDF export), leftover `{{…}}`,
   network links and local links to missing files, JS syntax (`node --check` on each script block — kernel, interactive — and on notes.js),
   extra script blocks and the order of interactive relative to kernel, interactivity on a kernel below v6, a click
   attached with an ATTRIBUTE handler (`onclick=…`) to a non-interactive tag, the match of the sections of
@@ -197,6 +212,9 @@ the available tools cannot perform. Route previews/review pages via `stages/canv
   the kernel must be updated.
 - Manual check (the person does it, not you): `P` opens the presenter as a separate window (not a tab)
   and it is in sync, `B` blanks the screen, the live notes load.
+- **Check the presenter:** Cues opens by default; Full text shows the whole speech; discussion
+  remains visible on both tabs. Verify editing, switching slides, live reload and export for all
+  three fields, including a slide without discussion.
 - **Complete `DECK.md`** in the working folder (not in `deck/`) by `assets/deck-template.md`. The router created
   it at the start of the path with the Pipeline section. If there is no file, create it fully. Write its sections in the person's
   language: deck mode ("script"/"by hand"), slide map, art direction in short, decisions/deviations with "why", how to edit.
@@ -235,11 +253,11 @@ the available tools cannot perform. Route previews/review pages via `stages/canv
 by `stages/canvas.md`, "Read the canvas and its comments", then rebuild here and update the same authorized surface.
 Offer to adjust: palette/density/motion, the treatment of the background, add/remove a slide, timings.
 **Before any change, read `<slug>-notes.js` again** — the person could edit the speaker notes in the presenter window
-and download the file. Copy these changes into `data-notes`. Do not overwrite them with old text from the HTML.
+and download the file. Copy these changes into `data-notes`, `data-cues` and `data-discussion`. Do not overwrite them with old text from the HTML.
 First find the deck mode (from `DECK.md` — deck mode "script" / "by hand", Russian: «скрипт» / «руками» — or from the presence of a build script): mode "script" → edit the SOURCES
 and rebuild, do not touch the finished HTML by hand, keep the script up to date; mode "by hand" → a targeted Edit —
 only in `<style id="design">` and `#deck`, without touching the kernel. If you added/removed slides, renumber the sections in
-`<slug>-notes.js` (it is the source of truth for the speaker notes; update `data-notes` in the HTML as the fallback). Put the rebuilt
+`<slug>-notes.js` (it is the source of truth for the speaker notes; update all three HTML attributes as fallbacks). Put the rebuilt
 deck into the same `deck/` — do not make copies in the working folder and do not leave old html/notes from
 past builds in `deck/`. **After changes — the visual self-check in Chrome again** (Step 5): run the layout auditor
 on the whole deck (this is one call). Capture the frames again for the slides you changed. If you changed
@@ -269,7 +287,8 @@ the file set until the person asks for promotion.
 The person gave a path to a `*.html` (the marker `KERNEL v` in the header) and a prompt about what to finish. This is not a new talk, it is a
 continuation. **Nothing internal is embedded in the deck and there is nothing to look for: the deck is its own context.** Read it:
 - slide text — the sections `<section class="slide">` in `#deck`;
-- the speaker's speech — `data-notes` on the sections (if `<slug>-notes.js` is next to the deck, it wins — read it);
+- all presenter content — `data-notes` (speech), `data-cues` (reminders), `data-discussion`
+  (audience questions/topics) on the sections; if `<slug>-notes.js` exists, it wins — read all three fields from it;
 - art direction — `<style id="design">`: the `:root` palette, typography, composition classes;
 - the kernel version — the marker `KERNEL v` in the header. `DECK.md` can be next to the deck — then it is the main source of decisions.
 
@@ -279,8 +298,8 @@ Then act by the request:
 - **promotion to a full talk** — ask where to create the working folder, and set up the file set: restore
   `slides.md` from the markup and the speaker notes (if there are no speaker notes, write the speech by the stage Context), complete `design.md`
   (the stage Design, or record the art direction that the deck already has as the brief), remove from `<html>` the attribute
-  `data-presenter="off"` if it is there, add `data-notes` with the speech from `slides.md` to each slide,
-  move the deck into `deck/`, generate `<slug>-notes.js` from `data-notes`, create `DECK.md` with the
+  `data-presenter="off"` if it is there, add `data-notes`, `data-cues` and optional `data-discussion` from `slides.md` to each slide,
+  move the deck into `deck/`, generate `<slug>-notes.js` from all three fields, create `DECK.md` with the
   Pipeline section. Then the usual refinement and the stage Voice.
 
 **The kernel is old.** The deck was built on a kernel below v6, and the person adds interactivity to it — the old kernel
@@ -288,4 +307,6 @@ has no guards, and the widget will fight with the navigation. Say this directly 
 into a fresh `assets/kernel.html`; keep the deck language on the root tag (old Russian decks: `lang="ru"`,
 the fresh kernel ships `lang="en"`). Without interactivity there is no reason to touch the old deck. The same applies to the switch
 of the presenter window: only kernel v7+ understands `data-presenter="off"`.
+For the Cues/Full text tabs and shared audience discussion, move the design and slides into
+kernel v9 and reconcile all three notes fields by `assets/speaker-notes.md`.
 

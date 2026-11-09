@@ -107,6 +107,11 @@ The small loop turns as many times as you run the talk out loud.
   themselves, and offers options — the user decides. The engine yields to widgets: a click on a button or a
   caption doesn't flip the slide, typing in an input doesn't trigger hotkeys, a scrollable area scrolls on
   its own. One or two such slides per deck is the norm, and each one reads fine even if nobody clicks it.
+- **Two presenter tabs:** **Cues** opens by default — a bullet list of main thoughts, each with a
+  heading and 1–2 reminder sentences. **Full text** keeps the entire speech. A separate
+  **Discuss with the audience** block is visible on both tabs: optional questions/topics and
+  short facilitation prompts. Each block is editable; drafts, live reload and export preserve
+  all three. Existing decks need a rebuild on kernel v9; legacy notes remain full text.
 - **Live notes** in a `<slug>-notes.js` file next to the deck: edit them in the presenter window or in an external editor — they are picked up on the fly, no rebuild. A copy is embedded in the HTML as a fallback, so the deck can still be sent as a single file.
 
 The deck runs as a local file, and a browser cannot write to disk from one — so note edits live as a draft in the browser (they survive F5) and reach the disk via the "⤓ notes.js" button: download it, drop it next to the deck over the old one. The file wins over the draft; unsaved edits are not lost — the presenter offers to bring them back.
@@ -245,7 +250,7 @@ open present/example-quick/present-korotkiy-put.html
 | `stages/rehearse.md` | the "Voice" stage: recorded run-through → transcript → trimming to the budget → rebuild |
 | `stages/quick.md` | the short path: one page in one go, presenter window on request |
 | `stages/transcribe.md` | transcribing recordings for "Context" and "Voice": a transcription skill, `whisper-cli` or text from you |
-| `assets/kernel.html` | the deck engine (KERNEL v8): navigation, animators, presenter window and its off switch, PDF export, guards for interactive slides. Copied **verbatim**; all the visual design goes into its `<style id="design">` and the slides into `#deck` |
+| `assets/kernel.html` | the deck engine (KERNEL v9): navigation, animators, presenter window and its off switch, PDF export, guards for interactive slides. Copied **verbatim**; all the visual design goes into its `<style id="design">` and the slides into `#deck` |
 | `assets/design-axes.md` | 9 axes of design decisions — a list of questions, not a catalogue of answers: composition, margins, typography, colour, background, motion, detail, chrome, interactivity |
 | `assets/art-direction.md` | how to design the visuals around the content; how to apply `design.md`; where to get briefs |
 | `assets/cookbook.md` | the kernel class contract (`.count`, `.chain`, `.clist`, `.pipeline`, `[data-type]`…), the interactivity contract (where your own JS goes and how it coexists with navigation and printing), offline fonts, media, checks. There are deliberately no ready-made components or art-direction samples in there — otherwise every deck comes out a recoloured copy of them |
@@ -258,7 +263,7 @@ open present/example-quick/present-korotkiy-put.html
 python3 assets/validate.py <deck>.html
 ```
 
-It checks kernel integrity (the `KERNEL v8` marker, base and print styles, chrome, presenter, note editing, PDF export), leftover `{{…}}`, network references and local links to missing files, JS syntax (`node --check` on every script block and on `notes.js`), stray script blocks and the order of the interactive block relative to the kernel, interactivity on an engine older than v6, a click bound by attribute to a non-interactive tag, section sync between `notes.js` and the slides, and the presence of `slides.md` / `design.md` / `DECK.md`.
+It checks kernel integrity (the numeric `KERNEL vN` marker, base and print styles, chrome, presenter, note editing, PDF export), leftover `{{…}}`, network references and local links to missing files, JS syntax (`node --check` on every script block and on `notes.js`), stray script blocks and the order of the interactive block relative to the kernel, interactivity on an engine older than v6, a click bound by attribute to a non-interactive tag, section sync between `notes.js` and the slides, and the presence of `slides.md` / `design.md` / `DECK.md`.
 
 A short-path deck is recognised by the validator on its own — a single file with no companion set — and it doesn't ask for the set. A deck with `data-presenter="off"` needs no notes; such a deck next to a full-path set is an error.
 
